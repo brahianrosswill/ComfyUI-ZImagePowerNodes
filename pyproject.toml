@@ -1,0 +1,14 @@
+[project]
+name = "z-image_nodes"
+description = "Varios nodos útiles especialmente creados para el modelo Z-Image"
+version = "0.0.1"
+license = {file = "LICENSE"}
+
+[project.urls]
+Repository = "https://github.com/martin-rizzo/ComfyUI-ZImageNodes"
+#  Used by Comfy Registry https://comfyregistry.org
+
+[tool.comfy]
+PublisherId = "martin-rizzo"
+DisplayName = "Z-Image Nodes"
+Icon = "https://martin-rizzo.github.io/ComfyUI-ZImageNodes/img/thumbnail.jpg"
