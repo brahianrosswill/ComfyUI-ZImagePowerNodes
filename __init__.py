@@ -90,30 +90,34 @@ def _register_node(node_class, node_subcategory, node_list, deprecated: bool = F
 
 #======================= COMFY EXTENSION (V3 schema) =======================#
 
-class ZImagePowerExtension(ComfyExtension):
+class ZImageNodesExtension(ComfyExtension):
 
     # must be declared as async
     async def get_node_list(self) -> list[type[io.ComfyNode]]:
         _PROJECT_MENU= "ZiNodes"
         nodes = []
 
+
+        #-- ROOT --------------------------------
         subcategory = ""
 
-        from .nodes.zsampler import ZSampler
-        _register_node( ZSampler, subcategory, nodes )
+        from .nodes.zsampler_turbo import ZSamplerTurbo
+        _register_node( ZSamplerTurbo, subcategory, nodes )
 
-        #nodes.append( ZSampler )
-        #_comfy_import_node(ZSampler)
 
-        # [Z-Image/__deprecated]
-        # here are the deprecated nodes that have been kept for compatibility
+        #--[ __deprecated ]----------------------
         subcategory = "__deprecated"
-        # _register_node( DeprecatedNode, subcategory, nodes, deprecated=True )
+
+        # this is where nodes that were deprecated and
+        # maintained only for compatibility go
+
+        # from .nodes.example_node import ExampleNode
+        # _register_node( ExampleNode, subcategory, nodes, deprecated=True )
 
         logger.info(f"Imported {len(nodes)} nodes")
         return nodes
 
 
-async def comfy_entrypoint() -> ZImagePowerExtension:
-    return ZImagePowerExtension()
+async def comfy_entrypoint() -> ZImageNodesExtension:
+    return ZImageNodesExtension()
 
