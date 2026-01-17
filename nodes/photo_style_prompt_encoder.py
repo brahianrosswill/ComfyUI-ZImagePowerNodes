@@ -17,7 +17,7 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 """
 from comfy_api.latest     import io
 from .core.system         import logger
-from .styles.base         import apply_style_to_prompt
+from .styles.base         import Styles, apply_style_to_prompt
 from .styles.photo_styles import PHOTO_STYLES
 
 
@@ -42,9 +42,20 @@ class PhotoStylePromptEncoder(io.ComfyNode):
                 "image generation."
             ),
             inputs=[
-                io.Clip.Input  ("clip"      , tooltip="The CLIP model used for encoding the text."),
-                io.Combo.Input ("style_name", options=cls.style_names(), tooltip="The style you want for your image."),
-                io.String.Input("text"      , multiline=True, dynamic_prompts=True, tooltip="The prompt to encode."),
+                io.Clip.Input  ("clip"         , tooltip="The CLIP model used for encoding the text."),
+                io.String.Input("customization", tooltip=(
+                                'An optional multi-line string to customize existing styles. '
+                                'Each style definition must start with ">>>" followed by the style name, and then include '
+                                'its description on the next lines. The description should incorporate "{$@}" where the '
+                                'main text prompt will be inserted.'),
+                                optional=True, multiline=True, force_input=True,
+                               ),
+                io.Combo.Input ("style_name", tooltip="The style you want for your image.",
+                                options=cls.style_names()
+                               ),
+                io.String.Input("text", tooltip="The prompt to encode.",
+                                multiline=True, dynamic_prompts=True
+                               ),
             ],
             outputs=[
                 io.Conditioning.Output(tooltip="The encoded text used to guide the image generation."),
@@ -54,11 +65,21 @@ class PhotoStylePromptEncoder(io.ComfyNode):
 
     #__ FUNCTION __________________________________________
     @classmethod
-    def execute(cls, clip, style_name: str, text: str) -> io.NodeOutput:
+    def execute(cls, clip, style_name: str, text: str, customization: str = None) -> io.NodeOutput:
+        prompt        = text
+        found_style   = None
+        custom_styles = Styles.from_config(customization) if isinstance(customization,str) else Styles()
 
-        prompt = text
-        if style_name in PHOTO_STYLES:
-            prompt = apply_style_to_prompt(prompt, PHOTO_STYLES[style_name], spicy_impact_booster=False)
+        if isinstance(style_name, str) and style_name != "none":
+            # first search inside the custom styles that the user has defined,
+            # if not found, search inside the predefined styles
+            found_style = custom_styles.get(style_name)
+            if not found_style:
+                found_style = PHOTO_STYLES.get(style_name)
+
+        # if the style was found, apply it to the prompt
+        if found_style:
+            prompt = apply_style_to_prompt(prompt, found_style, spicy_impact_booster=False)
 
         if clip is None:
             raise RuntimeError("ERROR: clip input is invalid: None\n\nIf the clip is from a checkpoint loader node your checkpoint does not contain a valid clip or text encoder model.")

@@ -74,6 +74,11 @@ class Styles:
             else:
                 content += line + "\n"
 
+        # before ending, process any pending action
+        if action and action.startswith(">>>"):
+            style_name = action[3:].strip()
+            styles.add_style(style_name, content.strip())
+
         return styles
 
 

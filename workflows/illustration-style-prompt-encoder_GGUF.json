@@ -1,8 +1,8 @@
 {
   "id": "f14c6566-993e-4413-bd11-9c7f2ca07fd1",
   "revision": 0,
-  "last_node_id": 32,
-  "last_link_id": 49,
+  "last_node_id": 33,
+  "last_link_id": 51,
   "nodes": [
     {
       "id": 19,
@@ -456,7 +456,7 @@
         {
           "name": "positive",
           "type": "CONDITIONING",
-          "link": 48
+          "link": 51
         },
         {
           "name": "latent_input",
@@ -511,7 +511,7 @@
           "name": "",
           "type": "CLIP",
           "links": [
-            49
+            50
           ]
         }
       ],
@@ -521,7 +521,7 @@
       }
     },
     {
-      "id": 32,
+      "id": 33,
       "type": "IllustrationStylePromptEncoder //ZImageNodes",
       "pos": [
         190,
@@ -538,7 +538,13 @@
         {
           "name": "clip",
           "type": "CLIP",
-          "link": 49
+          "link": 50
+        },
+        {
+          "name": "customization",
+          "shape": 7,
+          "type": "STRING",
+          "link": null
         }
       ],
       "outputs": [
@@ -546,7 +552,7 @@
           "name": "CONDITIONING",
           "type": "CONDITIONING",
           "links": [
-            48
+            51
           ]
         },
         {
@@ -557,12 +563,12 @@
       ],
       "properties": {
         "aux_id": "martin-rizzo/ComfyUI-ZImageNodes",
-        "ver": "ae47bbe2cb4550abf019e7d3d7ae99d06e71f73a",
+        "ver": "7cd9bfa4806b93c7b8437a519ce6fc0955fc8821",
         "Node name for S&R": "IllustrationStylePromptEncoder //ZImageNodes"
       },
       "widgets_values": [
-        "Manga",
-        "A woman with short, choppy black hair and striking eyes rides a small silver motorcycle through a dimly lit, graffiti-covered underground tunnel. She wears an all-black outfit consisting of a long-sleeved crop top that reveals her midriff, high-waisted pants with a tool belt, and knee-high boots. Her body is upright, her knees bent over the motorcycle's tank. With one hand she grips the handlebars, with the other she holds a large-caliber automatic pistol, aiming through the scope for the best shot. The motorcycle's headlight is illuminated, casting a glow into the surroundings. Her hair blows in the wind as she rides. The background features a concrete wall adorned with graffiti, with a row of fluorescent lights mounted on the ceiling. The overall atmosphere of the image is one of high-speed, intense action."
+        "Comic Book Cover",
+        "A woman and two robotic figures are depicted in a science fiction scene set in a desolate environment. On the left, a large, beige-colored starship with long shape levitates slightly above the ground, with its door open, revealing a dark interior; the spacecraft has a smooth, segmented texture composed of geometric shapes. The woman, positioned centrally, wears a long, light brown dress with a waist belt and a flowing cape; her hair is short and light-colored. To her right, a robotic figure with a futuristic design sports a suit with dark details, showcasing a circular glowing light on its facial area. Further to the right, in a darker tone, stands another robotic figure crouched in a kneeling position, aiming a rifle towards the right, appearing to provide cover for the operation. The background features a cloudy sky and a landscape of dry, brown grass extending to the horizon."
       ],
       "color": "#232",
       "bgcolor": "#353",
@@ -659,20 +665,20 @@
       "LATENT"
     ],
     [
-      48,
-      32,
+      50,
+      22,
+      0,
+      33,
+      0,
+      "CLIP"
+    ],
+    [
+      51,
+      33,
       0,
       18,
       1,
       "CONDITIONING"
-    ],
-    [
-      49,
-      22,
-      0,
-      32,
-      0,
-      "CLIP"
     ]
   ],
   "groups": [
@@ -693,10 +699,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.9090909090909091,
+      "scale": 0.683013455365071,
       "offset": [
-        441.75054332325817,
-        -41.02523231388509
+        524.2260339482572,
+        124.97129034236457
       ]
     },
     "frontendVersion": "1.35.9"
