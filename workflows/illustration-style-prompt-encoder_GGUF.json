@@ -1,8 +1,8 @@
 {
   "id": "f14c6566-993e-4413-bd11-9c7f2ca07fd1",
   "revision": 0,
-  "last_node_id": 30,
-  "last_link_id": 46,
+  "last_node_id": 32,
+  "last_link_id": 49,
   "nodes": [
     {
       "id": 19,
@@ -326,58 +326,6 @@
       "shape": 1
     },
     {
-      "id": 18,
-      "type": "ZSamplerTurbo //ZImageNodes",
-      "pos": [
-        1170,
-        150
-      ],
-      "size": [
-        250,
-        480
-      ],
-      "flags": {},
-      "order": 11,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 27
-        },
-        {
-          "name": "positive",
-          "type": "CONDITIONING",
-          "link": 46
-        },
-        {
-          "name": "latent_input",
-          "type": "LATENT",
-          "link": 41
-        }
-      ],
-      "outputs": [
-        {
-          "name": "latent_output",
-          "type": "LATENT",
-          "links": [
-            22
-          ]
-        }
-      ],
-      "properties": {
-        "aux_id": "martin-rizzo/ComfyUI-ZImageNodes",
-        "ver": "7cb3b03f95eeae260ebbc2facdf6ba6c1e16e639",
-        "Node name for S&R": "ZSamplerTurbo //ZImageNodes"
-      },
-      "widgets_values": [
-        1,
-        "fixed",
-        9,
-        1
-      ]
-    },
-    {
       "id": 29,
       "type": "Reroute",
       "pos": [
@@ -486,6 +434,58 @@
       ]
     },
     {
+      "id": 18,
+      "type": "ZSamplerTurbo //ZImageNodes",
+      "pos": [
+        1170,
+        150
+      ],
+      "size": [
+        250,
+        480
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 27
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 48
+        },
+        {
+          "name": "latent_input",
+          "type": "LATENT",
+          "link": 41
+        }
+      ],
+      "outputs": [
+        {
+          "name": "latent_output",
+          "type": "LATENT",
+          "links": [
+            22
+          ]
+        }
+      ],
+      "properties": {
+        "aux_id": "martin-rizzo/ComfyUI-ZImageNodes",
+        "ver": "7cb3b03f95eeae260ebbc2facdf6ba6c1e16e639",
+        "Node name for S&R": "ZSamplerTurbo //ZImageNodes"
+      },
+      "widgets_values": [
+        1,
+        "fixed",
+        7,
+        1
+      ]
+    },
+    {
       "id": 22,
       "type": "Reroute",
       "pos": [
@@ -511,7 +511,7 @@
           "name": "",
           "type": "CLIP",
           "links": [
-            45
+            49
           ]
         }
       ],
@@ -521,15 +521,15 @@
       }
     },
     {
-      "id": 30,
+      "id": 32,
       "type": "IllustrationStylePromptEncoder //ZImageNodes",
       "pos": [
-        200,
-        230
+        190,
+        210
       ],
       "size": [
-        580,
-        780
+        600,
+        820
       ],
       "flags": {},
       "order": 9,
@@ -538,7 +538,7 @@
         {
           "name": "clip",
           "type": "CLIP",
-          "link": 45
+          "link": 49
         }
       ],
       "outputs": [
@@ -546,18 +546,23 @@
           "name": "CONDITIONING",
           "type": "CONDITIONING",
           "links": [
-            46
+            48
           ]
+        },
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": null
         }
       ],
       "properties": {
         "aux_id": "martin-rizzo/ComfyUI-ZImageNodes",
-        "ver": "786e33971e9e295dd9a87ae1d74806a2ed4eaedc",
+        "ver": "ae47bbe2cb4550abf019e7d3d7ae99d06e71f73a",
         "Node name for S&R": "IllustrationStylePromptEncoder //ZImageNodes"
       },
       "widgets_values": [
-        "none",
-        ""
+        "Manga",
+        "A woman with short, choppy black hair and striking eyes rides a small silver motorcycle through a dimly lit, graffiti-covered underground tunnel. She wears an all-black outfit consisting of a long-sleeved crop top that reveals her midriff, high-waisted pants with a tool belt, and knee-high boots. Her body is upright, her knees bent over the motorcycle's tank. With one hand she grips the handlebars, with the other she holds a large-caliber automatic pistol, aiming through the scope for the best shot. The motorcycle's headlight is illuminated, casting a glow into the surroundings. Her hair blows in the wind as she rides. The background features a concrete wall adorned with graffiti, with a row of fluorescent lights mounted on the ceiling. The overall atmosphere of the image is one of high-speed, intense action."
       ],
       "color": "#232",
       "bgcolor": "#353",
@@ -654,20 +659,20 @@
       "LATENT"
     ],
     [
-      45,
-      22,
-      0,
-      30,
-      0,
-      "CLIP"
-    ],
-    [
-      46,
-      30,
+      48,
+      32,
       0,
       18,
       1,
       "CONDITIONING"
+    ],
+    [
+      49,
+      22,
+      0,
+      32,
+      0,
+      "CLIP"
     ]
   ],
   "groups": [
@@ -688,10 +693,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.6209213230591554,
+      "scale": 0.9090909090909091,
       "offset": [
-        456.47240831962887,
-        154.6834912765081
+        441.75054332325817,
+        -41.02523231388509
       ]
     },
     "frontendVersion": "1.35.9"

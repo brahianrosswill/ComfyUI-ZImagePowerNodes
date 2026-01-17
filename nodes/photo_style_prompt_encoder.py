@@ -48,6 +48,7 @@ class PhotoStylePromptEncoder(io.ComfyNode):
             ],
             outputs=[
                 io.Conditioning.Output(tooltip="The encoded text used to guide the image generation."),
+                io.String.Output(tooltip="The prompt after applying the selected photographic style."),
             ]
         )
 
@@ -62,7 +63,7 @@ class PhotoStylePromptEncoder(io.ComfyNode):
         if clip is None:
             raise RuntimeError("ERROR: clip input is invalid: None\n\nIf the clip is from a checkpoint loader node your checkpoint does not contain a valid clip or text encoder model.")
         tokens = clip.tokenize(prompt)
-        return io.NodeOutput( clip.encode_from_tokens_scheduled(tokens) )
+        return io.NodeOutput( clip.encode_from_tokens_scheduled(tokens), prompt )
 
 
     @classmethod
