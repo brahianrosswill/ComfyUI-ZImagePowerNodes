@@ -3,11 +3,11 @@ File    : zsampler_turbo.py
 Purpose : Node for denoising latent images using a set of custom sigmas with Z-Image Turbo (ZIT)
 Author  : Martin Rizzo | <martinrizzo@gmail.com>
 Date    : Jan 16, 2026
-Repo    : https://github.com/martin-rizzo/ComfyUI-ZImageNodes
+Repo    : https://github.com/martin-rizzo/ComfyUI-ZImagePowerNodes
 License : MIT
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                              ComfyUI-ZImageNodes
-             Experimental ComfyUI nodes for the Z-Image model.
+                          ComfyUI-ZImagePowerNodes
+         ComfyUI nodes designed specifically for the "Z-Image" model.
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
   ComfyUI V3 schema documentation can be found here:

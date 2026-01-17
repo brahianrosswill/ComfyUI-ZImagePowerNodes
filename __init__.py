@@ -1,13 +1,13 @@
 """
 File    : __init__.py
-Purpose : Register the nodes for the ComfyUI-ZImageNodes project.
+Purpose : Register the "Z-Image Power Nodes".
 Author  : Martin Rizzo | <martinrizzo@gmail.com>
 Date    : Jan 16, 2026
-Repo    : https://github.com/martin-rizzo/ComfyUI-ZImageNodes
+Repo    : https://github.com/martin-rizzo/ComfyUI-ZImagePowerNodes
 License : MIT
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                              ComfyUI-ZImageNodes
-             Experimental ComfyUI nodes for the Z-Image model.
+                          ComfyUI-ZImagePowerNodes
+         ComfyUI nodes designed specifically for the "Z-Image" model.
 
     Copyright (c) 2026 Martin Rizzo
 
@@ -33,9 +33,9 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 """
 import os
 from comfy_api.latest import ComfyExtension, io
-__PROJECT_EMOJI = "⚡"             #< emoji that identifies the project
-__PROJECT_MENU  = "Z-Image"        #< name of the menu where all the nodes will be
-__PROJECT_ID    = "//ZImageNodes"  #< used to identify the project in the ComfyUI node registry.
+__PROJECT_EMOJI = "⚡"                 #< emoji that identifies the project
+__PROJECT_MENU  = "Z-Image"            #< name of the menu where all the nodes will be
+__PROJECT_ID    = "//ZImagePowerNodes" #< used to identify the project in the ComfyUI node registry.
 
 
 #================================= LOGGER ==================================#
@@ -90,7 +90,7 @@ def _register_node(node_class, node_subcategory, node_list, deprecated: bool = F
 
 #======================= COMFY EXTENSION (V3 schema) =======================#
 
-class ZImageNodesExtension(ComfyExtension):
+class ZImagePowerNodesExtension(ComfyExtension):
 
     # must be declared as async
     async def get_node_list(self) -> list[type[io.ComfyNode]]:
@@ -124,6 +124,6 @@ class ZImageNodesExtension(ComfyExtension):
         return nodes
 
 
-async def comfy_entrypoint() -> ZImageNodesExtension:
-    return ZImageNodesExtension()
+async def comfy_entrypoint() -> ZImagePowerNodesExtension:
+    return ZImagePowerNodesExtension()
 

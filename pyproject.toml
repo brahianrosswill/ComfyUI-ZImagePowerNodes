@@ -5,10 +5,10 @@ version = "0.0.1"
 license = {file = "LICENSE"}
 
 [project.urls]
-Repository = "https://github.com/martin-rizzo/ComfyUI-ZImageNodes"
+Repository = "https://github.com/martin-rizzo/ComfyUI-ZImagePowerNodes"
 #  Used by Comfy Registry https://comfyregistry.org
 
 [tool.comfy]
 PublisherId = "martin-rizzo"
 DisplayName = "Z-Image Nodes"
-Icon = "https://martin-rizzo.github.io/ComfyUI-ZImageNodes/img/thumbnail.jpg"
+Icon = "https://martin-rizzo.github.io/ComfyUI-ZImagePowerNodes/img/thumbnail.jpg"

@@ -435,7 +435,7 @@
     },
     {
       "id": 18,
-      "type": "ZSamplerTurbo //ZImageNodes",
+      "type": "ZSamplerTurbo //ZImagePowerNodes",
       "pos": [
         1170,
         150
@@ -474,9 +474,9 @@
         }
       ],
       "properties": {
-        "aux_id": "martin-rizzo/ComfyUI-ZImageNodes",
+        "aux_id": "martin-rizzo/ComfyUI-ZImagePowerNodes",
         "ver": "7cb3b03f95eeae260ebbc2facdf6ba6c1e16e639",
-        "Node name for S&R": "ZSamplerTurbo //ZImageNodes"
+        "Node name for S&R": "ZSamplerTurbo //ZImagePowerNodes"
       },
       "widgets_values": [
         1,
@@ -522,7 +522,7 @@
     },
     {
       "id": 33,
-      "type": "IllustrationStylePromptEncoder //ZImageNodes",
+      "type": "IllustrationStylePromptEncoder //ZImagePowerNodes",
       "pos": [
         190,
         210
@@ -562,9 +562,9 @@
         }
       ],
       "properties": {
-        "aux_id": "martin-rizzo/ComfyUI-ZImageNodes",
+        "aux_id": "martin-rizzo/ComfyUI-ZImagePowerNodes",
         "ver": "7cd9bfa4806b93c7b8437a519ce6fc0955fc8821",
-        "Node name for S&R": "IllustrationStylePromptEncoder //ZImageNodes"
+        "Node name for S&R": "IllustrationStylePromptEncoder //ZImagePowerNodes"
       },
       "widgets_values": [
         "Comic Book Cover",

@@ -1,13 +1,13 @@
 """
 File    : core/system.py
-Purpose : System-level functions for the ComfyUI-ZImageNodes project.
+Purpose : System-level functions for the ComfyUI-ZImagePowerNodes project.
 Author  : Martin Rizzo | <martinrizzo@gmail.com>
 Date    : Jan 16, 2026
-Repo    : https://github.com/martin-rizzo/ComfyUI-ZImageNodes
+Repo    : https://github.com/martin-rizzo/ComfyUI-ZImagePowerNodes
 License : MIT
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                              ComfyUI-ZImageNodes
-             Experimental ComfyUI nodes for the Z-Image model.
+                          ComfyUI-ZImagePowerNodes
+         ComfyUI nodes designed specifically for the "Z-Image" model.
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 """
 import sys

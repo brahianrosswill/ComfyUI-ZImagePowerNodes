@@ -1,3 +1,16 @@
+"""
+File    : styles/base.py
+Purpose : The base class and functions for styles handling.
+Author  : Martin Rizzo | <martinrizzo@gmail.com>
+Date    : Jan 16, 2026
+Repo    : https://github.com/martin-rizzo/ComfyUI-ZImagePowerNodes
+License : MIT
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+                          ComfyUI-ZImagePowerNodes
+         ComfyUI nodes designed specifically for the "Z-Image" model.
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+"""
+
 
 def apply_style_to_prompt(prompt: str,
                           style : str,

@@ -4,11 +4,11 @@ Purpose : Node that converts a text prompt into an embedding, automatically
           adaptando el prompt to the selected illustrative style.
 Author  : Martin Rizzo | <martinrizzo@gmail.com>
 Date    : Jan 16, 2026
-Repo    : https://github.com/martin-rizzo/ComfyUI-ZImageNodes
+Repo    : https://github.com/martin-rizzo/ComfyUI-ZImagePowerNodes
 License : MIT
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-                              ComfyUI-ZImageNodes
-             Experimental ComfyUI nodes for the Z-Image model.
+                          ComfyUI-ZImagePowerNodes
+         ComfyUI nodes designed specifically for the "Z-Image" model.
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
     The V3 schema documentation can be found here:
