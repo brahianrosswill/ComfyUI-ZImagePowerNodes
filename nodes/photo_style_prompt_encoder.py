@@ -61,5 +61,5 @@ class PhotoStylePromptEncoder(io.ComfyNode):
 
     @classmethod
     def style_names(cls) -> list[str]:
-        return PHOTO_STYLES.get_style_names()
+        return ["none"] + PHOTO_STYLES.get_style_names()
 
