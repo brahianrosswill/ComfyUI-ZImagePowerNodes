@@ -1,17 +1,10 @@
 <div align="center">
 
-# ComfyUI-ZImageNodes
-
-<!--
-
-[<img src="https://img.shields.io/badge/CivitAI%3A-ZImageNodes-EEE?labelColor=1971C2&logo=c%2B%2B&logoColor=white" height="22">](https://civitai.com/models/1213728) |
-[<img src="https://img.shields.io/badge/Hugging%20Face%3A-ZImageNodes-EEE?labelColor=FFD21E&logo=huggingface&logoColor=000" height="22">](https://huggingface.co/martin-rizzo/ZImageNodes.prototype1)  
+# Z-Image Power Nodes
 [![Platform](https://img.shields.io/badge/platform%3A-ComfyUI-007BFF)](#)
-[![License](https://img.shields.io/github/license/martin-rizzo/ComfyUI-ZImageNodes?label=license%3A&color=28A745)](#)
-[![Version](https://img.shields.io/github/v/tag/martin-rizzo/ComfyUI-ZImageNodes?label=version%3A&color=D07250)](#)
-[![Last](https://img.shields.io/github/last-commit/martin-rizzo/ComfyUI-ZImageNodes?label=last%20commit%3A)](#)  
-
--->
+[![License](https://img.shields.io/github/license/martin-rizzo/ComfyUI-ZImagePowerNodes?label=license%3A&color=28A745)](#)
+[![Version](https://img.shields.io/github/v/tag/martin-rizzo/ComfyUI-ZImagePowerNodes?label=version%3A&color=D07250)](#)
+[![Last](https://img.shields.io/github/last-commit/martin-rizzo/ComfyUI-ZImagePowerNodes?label=last%20commit%3A)](#)
 
 <!-- Main Image 
 ![Z-Image Nodes](./docs/img/zimage-nodes-workflow.jpg)
@@ -19,7 +12,8 @@
 
 </div>
 
-**ComfyUI-ZImageNodes** is a collection of custom nodes diseñados específicamente para el modelo Z-Image. Están basados en algunas ideas y descubrimientos que hice minetras desarrollaba los workflows de AmazingZImageWorkflow.
+**ComfyUI-ZImagePowerNodes** is a collection of custom nodes designed and refined specifically for the Z-Image model. They are based on some ideas and discoveries I made while developing the [Amazing Z-Image Workflow](https://github.com/martin-rizzo/AmazingZImageWorkflow).
+
 
 ## Table of Contents
 1. [Node Installation](#node-installation)
