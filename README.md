@@ -6,9 +6,7 @@
 [![Version](https://img.shields.io/github/v/tag/martin-rizzo/ComfyUI-ZImagePowerNodes?label=version%3A&color=D07250)](#)
 [![Last](https://img.shields.io/github/last-commit/martin-rizzo/ComfyUI-ZImagePowerNodes?label=last%20commit%3A)](#)
 
-<!-- Main Image 
-![Z-Image Nodes](./docs/img/zimage-nodes-workflow.jpg)
--->
+<img src="banner.jpg" width="66%"></img>
 
 </div>
 
