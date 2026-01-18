@@ -32,10 +32,6 @@ LANDSCAPE_SIZES_BY_ASPECT_RATIO = {
     # "48:35  (35 mm)"     : (1199.2,  874.4),
     # "71:50  (~imax)"     : (1220.2,  859.3),
 }
-ORIENTATIONS = [
-    "landscape",
-    "portrait",
-]
 SCALES_BY_NAME = {
     "small"                : 1.0,
     "medium (recommended)" : 1.3,
@@ -43,15 +39,14 @@ SCALES_BY_NAME = {
 }
 
 DEFAULT_ASPECT_RATIO = "3:2  (photo)"
-DEFAULT_ORIENTATION  = "portrait"
 DEFAULT_SCALE        = "medium (recommended)"
 
 
 class EmptyZImageLatentImage(io.ComfyNode):
     xTITLE         = "Empty Z-Image Latent Image"
-    xCATEGORY      = None
-    xCOMFY_NODE_ID = None
-    xDEPRECATED    = None
+    xCATEGORY      = ""
+    xCOMFY_NODE_ID = ""
+    xDEPRECATED    = False
 
     #__ INPUT / OUTPUT ____________________________________
     @classmethod
@@ -65,18 +60,18 @@ class EmptyZImageLatentImage(io.ComfyNode):
                 "Create a new batch of empty latent images to be used as a starting point for denoising with the Z-Image model."
             ),
             inputs=[
-                io.Combo.Input("ratio", tooltip="The aspect ratio of the image.",
-                               options=cls.ratios(), default=DEFAULT_ASPECT_RATIO,
-                              ),
-                io.Combo.Input("orientation", tooltip="The orientation of the image. (landscape or portrait)",
-                               options=cls.orientations(), default=DEFAULT_ORIENTATION,
-                              ),
-                io.Combo.Input("size", tooltip="The relative size for the image.",
-                               options=cls.sizes(), default=DEFAULT_SCALE,
-                              ),
-                io.Int.Input  ("batch_size", tooltip="The number of images to generate in a single batch.",
-                               default=1, min=1, max=4096
-                              ),
+                io.Boolean.Input("landscape", default=False,
+                                 tooltip="Set to True for landscape images. Set to False for portrait images.",
+                                ),
+                io.Combo.Input  ("ratio", options=cls.ratios(), default=DEFAULT_ASPECT_RATIO,
+                                 tooltip="The aspect ratio of the image.",
+                                ),
+                io.Combo.Input  ("size", options=cls.sizes(), default=DEFAULT_SCALE,
+                                 tooltip="The relative size for the image.",
+                                ),
+                io.Int.Input    ("batch_size", default=1, min=1, max=4096,
+                                 tooltip="The number of images to generate in a single batch.",
+                                ),
             ],
             outputs=[
                 io.Latent.Output(tooltip="An empty latent image generated according to the given parameters."),
@@ -85,7 +80,7 @@ class EmptyZImageLatentImage(io.ComfyNode):
 
     #__ FUNCTION __________________________________________
     @classmethod
-    def execute(cls, ratio: str, orientation: str, size: str, batch_size: int) -> io.NodeOutput:
+    def execute(cls, landscape: bool, ratio: str, size: str, batch_size: int) -> io.NodeOutput:
         GRID_SIZE         = 32
         LATENT_CHANNELS   = 16  #< z-image latent has 16 channels
         LATENT_BLOCK_SIZE =  8  #< 8x8 pixels per latent block
@@ -93,7 +88,7 @@ class EmptyZImageLatentImage(io.ComfyNode):
         scale                         = SCALES_BY_NAME.get(size, 1.0)
         desired_width, desired_height = LANDSCAPE_SIZES_BY_ASPECT_RATIO.get(ratio, (1024, 1024))
         desired_width, desired_height = desired_width * scale, desired_height * scale
-        if not orientation.startswith("landscape"):
+        if not landscape:
             desired_width, desired_height = desired_height, desired_width
 
         # fix image size to be divisible by the grid
@@ -115,10 +110,6 @@ class EmptyZImageLatentImage(io.ComfyNode):
     @classmethod
     def ratios(cls) -> list[str]:
         return list( LANDSCAPE_SIZES_BY_ASPECT_RATIO.keys() )
-
-    @classmethod
-    def orientations(cls) -> list[str]:
-        return ORIENTATIONS
 
     @classmethod
     def sizes(cls) -> list[str]:
