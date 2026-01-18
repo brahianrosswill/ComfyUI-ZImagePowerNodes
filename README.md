@@ -16,24 +16,24 @@
 
 
 ## Table of Contents
-1. [Node Installation](#node-installation)
+1. [Installation](#installation)
    - [Installation via ComfyUI Manager (Recommended)](#installation-via-comfyui-manager-recommended)
    - [Manual Installation](#manual-installation)
    - [Windows Portable Installation](#windows-portable-installation)
 2. [License](#license)
 
 
-## Node Installation
+## Installation
 _Ensure you have the latest version of [ComfyUi](https://github.com/comfyanonymous/ComfyUI)._
 
 ### Installation via ComfyUI Manager (Recommended)
 
-The easiest way to install the nodes is through ComfyUI Manager:
+The easiest way to install the nodes is through [ComfyUI-Manager](https://github.com/Comfy-Org/ComfyUI-Manager):
 
   1. Open ComfyUI and click on the "Manager" button to launch the "ComfyUI Manager Menu".
   2. Within the ComfyUI Manager, locate and click on the "Custom Nodes Manager" button.
-  3. In the search bar, type "Z-Image Nodes".
-  4. Select the "ComfyUI-ZImagePowerNodes" node from the search results and click the "Install" button.
+  3. In the search bar, type "Z-Image Power Nodes".
+  4. Select the option from the search results and click the "Install" button.
   5. Restart ComfyUI to ensure the changes take effect.
 
 ### Manual Installation
@@ -50,7 +50,7 @@ The easiest way to install the nodes is through ComfyUI Manager:
 3. Move into the **custom_nodes** folder and clone the repository:
    ```bash
    cd custom_nodes
-   git clone https://github.com/martin-rizzo/ComfyUI-ZImagePowerNodes
+   git clone https://github.com/martin-rizzo/ComfyUI-ZImagePowerNodes.git
    ```
 </details>
 
