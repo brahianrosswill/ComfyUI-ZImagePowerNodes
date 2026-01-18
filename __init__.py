@@ -110,6 +110,9 @@ class ZImagePowerNodesExtension(ComfyExtension):
         from .nodes.photo_style_prompt_encoder import PhotoStylePromptEncoder
         _register_node( PhotoStylePromptEncoder, subcategory, nodes )
 
+        from .nodes.save_image import SaveImage
+        _register_node( SaveImage, subcategory, nodes )
+
         from .nodes.zsampler_turbo import ZSamplerTurbo
         _register_node( ZSamplerTurbo, subcategory, nodes )
 
