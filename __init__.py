@@ -101,14 +101,17 @@ class ZImagePowerNodesExtension(ComfyExtension):
         #-- ROOT --------------------------------
         subcategory = ""
 
-        from .nodes.zsampler_turbo import ZSamplerTurbo
-        _register_node( ZSamplerTurbo, subcategory, nodes )
+        from .nodes.empty_zimage_latent_image import EmptyZImageLatentImage
+        _register_node( EmptyZImageLatentImage, subcategory, nodes )
+
+        from .nodes.illustration_style_prompt_encoder import IllustrationStylePromptEncoder
+        _register_node( IllustrationStylePromptEncoder, subcategory, nodes )
 
         from .nodes.photo_style_prompt_encoder import PhotoStylePromptEncoder
         _register_node( PhotoStylePromptEncoder, subcategory, nodes )
 
-        from .nodes.illustration_style_prompt_encoder import IllustrationStylePromptEncoder
-        _register_node( IllustrationStylePromptEncoder, subcategory, nodes )
+        from .nodes.zsampler_turbo import ZSamplerTurbo
+        _register_node( ZSamplerTurbo, subcategory, nodes )
 
 
         #--[ __deprecated ]----------------------
