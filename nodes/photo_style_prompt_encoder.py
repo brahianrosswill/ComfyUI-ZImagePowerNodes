@@ -52,7 +52,7 @@ class PhotoStylePromptEncoder(io.ComfyNode):
                                   'its description on the next lines. The description should incorporate "{$@}" where the '
                                   'main text prompt will be inserted.'),
                                ),
-                io.Combo.Input ("style_name", options=cls.style_names(),
+                io.Combo.Input ("style_to_apply", options=cls.style_names(),
                                 tooltip="The style you want for your image.",
                                ),
                 io.String.Input("text", multiline=True, dynamic_prompts=True,
@@ -67,17 +67,17 @@ class PhotoStylePromptEncoder(io.ComfyNode):
 
     #__ FUNCTION __________________________________________
     @classmethod
-    def execute(cls, clip, style_name: str, text: str, customization: str = "") -> io.NodeOutput:
+    def execute(cls, clip, style_to_apply: str, text: str, customization: str = "") -> io.NodeOutput:
         prompt        = text
         found_style   = None
         custom_styles = Styles.from_config(customization)
 
-        if isinstance(style_name, str) and style_name != "none":
+        if isinstance(style_to_apply, str) and style_to_apply != "none":
             # first search inside the custom styles that the user has defined,
             # if not found, search inside the predefined styles
-            found_style = custom_styles.get(style_name)
+            found_style = custom_styles.get(style_to_apply)
             if not found_style:
-                found_style = PHOTO_STYLES.get(style_name)
+                found_style = PHOTO_STYLES.get(style_to_apply)
 
         # if the style was found, apply it to the prompt
         if found_style:

@@ -1,8 +1,8 @@
 {
   "id": "f14c6566-993e-4413-bd11-9c7f2ca07fd1",
   "revision": 0,
-  "last_node_id": 32,
-  "last_link_id": 48,
+  "last_node_id": 33,
+  "last_link_id": 50,
   "nodes": [
     {
       "id": 19,
@@ -221,41 +221,6 @@
       "shape": 1
     },
     {
-      "id": 22,
-      "type": "Reroute",
-      "pos": [
-        50,
-        290
-      ],
-      "size": [
-        75,
-        26
-      ],
-      "flags": {},
-      "order": 5,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "",
-          "type": "*",
-          "link": 28
-        }
-      ],
-      "outputs": [
-        {
-          "name": "",
-          "type": "CLIP",
-          "links": [
-            45
-          ]
-        }
-      ],
-      "properties": {
-        "showOutputText": false,
-        "horizontal": false
-      }
-    },
-    {
       "id": 18,
       "type": "ZSamplerTurbo //ZImagePowerNodes",
       "pos": [
@@ -278,7 +243,7 @@
         {
           "name": "positive",
           "type": "CONDITIONING",
-          "link": 46
+          "link": 50
         },
         {
           "name": "latent_input",
@@ -381,60 +346,6 @@
       ]
     },
     {
-      "id": 30,
-      "type": "PhotoStylePromptEncoder //ZImagePowerNodes",
-      "pos": [
-        190,
-        210
-      ],
-      "size": [
-        600,
-        820
-      ],
-      "flags": {},
-      "order": 7,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "clip",
-          "type": "CLIP",
-          "link": 45
-        },
-        {
-          "name": "customization",
-          "shape": 7,
-          "type": "STRING",
-          "link": null
-        }
-      ],
-      "outputs": [
-        {
-          "name": "CONDITIONING",
-          "type": "CONDITIONING",
-          "links": [
-            46
-          ]
-        },
-        {
-          "name": "STRING",
-          "type": "STRING",
-          "links": null
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "PhotoStylePromptEncoder //ZImagePowerNodes",
-        "aux_id": "martin-rizzo/ComfyUI-ZImagePowerNodes",
-        "ver": "7cd9bfa4806b93c7b8437a519ce6fc0955fc8821"
-      },
-      "widgets_values": [
-        "Casual Photo",
-        "The interior of a retro-futuristic 1960s bar features sleek chrome architecture and rounded, modular forms. A chrome bar extends horizontally along the frame, showcasing a strip of bright turquoise acrylic. In the center-right, a man in his mid-thirties stands at the bar, resting one hand on the glossy surface while holding a tall glass in the other. He turns his head to look directly at the camera, a playful, knowing smile spreading across his face. The glass contains a bright orange drink with small floating spheres that reflect the pastel light. He wears a form-fitting, silver, retro-futuristic 1960s uniform with a short, high collar and a single vertical pastel blue stripe on the jacket. His hair is neatly styled with a clean, mid-century part. Behind the bar stands the bartender, a colossal and terrifying humanoid figure resembling an octopus. It is a mass of shimmering, bioluminescent tissue in shades of deep violet and emerald green, from whose torso emerges a network of thick tentacles. On its head, a set of multifaceted insectoid eyes constantly moves, scanning the room. The tentacles, with delicate pads at their tips, manipulate the glassware with unsettling grace. Behind the bartender, a mirrored wall reflects rows of liquor bottles with geometric labels from the 1960s. Above the bar floats a retro neon sign made of curved glass tubes that reads \"COSMIC LOUNGE\" in tall, rounded 1960s letters, emitting a pale pink and blue light with a soft, glowing halo. A chrome-framed illuminated menu board reads \"SIGNATURE DRINKS\" with three items: \"ORBITAL HIGHBALL,\" \"NEBULA SOUR,\" and \"ROCKET MARTINI,\" each displayed on horizontal bars that glow in either pastel blue or pastel orange. To the right, a chrome-plated cylindrical column features a vertical neon panel that reads \"OPEN 24 HOURS\" in condensed, bright orange letters within a translucent strip. To the left, a curved, mint-green booth sits beneath a domed ceiling light. An illuminated sign reading \"GALAXY BAR SERVICE\" encircles the inner rim of the dome in white capitals and dominates the left side of the frame. Soft pastel lighting in shades of lavender, aquamarine, mint, and pale amber reflects off the chrome, glass, and acrylic surfaces, enhancing the distinctly retro-futuristic 1960s design."
-      ],
-      "color": "#232",
-      "bgcolor": "#353",
-      "shape": 1
-    },
-    {
       "id": 32,
       "type": "EmptyZImageLatentImage //ZImagePowerNodes",
       "pos": [
@@ -502,6 +413,93 @@
         "showOutputText": false,
         "horizontal": false
       }
+    },
+    {
+      "id": 22,
+      "type": "Reroute",
+      "pos": [
+        50,
+        290
+      ],
+      "size": [
+        75,
+        26
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "",
+          "type": "*",
+          "link": 28
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "CLIP",
+          "links": [
+            49
+          ]
+        }
+      ],
+      "properties": {
+        "showOutputText": false,
+        "horizontal": false
+      }
+    },
+    {
+      "id": 33,
+      "type": "PhotoStylePromptEncoder //ZImagePowerNodes",
+      "pos": [
+        200,
+        210
+      ],
+      "size": [
+        600,
+        820
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 49
+        },
+        {
+          "name": "customization",
+          "shape": 7,
+          "type": "STRING",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            50
+          ]
+        },
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PhotoStylePromptEncoder //ZImagePowerNodes"
+      },
+      "widgets_values": [
+        "Casual Photo",
+        "The interior of a retro-futuristic 1960s bar features sleek chrome architecture and rounded, modular forms. A chrome bar extends horizontally along the frame, showcasing a strip of bright turquoise acrylic. In the center-right, a man in his mid-thirties stands at the bar, resting one hand on the glossy surface while holding a tall glass in the other. He turns his head to look directly at the camera, a playful, knowing smile spreading across his face. The glass contains a bright orange drink with small floating spheres that reflect the pastel light. He wears a form-fitting, silver, retro-futuristic 1960s uniform with a short, high collar and a single vertical pastel blue stripe on the jacket. His hair is neatly styled with a clean, mid-century part. Behind the bar stands the bartender, a colossal and terrifying humanoid figure resembling an octopus. It is a mass of shimmering, bioluminescent tissue in shades of deep violet and emerald green, from whose torso emerges a network of thick tentacles. On its head, a set of multifaceted insectoid eyes constantly moves, scanning the room. The tentacles, with delicate pads at their tips, manipulate the glassware with unsettling grace. Behind the bartender, a mirrored wall reflects rows of liquor bottles with geometric labels from the 1960s. Above the bar floats a retro neon sign made of curved glass tubes that reads \"COSMIC LOUNGE\" in tall, rounded 1960s letters, emitting a pale pink and blue light with a soft, glowing halo. A chrome-framed illuminated menu board reads \"SIGNATURE DRINKS\" with three items: \"ORBITAL HIGHBALL,\" \"NEBULA SOUR,\" and \"ROCKET MARTINI,\" each displayed on horizontal bars that glow in either pastel blue or pastel orange. To the right, a chrome-plated cylindrical column features a vertical neon panel that reads \"OPEN 24 HOURS\" in condensed, bright orange letters within a translucent strip. To the left, a curved, mint-green booth sits beneath a domed ceiling light. An illuminated sign reading \"GALAXY BAR SERVICE\" encircles the inner rim of the dome in white capitals and dominates the left side of the frame. Soft pastel lighting in shades of lavender, aquamarine, mint, and pale amber reflects off the chrome, glass, and acrylic surfaces, enhancing the distinctly retro-futuristic 1960s design."
+      ],
+      "color": "#232",
+      "bgcolor": "#353",
+      "shape": 1
     }
   ],
   "links": [
@@ -570,22 +568,6 @@
       "VAE"
     ],
     [
-      45,
-      22,
-      0,
-      30,
-      0,
-      "CLIP"
-    ],
-    [
-      46,
-      30,
-      0,
-      18,
-      1,
-      "CONDITIONING"
-    ],
-    [
       47,
       8,
       0,
@@ -600,6 +582,22 @@
       18,
       2,
       "LATENT"
+    ],
+    [
+      49,
+      22,
+      0,
+      33,
+      0,
+      "CLIP"
+    ],
+    [
+      50,
+      33,
+      0,
+      18,
+      1,
+      "CONDITIONING"
     ]
   ],
   "groups": [
@@ -622,8 +620,8 @@
     "ds": {
       "scale": 0.7513148009015783,
       "offset": [
-        449.09456845784433,
-        84.51618463549104
+        354.05804892659467,
+        84.80734088549103
       ]
     },
     "frontendVersion": "1.35.9"

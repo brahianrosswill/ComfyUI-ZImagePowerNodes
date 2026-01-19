@@ -1,8 +1,8 @@
 {
   "id": "9c4c49cf-2781-4f97-81b7-5681fe39ba9a",
   "revision": 0,
-  "last_node_id": 33,
-  "last_link_id": 50,
+  "last_node_id": 34,
+  "last_link_id": 52,
   "nodes": [
     {
       "id": 19,
@@ -363,93 +363,6 @@
       }
     },
     {
-      "id": 22,
-      "type": "Reroute",
-      "pos": [
-        50,
-        290
-      ],
-      "size": [
-        75,
-        26
-      ],
-      "flags": {},
-      "order": 5,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "",
-          "type": "*",
-          "link": 28
-        }
-      ],
-      "outputs": [
-        {
-          "name": "",
-          "type": "CLIP",
-          "links": [
-            49
-          ]
-        }
-      ],
-      "properties": {
-        "showOutputText": false,
-        "horizontal": false
-      }
-    },
-    {
-      "id": 33,
-      "type": "IllustrationStylePromptEncoder //ZImagePowerNodes",
-      "pos": [
-        200,
-        210
-      ],
-      "size": [
-        600,
-        820
-      ],
-      "flags": {},
-      "order": 7,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "clip",
-          "type": "CLIP",
-          "link": 49
-        },
-        {
-          "name": "customization",
-          "shape": 7,
-          "type": "STRING",
-          "link": null
-        }
-      ],
-      "outputs": [
-        {
-          "name": "CONDITIONING",
-          "type": "CONDITIONING",
-          "links": [
-            50
-          ]
-        },
-        {
-          "name": "STRING",
-          "type": "STRING",
-          "links": null
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "IllustrationStylePromptEncoder //ZImagePowerNodes"
-      },
-      "widgets_values": [
-        "Comic Book Cover",
-        "A woman with short, choppy black hair and striking eyes rides a small silver motorcycle through a dimly lit, graffiti-covered underground tunnel. She wears an all-black outfit consisting of a long-sleeved crop top that reveals her midriff, high-waisted pants with a tool belt, and knee-high boots. Her body is upright, her knees bent over the motorcycle's tank. With one hand she grips the handlebars, with the other she holds a large-caliber automatic pistol, aiming through the scope for the best shot. The motorcycle's headlight is illuminated, casting a glow into the surroundings. Her hair blows in the wind as she rides. The background features a concrete wall adorned with graffiti, with a row of fluorescent lights mounted on the ceiling. The overall atmosphere of the image is one of high-speed, intense action."
-      ],
-      "color": "#232",
-      "bgcolor": "#353",
-      "shape": 1
-    },
-    {
       "id": 18,
       "type": "ZSamplerTurbo //ZImagePowerNodes",
       "pos": [
@@ -472,7 +385,7 @@
         {
           "name": "positive",
           "type": "CONDITIONING",
-          "link": 50
+          "link": 52
         },
         {
           "name": "latent_input",
@@ -500,6 +413,93 @@
         9,
         1
       ]
+    },
+    {
+      "id": 22,
+      "type": "Reroute",
+      "pos": [
+        50,
+        290
+      ],
+      "size": [
+        75,
+        26
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "",
+          "type": "*",
+          "link": 28
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "CLIP",
+          "links": [
+            51
+          ]
+        }
+      ],
+      "properties": {
+        "showOutputText": false,
+        "horizontal": false
+      }
+    },
+    {
+      "id": 34,
+      "type": "IllustrationStylePromptEncoder //ZImagePowerNodes",
+      "pos": [
+        200,
+        210
+      ],
+      "size": [
+        600,
+        820
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 51
+        },
+        {
+          "name": "customization",
+          "shape": 7,
+          "type": "STRING",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            52
+          ]
+        },
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "IllustrationStylePromptEncoder //ZImagePowerNodes"
+      },
+      "widgets_values": [
+        "Comic Book Cover",
+        "A woman with short, choppy black hair and striking eyes rides a small silver motorcycle through a dimly lit, graffiti-covered underground tunnel. She wears an all-black outfit consisting of a long-sleeved crop top that reveals her midriff, high-waisted pants with a tool belt, and knee-high boots. Her body is upright, her knees bent over the motorcycle's tank. With one hand she grips the handlebars, with the other she holds a large-caliber automatic pistol, aiming through the scope for the best shot. The motorcycle's headlight is illuminated, casting a glow into the surroundings. Her hair blows in the wind as she rides. The background features a concrete wall adorned with graffiti, with a row of fluorescent lights mounted on the ceiling. The overall atmosphere of the image is one of high-speed, intense action."
+      ],
+      "color": "#232",
+      "bgcolor": "#353",
+      "shape": 1
     }
   ],
   "links": [
@@ -584,16 +584,16 @@
       "LATENT"
     ],
     [
-      49,
+      51,
       22,
       0,
-      33,
+      34,
       0,
       "CLIP"
     ],
     [
-      50,
-      33,
+      52,
+      34,
       0,
       18,
       1,
@@ -618,10 +618,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.7513148009015783,
+      "scale": 0.75,
       "offset": [
-        449.09456845784433,
-        84.51618463549104
+        415.9671806598811,
+        115.38607411822231
       ]
     },
     "frontendVersion": "1.35.9"

@@ -34,9 +34,9 @@ YOUR PHOTO:
 {$@}
 ```
 
-### style_name
+### style_to_apply
 
-Selects the desired style to apply.
+Selects the desired style to apply or "none" if you don't want any predefined style.
 
 ### text
 
