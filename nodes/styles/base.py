@@ -15,7 +15,7 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 def apply_style_to_prompt(prompt: str,
                           style : str,
                           /,*,
-                          spicy_impact_booster: False) -> str:
+                          spicy_impact_booster: bool = False) -> str:
     """
     Applies a given style to a prompt with optional spicy content boost.
 
@@ -41,7 +41,10 @@ def apply_style_to_prompt(prompt: str,
 
 class Styles:
 
-    def __init__(self, styles: dict[str, str] = None, ordered_names: list[str] = None, ):
+    def __init__(self,
+                 styles       : dict[str, str] | None = None,
+                 ordered_names: list[str] | None      = None,
+                 ):
 
         if styles is None:
             self._styles       = {}

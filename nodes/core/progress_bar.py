@@ -12,6 +12,7 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 """
 import torch
 import latent_preview
+from typing      import Any
 from comfy.utils import ProgressBar as ComfyProgressBar
 
 
@@ -32,7 +33,7 @@ class ProgressBar:
     """
     def __init__(self,
                  steps : int,
-                 parent: tuple["ProgressBar", int, int],
+                 parent: tuple[Any, int, int],
                  ):
         self.parent    = parent[0]
         self.range_min = int(parent[1])
@@ -49,13 +50,13 @@ class ProgressBar:
             steps (int): The total number of steps.
         """
         comfy_progress_bar = ComfyProgressBar(steps)
-        return cls(steps, parent=(comfy_progress_bar, 0, steps))
+        return cls(steps, parent=(comfy_progress_bar, int(0), steps))
 
 
     def update_absolute(self,
                         value  : int,
-                        total  : int   = None,
-                        preview: tuple = None):
+                        total  : int   | None = None,
+                        preview: tuple | None = None):
         """
         Updates the progress bar to a specific absolute value.
         Args:
@@ -90,7 +91,7 @@ class ProgressPreview:
 
     def __init__(self,
                  steps : int,
-                 parent: tuple["ProgressPreview", int, int],
+                 parent: tuple[Any, int, int],
                  ):
         self.parent    = parent[0]
         self.range_min = int(parent[1])
@@ -108,7 +109,7 @@ class ProgressPreview:
                  step       : int,
                  x0         : torch.Tensor,
                  x          : torch.Tensor,
-                 total_steps: int = None
+                 total_steps: int | None = None
                  ) -> None:
 
         # calculate the current progress level [0.0 -> 1.0]
@@ -119,5 +120,5 @@ class ProgressPreview:
         # apply the progress level to the parent bar
         if self.parent:
             parent_value = self.range_min + (progress_level * (self.range_max - self.range_min))
-            self.parent(parent_value, x0, x, None)
+            self.parent( int(parent_value), x0, x, None )
 

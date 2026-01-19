@@ -22,8 +22,8 @@ _RESET     = "\033[0m"   # reset to default color
 
 class _CustomFormatter(logging.Formatter):
     """Custom formatter for the logger."""
-    EMOJI        = "\U0001F4AA"  # emoji shown before the log message
-    NAME_COLOR   = _YELLOW       # logger name color
+    EMOJI      : str = "\U0001F4AA"  # emoji shown before the log message
+    NAME_COLOR : str = _YELLOW       # logger name color
     LEVEL_COLORS = {
         logging.INFO    : _GREEN,
         logging.DEBUG   : _BLUE,
@@ -43,7 +43,7 @@ class _CustomFormatter(logging.Formatter):
 
 #====================== THE MAIN Z-IMAGE NODES LOGGER ======================#
 
-logger: logging.Logger = None
+logger: logging.Logger = logging.getLogger()
 
 def setup_logger(name      : str,
                  emoji     : str,
@@ -60,7 +60,7 @@ def setup_logger(name      : str,
         formatter = _CustomFormatter("[%(name)s %(levelname)s] %(message)s")
         formatter.EMOJI = emoji
 
-        handler = logging.StreamHandler(sys.strout if use_stdout else sys.stderr)
+        handler = logging.StreamHandler(sys.stdout if use_stdout else sys.stderr)
         handler.setFormatter( formatter )
         logger.addHandler(handler)
 
