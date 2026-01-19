@@ -23,9 +23,9 @@ from .styles.photo_styles import PHOTO_STYLES
 
 class PhotoStylePromptEncoder(io.ComfyNode):
     xTITLE         = "Photo-Style Prompt Encoder"
-    xCATEGORY      = None
-    xCOMFY_NODE_ID = None
-    xDEPRECATED    = None
+    xCATEGORY      = ""
+    xCOMFY_NODE_ID = ""
+    xDEPRECATED    = False
 
     #__ INPUT / OUTPUT ____________________________________
     @classmethod
@@ -42,19 +42,21 @@ class PhotoStylePromptEncoder(io.ComfyNode):
                 "image generation."
             ),
             inputs=[
-                io.Clip.Input  ("clip"         , tooltip="The CLIP model used for encoding the text."),
-                io.String.Input("customization", tooltip=(
-                                'An optional multi-line string to customize existing styles. '
-                                'Each style definition must start with ">>>" followed by the style name, and then include '
-                                'its description on the next lines. The description should incorporate "{$@}" where the '
-                                'main text prompt will be inserted.'),
-                                optional=True, multiline=True, force_input=True,
+                io.Clip.Input  ("clip",
+                                tooltip="The CLIP model used for encoding the text."
                                ),
-                io.Combo.Input ("style_name", tooltip="The style you want for your image.",
-                                options=cls.style_names()
+                io.String.Input("customization", optional=True, multiline=True, force_input=True,
+                                tooltip=(
+                                  'An optional multi-line string to customize existing styles. '
+                                  'Each style definition must start with ">>>" followed by the style name, and then include '
+                                  'its description on the next lines. The description should incorporate "{$@}" where the '
+                                  'main text prompt will be inserted.'),
                                ),
-                io.String.Input("text", tooltip="The prompt to encode.",
-                                multiline=True, dynamic_prompts=True
+                io.Combo.Input ("style_name", options=cls.style_names(),
+                                tooltip="The style you want for your image.",
+                               ),
+                io.String.Input("text", multiline=True, dynamic_prompts=True,
+                                tooltip="The prompt to encode.",
                                ),
             ],
             outputs=[
@@ -65,10 +67,10 @@ class PhotoStylePromptEncoder(io.ComfyNode):
 
     #__ FUNCTION __________________________________________
     @classmethod
-    def execute(cls, clip, style_name: str, text: str, customization: str = None) -> io.NodeOutput:
+    def execute(cls, clip, style_name: str, text: str, customization: str = "") -> io.NodeOutput:
         prompt        = text
         found_style   = None
-        custom_styles = Styles.from_config(customization) if isinstance(customization,str) else Styles()
+        custom_styles = Styles.from_config(customization)
 
         if isinstance(style_name, str) and style_name != "none":
             # first search inside the custom styles that the user has defined,

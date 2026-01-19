@@ -27,9 +27,9 @@ from .core.progress_bar import ProgressPreview
 
 class ZSamplerTurbo(io.ComfyNode):
     xTITLE         = "ZSampler Turbo"
-    xCATEGORY      = None
-    xCOMFY_NODE_ID = None
-    xDEPRECATED    = None
+    xCATEGORY      = ""
+    xCOMFY_NODE_ID = ""
+    xDEPRECATED    = False
 
     #__ INPUT / OUTPUT ____________________________________
     @classmethod
@@ -45,15 +45,24 @@ class ZSamplerTurbo(io.ComfyNode):
                 'and produces a denoised output ready for further processing or decoding.'
             ),
             inputs=[
-                io.Model.Input       ("model"       , tooltip="The model used for generating the latent images."),
-                io.Conditioning.Input("positive"    , tooltip="The conditioning used to guide the generation process toward the desired content."),
-                io.Latent.Input      ("latent_input", tooltip="The initial latent image to be modified; typically an 'Empty Latent' for text-to-image or an encoded image for img2img."),
-                io.Int.Input         ("seed"        , tooltip="The seed used for the random noise generator, ensuring the same result is produced with the same value.",
-                                                      default=0, min=0, max=0xffffffffffffffff, control_after_generate=True),
-                io.Int.Input         ("steps"       , tooltip="The number of iterations to be performed during the sampling process.",
-                                                      default=9, min=4, max=9, step=1),
-                io.Float.Input       ("denoise"     , tooltip="The amount of denoising applied, lower values will maintain the structure of the initial image allowing for image to image sampling.",
-                                                      default=1.0, min=0.98, max=1.00, step=0.01),
+                io.Model.Input       ("model",
+                                      tooltip="The model used for generating the latent images.",
+                                     ),
+                io.Conditioning.Input("positive",
+                                      tooltip="The conditioning used to guide the generation process toward the desired content.",
+                                     ),
+                io.Latent.Input      ("latent_input",
+                                      tooltip="The initial latent image to be modified; typically an 'Empty Latent' for text-to-image or an encoded image for img2img.",
+                                     ),
+                io.Int.Input         ("seed", default=0, min=0, max=0xffffffffffffffff, control_after_generate=True,
+                                      tooltip="The seed used for the random noise generator, ensuring the same result is produced with the same value.",
+                                     ),
+                io.Int.Input         ("steps", default=9, min=4, max=9, step=1,
+                                      tooltip="The number of iterations to be performed during the sampling process.",
+                                     ),
+                io.Float.Input       ("denoise", default=1.0, min=0.98, max=1.00, step=0.01,
+                                      tooltip="The amount of denoising applied, lower values will maintain the structure of the initial image allowing for image to image sampling.",
+                                     ),
             ],
             outputs=[
                 io.Latent.Output(display_name="latent_output", tooltip="The resulting denoised latent image, ready to be decoded by a VAE or passed to another sampler."),
@@ -65,7 +74,7 @@ class ZSamplerTurbo(io.ComfyNode):
     def execute(cls,
                 model,
                 positive    : list,
-                latent_input: dict[str, any],
+                latent_input: dict[str, Any],
                 seed        : int,
                 steps       : int,
                 denoise     : float,
@@ -200,10 +209,10 @@ class ZSamplerTurbo(io.ComfyNode):
                                negative,
                                sampler,
                                sigmas       : list | torch.Tensor,
-                               latent_image : dict[str, any],
+                               latent_image : dict[str, Any],
                                *,
                                progress_preview: ProgressPreview | None = None,
-                               ) -> dict[str, any]:
+                               ) -> dict[str, Any]:
         """
         Emulates the 'SamplerCustom' node from ComfyUI
 
