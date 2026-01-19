@@ -14,12 +14,11 @@
 
 
 ## Table of Contents
-1. [Installation](#installation)
-   - [Installation via ComfyUI Manager (Recommended)](#installation-via-comfyui-manager-recommended)
-   - [Manual Installation](#manual-installation)
-   - [Windows Portable Installation](#windows-portable-installation)
-2. [License](#license)
-
+1. [Nodes](#nodes)
+2. [Examples](#examples)
+3. [Installation](#installation)
+4. [Recommended Checkpoints](#recommended-checkpoints)
+5. [License](#license)
 
 ## Nodes
 
@@ -41,6 +40,11 @@
    **["Save Image" node documentation](docs/save_image.md)**.
 
 ### ⚡ Empty Z-Image Latent Image
+
+
+## Examples
+
+A few example workflows demonstrating basic usage of these nodes can be found in the **[/workflows](/workflows)** directory.
 
 
 ## Installation
@@ -116,10 +120,6 @@ Note: ComfyUI does not natively support GGUF format, so you need to install the 
  - __[ae.safetensors](https://huggingface.co/Comfy-Org/z_image_turbo/blob/main/split_files/vae/ae.safetensors)__ <sub>(335 MB)</sub>\
    Local Directory: __`ComfyUI/models/vae/`__
 
-
-## Examples
-
-A few example workflows demonstrating basic usage of these nodes can be found in the **[/workflows](/workflows)** directory.
 
 ## License
 
