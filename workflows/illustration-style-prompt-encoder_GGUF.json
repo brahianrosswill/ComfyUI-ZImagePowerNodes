@@ -1,8 +1,8 @@
 {
-  "id": "f14c6566-993e-4413-bd11-9c7f2ca07fd1",
+  "id": "9c4c49cf-2781-4f97-81b7-5681fe39ba9a",
   "revision": 0,
   "last_node_id": 33,
-  "last_link_id": 51,
+  "last_link_id": 50,
   "nodes": [
     {
       "id": 19,
@@ -16,7 +16,7 @@
         26
       ],
       "flags": {},
-      "order": 10,
+      "order": 8,
       "mode": 0,
       "inputs": [
         {
@@ -40,111 +40,6 @@
       }
     },
     {
-      "id": 20,
-      "type": "Reroute",
-      "pos": [
-        1350,
-        1040
-      ],
-      "size": [
-        75,
-        26
-      ],
-      "flags": {},
-      "order": 12,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "",
-          "type": "*",
-          "link": 24
-        }
-      ],
-      "outputs": [
-        {
-          "name": "",
-          "type": "VAE",
-          "links": [
-            25
-          ]
-        }
-      ],
-      "properties": {
-        "showOutputText": false,
-        "horizontal": false
-      }
-    },
-    {
-      "id": 27,
-      "type": "EmptySD3LatentImage",
-      "pos": [
-        800,
-        520
-      ],
-      "size": [
-        230,
-        130
-      ],
-      "flags": {},
-      "order": 0,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "LATENT",
-          "type": "LATENT",
-          "slot_index": 0,
-          "links": []
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.3.75",
-        "Node name for S&R": "EmptySD3LatentImage"
-      },
-      "widgets_values": [
-        1600,
-        1088,
-        1
-      ]
-    },
-    {
-      "id": 15,
-      "type": "EmptySD3LatentImage",
-      "pos": [
-        800,
-        350
-      ],
-      "size": [
-        230,
-        130
-      ],
-      "flags": {},
-      "order": 1,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "LATENT",
-          "type": "LATENT",
-          "slot_index": 0,
-          "links": [
-            44
-          ]
-        }
-      ],
-      "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.3.75",
-        "Node name for S&R": "EmptySD3LatentImage"
-      },
-      "widgets_values": [
-        1088,
-        1600,
-        1
-      ]
-    },
-    {
       "id": 23,
       "type": "Reroute",
       "pos": [
@@ -156,7 +51,7 @@
         26
       ],
       "flags": {},
-      "order": 8,
+      "order": 6,
       "mode": 0,
       "inputs": [
         {
@@ -191,7 +86,7 @@
         26
       ],
       "flags": {},
-      "order": 6,
+      "order": 4,
       "mode": 0,
       "inputs": [
         {
@@ -226,7 +121,7 @@
         100
       ],
       "flags": {},
-      "order": 2,
+      "order": 0,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -239,10 +134,10 @@
         }
       ],
       "properties": {
-        "cnr_id": "comfyui-gguf",
-        "ver": "1.1.8",
         "Node name for S&R": "UnetLoaderGGUF",
-        "aux_id": "city96/ComfyUI-GGUF"
+        "cnr_id": "comfyui-gguf",
+        "aux_id": "city96/ComfyUI-GGUF",
+        "ver": "1.1.8"
       },
       "widgets_values": [
         "z_image_turbo-Q5_K_S.gguf"
@@ -263,7 +158,7 @@
         110
       ],
       "flags": {},
-      "order": 3,
+      "order": 1,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -276,10 +171,10 @@
         }
       ],
       "properties": {
-        "cnr_id": "comfyui-gguf",
-        "ver": "1.1.8",
         "Node name for S&R": "CLIPLoaderGGUF",
-        "aux_id": "city96/ComfyUI-GGUF"
+        "cnr_id": "comfyui-gguf",
+        "aux_id": "city96/ComfyUI-GGUF",
+        "ver": "1.1.8"
       },
       "widgets_values": [
         "Qwen3-4B.i1-Q5_K_S.gguf",
@@ -301,7 +196,7 @@
         90
       ],
       "flags": {},
-      "order": 4,
+      "order": 2,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -314,9 +209,9 @@
         }
       ],
       "properties": {
+        "Node name for S&R": "VAELoader",
         "cnr_id": "comfy-core",
-        "ver": "0.3.75",
-        "Node name for S&R": "VAELoader"
+        "ver": "0.3.75"
       },
       "widgets_values": [
         "ae.safetensors"
@@ -326,45 +221,10 @@
       "shape": 1
     },
     {
-      "id": 29,
-      "type": "Reroute",
-      "pos": [
-        1060,
-        440
-      ],
-      "size": [
-        75,
-        26
-      ],
-      "flags": {},
-      "order": 5,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "",
-          "type": "*",
-          "link": 44
-        }
-      ],
-      "outputs": [
-        {
-          "name": "",
-          "type": "LATENT",
-          "links": [
-            41
-          ]
-        }
-      ],
-      "properties": {
-        "showOutputText": false,
-        "horizontal": false
-      }
-    },
-    {
       "id": 8,
       "type": "VAEDecode",
       "pos": [
-        1490,
+        1100,
         150
       ],
       "size": [
@@ -372,7 +232,7 @@
         50
       ],
       "flags": {},
-      "order": 13,
+      "order": 11,
       "mode": 0,
       "inputs": [
         {
@@ -392,98 +252,115 @@
           "type": "IMAGE",
           "slot_index": 0,
           "links": [
-            18
+            47
           ]
         }
       ],
       "properties": {
+        "Node name for S&R": "VAEDecode",
         "cnr_id": "comfy-core",
-        "ver": "0.7.0",
-        "Node name for S&R": "VAEDecode"
+        "ver": "0.7.0"
       },
       "widgets_values": []
     },
     {
-      "id": 16,
-      "type": "SaveImage",
+      "id": 31,
+      "type": "SaveImage //ZImagePowerNodes",
       "pos": [
-        1700,
+        1290,
         150
       ],
       "size": [
-        570,
-        800
+        540,
+        760
       ],
       "flags": {},
-      "order": 14,
+      "order": 12,
       "mode": 0,
       "inputs": [
         {
           "name": "images",
           "type": "IMAGE",
-          "link": 18
+          "link": 47
         }
       ],
       "outputs": [],
       "properties": {
-        "cnr_id": "comfy-core",
-        "ver": "0.7.0"
+        "Node name for S&R": "SaveImage //ZImagePowerNodes"
       },
       "widgets_values": [
-        "ZImage/%date:yyyy_MM_dd%/ZI"
+        "ZImage/%date:yyyy_MM_dd%/ZI",
+        true
       ]
     },
     {
-      "id": 18,
-      "type": "ZSamplerTurbo //ZImagePowerNodes",
+      "id": 32,
+      "type": "EmptyZImageLatentImage //ZImagePowerNodes",
       "pos": [
-        1170,
-        150
+        470,
+        20
       ],
       "size": [
-        250,
-        480
+        316.9362396240234,
+        130
       ],
       "flags": {},
-      "order": 11,
+      "order": 3,
       "mode": 0,
-      "inputs": [
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 27
-        },
-        {
-          "name": "positive",
-          "type": "CONDITIONING",
-          "link": 51
-        },
-        {
-          "name": "latent_input",
-          "type": "LATENT",
-          "link": 41
-        }
-      ],
+      "inputs": [],
       "outputs": [
         {
-          "name": "latent_output",
+          "name": "LATENT",
           "type": "LATENT",
           "links": [
-            22
+            48
           ]
         }
       ],
       "properties": {
-        "aux_id": "martin-rizzo/ComfyUI-ZImagePowerNodes",
-        "ver": "7cb3b03f95eeae260ebbc2facdf6ba6c1e16e639",
-        "Node name for S&R": "ZSamplerTurbo //ZImagePowerNodes"
+        "Node name for S&R": "EmptyZImageLatentImage //ZImagePowerNodes"
       },
       "widgets_values": [
-        1,
-        "fixed",
-        7,
+        false,
+        "3:2  (photo)",
+        "medium (recommended)",
         1
       ]
+    },
+    {
+      "id": 20,
+      "type": "Reroute",
+      "pos": [
+        810,
+        1040
+      ],
+      "size": [
+        75,
+        26
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "",
+          "type": "*",
+          "link": 24
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "VAE",
+          "links": [
+            25
+          ]
+        }
+      ],
+      "properties": {
+        "showOutputText": false,
+        "horizontal": false
+      }
     },
     {
       "id": 22,
@@ -497,7 +374,7 @@
         26
       ],
       "flags": {},
-      "order": 7,
+      "order": 5,
       "mode": 0,
       "inputs": [
         {
@@ -511,7 +388,7 @@
           "name": "",
           "type": "CLIP",
           "links": [
-            50
+            49
           ]
         }
       ],
@@ -524,7 +401,7 @@
       "id": 33,
       "type": "IllustrationStylePromptEncoder //ZImagePowerNodes",
       "pos": [
-        190,
+        200,
         210
       ],
       "size": [
@@ -532,13 +409,13 @@
         820
       ],
       "flags": {},
-      "order": 9,
+      "order": 7,
       "mode": 0,
       "inputs": [
         {
           "name": "clip",
           "type": "CLIP",
-          "link": 50
+          "link": 49
         },
         {
           "name": "customization",
@@ -552,7 +429,7 @@
           "name": "CONDITIONING",
           "type": "CONDITIONING",
           "links": [
-            51
+            50
           ]
         },
         {
@@ -562,28 +439,70 @@
         }
       ],
       "properties": {
-        "aux_id": "martin-rizzo/ComfyUI-ZImagePowerNodes",
-        "ver": "7cd9bfa4806b93c7b8437a519ce6fc0955fc8821",
         "Node name for S&R": "IllustrationStylePromptEncoder //ZImagePowerNodes"
       },
       "widgets_values": [
         "Comic Book Cover",
-        "A woman and two robotic figures are depicted in a science fiction scene set in a desolate environment. On the left, a large, beige-colored starship with long shape levitates slightly above the ground, with its door open, revealing a dark interior; the spacecraft has a smooth, segmented texture composed of geometric shapes. The woman, positioned centrally, wears a long, light brown dress with a waist belt and a flowing cape; her hair is short and light-colored. To her right, a robotic figure with a futuristic design sports a suit with dark details, showcasing a circular glowing light on its facial area. Further to the right, in a darker tone, stands another robotic figure crouched in a kneeling position, aiming a rifle towards the right, appearing to provide cover for the operation. The background features a cloudy sky and a landscape of dry, brown grass extending to the horizon."
+        "A woman with short, choppy black hair and striking eyes rides a small silver motorcycle through a dimly lit, graffiti-covered underground tunnel. She wears an all-black outfit consisting of a long-sleeved crop top that reveals her midriff, high-waisted pants with a tool belt, and knee-high boots. Her body is upright, her knees bent over the motorcycle's tank. With one hand she grips the handlebars, with the other she holds a large-caliber automatic pistol, aiming through the scope for the best shot. The motorcycle's headlight is illuminated, casting a glow into the surroundings. Her hair blows in the wind as she rides. The background features a concrete wall adorned with graffiti, with a row of fluorescent lights mounted on the ceiling. The overall atmosphere of the image is one of high-speed, intense action."
       ],
       "color": "#232",
       "bgcolor": "#353",
       "shape": 1
+    },
+    {
+      "id": 18,
+      "type": "ZSamplerTurbo //ZImagePowerNodes",
+      "pos": [
+        810,
+        150
+      ],
+      "size": [
+        250,
+        480
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 27
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 50
+        },
+        {
+          "name": "latent_input",
+          "type": "LATENT",
+          "link": 48
+        }
+      ],
+      "outputs": [
+        {
+          "name": "latent_output",
+          "type": "LATENT",
+          "links": [
+            22
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ZSamplerTurbo //ZImagePowerNodes",
+        "aux_id": "martin-rizzo/ComfyUI-ZImagePowerNodes",
+        "ver": "7cb3b03f95eeae260ebbc2facdf6ba6c1e16e639"
+      },
+      "widgets_values": [
+        2,
+        "fixed",
+        9,
+        1
+      ]
     }
   ],
   "links": [
-    [
-      18,
-      8,
-      0,
-      16,
-      0,
-      "IMAGE"
-    ],
     [
       22,
       18,
@@ -649,23 +568,23 @@
       "VAE"
     ],
     [
-      41,
-      29,
+      47,
+      8,
+      0,
+      31,
+      0,
+      "IMAGE"
+    ],
+    [
+      48,
+      32,
       0,
       18,
       2,
       "LATENT"
     ],
     [
-      44,
-      15,
-      0,
-      29,
-      0,
-      "LATENT"
-    ],
-    [
-      50,
+      49,
       22,
       0,
       33,
@@ -673,7 +592,7 @@
       "CLIP"
     ],
     [
-      51,
+      50,
       33,
       0,
       18,
@@ -699,10 +618,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.683013455365071,
+      "scale": 0.7513148009015783,
       "offset": [
-        524.2260339482572,
-        124.97129034236457
+        449.09456845784433,
+        84.51618463549104
       ]
     },
     "frontendVersion": "1.35.9"
