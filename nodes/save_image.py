@@ -10,8 +10,11 @@ License : MIT
          ComfyUI nodes designed specifically for the "Z-Image" model.
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-    The V3 schema documentation can be found here:
-    - https://docs.comfy.org/custom-nodes/v3_migration
+The V3 schema documentation can be found here:
+ - https://docs.comfy.org/custom-nodes/v3_migration
+
+Code for the metadata extraction process used by CivitAI:
+ - https://github.com/civitai/civitai/blob/main/src/utils/metadata/comfy.metadata.ts
 
 """
 import os
@@ -57,8 +60,8 @@ class SaveImage(io.ComfyNode):
                 io.String.Input ("filename_prefix", default="ZImage",
                                  tooltip="The prefix for the file to save. This may include formatting information such as %date:yyyy-MM-dd% or %Empty Latent Image.width% to include values from nodes",
                                 ),
-                io.Boolean.Input("covitai_compatible", default=True,
-                                 tooltip="Whether to save the image in a CivitAI compatible format. If checked, this will modify the metadata to be compatible with CivitAI.",
+                io.Boolean.Input("civitai_compatible_metadata", default=True,
+                                 tooltip="Whether to save the image in a CivitAI compatible format. If checked, this will modify the metadata de forma que el prompt y demas parametros puedan ser leidos por CivitAI.",
                                 ),
             ],
             hidden=[
@@ -69,15 +72,16 @@ class SaveImage(io.ComfyNode):
 
     #__ FUNCTION __________________________________________
     @classmethod
-    def execute(cls, images, filename_prefix: str, covitai_compatible: bool):
+    def execute(cls, images, filename_prefix: str, civitai_compatible_metadata: bool):
 
-        images        = cls.normalize_images(images)
-        image_width   = images[0].shape[1]
-        image_height  = images[0].shape[0]
-        prompt        = cls.hidden.prompt
-        extra_pnginfo = cls.hidden.extra_pnginfo
-        workflow      = extra_pnginfo.get("workflow") if extra_pnginfo else None
-        output_dir    = cls.xOUTPUT_DIR if cls.xOUTPUT_DIR else folder_paths.get_output_directory()
+        output_dir     = cls.xOUTPUT_DIR if cls.xOUTPUT_DIR else folder_paths.get_output_directory()
+        images         = cls.normalize_images(images)
+        image_width    = images[0].shape[1]
+        image_height   = images[0].shape[0]
+        extra_pnginfo  = cls.hidden.extra_pnginfo
+
+        prompt_nodes   = cls.hidden.prompt
+        workflow_nodes = extra_pnginfo.get("workflow") if extra_pnginfo else None
 
         # solve the `filename_prefix`` entered by the user and get the full path
         filename_prefix = \
@@ -89,15 +93,28 @@ class SaveImage(io.ComfyNode):
                                                image_height
                                                )
 
+        # try to inject CivitAI compatible metadata
+        if civitai_compatible_metadata:
+            initial_sampler, seed, steps, cfg, sampler_name = cls.find_initial_sampler(nodes=prompt_nodes)
+            if initial_sampler:
+                positive, negative = cls.get_positive_negative(initial_sampler, nodes=prompt_nodes)
+                prompt_nodes = cls.inject_civitai_nodes(prompt_nodes,
+                                                        positive     = positive,
+                                                        negative     = negative,
+                                                        seed         = seed,
+                                                        steps        = steps,
+                                                        cfg          = cfg,
+                                                        sampler_name = sampler_name)
+
         # create PNG info containing ComfyUI metadata (+CivitAI injection)
         pnginfo = PngInfo()
 
-        if prompt:
-            prompt_json = json.dumps(prompt)
+        if prompt_nodes:
+            prompt_json = json.dumps(prompt_nodes)
             pnginfo.add_text("prompt", prompt_json)
 
-        if workflow:
-            workflow_json = json.dumps(workflow)
+        if workflow_nodes:
+            workflow_json = json.dumps(workflow_nodes)
             pnginfo.add_text("workflow", workflow_json)
 
         if extra_pnginfo:
@@ -106,6 +123,7 @@ class SaveImage(io.ComfyNode):
                     pnginfo.add_text(info_name, json.dumps(info_dict))
 
 
+        # iterate over each image in batch to save it
         image_locations = []
         for batch_number, image in enumerate(images):
             batch_name = name.replace("%batch_num%", str(batch_number))
@@ -130,8 +148,8 @@ class SaveImage(io.ComfyNode):
 
 
 
-    #__ internal functions ________________________________
 
+    #__ internal functions ________________________________
 
     @classmethod
     def solve_filename_variables(cls,
@@ -257,4 +275,322 @@ class SaveImage(io.ComfyNode):
             if count > 0:
                 count -= 1
         return output + text[index_start:]
+
+
+    #__ nodes related functions ___________________________
+
+    CIVITAI_NODES="""
+{
+
+  "$1": {
+    "inputs": {
+      "text": "Astronaut.",
+      "clip": [
+        "$5",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Positive Prompt)"
+    }
+  },
+
+  "$2": {
+    "inputs": {
+      "text": "",
+      "clip": [
+        "$5",
+        1
+      ]
+    },
+    "class_type": "CLIPTextEncode",
+    "_meta": {
+      "title": "CLIP Text Encode (Negative Prompt)"
+    }
+  },
+
+  "$3": {
+    "inputs": {
+      "width": 1024,
+      "height": 1024,
+      "batch_size": 1
+    },
+    "class_type": "EmptySD3LatentImage",
+    "_meta": {
+      "title": "EmptySD3LatentImage"
+    }
+  },
+
+  "$4": {
+    "inputs": {
+      "seed": 550110717236789,
+      "steps": 20,
+      "cfg": 1.0,
+      "sampler_name": "euler",
+      "scheduler": "simple",
+      "denoise": 1.0,
+      "model": [
+        "$5",
+        0
+      ],
+      "positive": [
+        "$6",
+        0
+      ],
+      "negative": [
+        "$2",
+        0
+      ],
+      "latent_image": [
+        "$3",
+        0
+      ]
+    },
+    "class_type": "KSampler",
+    "_meta": {
+      "title": "KSampler"
+    }
+  },
+
+
+  "$5": {
+    "inputs": {
+      "ckpt_name": "flux1-dev-fp8.safetensors"
+    },
+    "class_type": "CheckpointLoaderSimple",
+    "_meta": {
+      "title": "Load Checkpoint"
+    }
+  },
+
+  "$6": {
+    "inputs": {
+      "guidance": 3.5,
+      "conditioning": [
+        "$1",
+        0
+      ]
+    },
+    "class_type": "FluxGuidance",
+    "_meta": {
+      "title": "FluxGuidance"
+    }
+  }
+}
+"""
+
+
+    @classmethod
+    def inject_civitai_nodes(cls,
+                             nodes : dict,
+                             /,*,
+                             positive     : str,
+                             negative     : str,
+                             seed         : int,
+                             steps        : int,
+                             cfg          : float,
+                             sampler_name : str = "euler",
+                             scheduler    : str = "simple"
+                             ) -> dict:
+        """
+        Injects generation parameters into a node format that Civitai can read.
+
+        This method takes an existing dictionary with nodes and injects additional
+        nodes required by Civitai. The modified dictionary, now compatible with
+        Civitai's expected structure, is returned.
+
+        Args:
+            nodes         (dict): Original dictionary containing existing nodes.
+            positive       (str): Positive prompt text for generation.
+            negative       (str): Negative prompt text for generation.
+            seed           (int): Random seed value for reproducibility.
+            steps          (int): Number of steps in the sampling process.
+            cfg          (float): CFG scale, controlling how much the negative prompt affects the output.
+            sampler_name   (str): Name of the sampler to be used in generation.
+            scheduler (optional): Scheduler name. Defaults to "simple".
+
+        Returns:
+            Updated node dictionary with Civitai nodes included.
+        """
+        # get the maximum index of any node
+        max_index = 0
+        for index in nodes.keys():
+            if isinstance(index, str):
+                index = int(index)
+            if isinstance(index, int) and index > max_index:
+                max_index = index
+
+        # reenumerate the nodes compatible with Civitai
+        # this way they don't collide with the nodes in the current workflow
+        civitai_nodes = cls.CIVITAI_NODES
+        for i in range(1, 9):
+            civitai_nodes = civitai_nodes.replace(f'"${i}"', f'"{max_index+i}"')
+        civitai_nodes = json.loads(civitai_nodes)
+
+        # modify the nodes "1", "2" and "4" assigning them the parameters
+        # prompt-positve, prompt-negative, seed, steps, etc...
+        positive_node = civitai_nodes[ str(max_index+1) ]
+        positive_node["inputs"]["text"] = positive
+
+        negative_node = civitai_nodes[ str(max_index+2) ]
+        negative_node["inputs"]["text"] = negative
+
+        ksampler_node = civitai_nodes[ str(max_index+4) ]
+        ksampler_node["inputs"]["seed"]         = seed
+        ksampler_node["inputs"]["steps"]        = steps
+        ksampler_node["inputs"]["cfg"]          = cfg
+        ksampler_node["inputs"]["sampler_name"] = sampler_name
+        ksampler_node["inputs"]["scheduler"]    = scheduler
+
+        # return the original prompt with Civitai nodes added
+        return {**nodes, **civitai_nodes}
+
+
+    @classmethod
+    def find_initial_sampler(cls, nodes: dict) -> tuple[dict | None, int, int, float, str]:
+        """
+        Find the sampler node that seems to generate the initial image
+
+        This function iterates through all nodes, searching for those with any
+        class type related to sampling, and it checks if these are connected to
+        any empty latent image generator.
+
+        Args:
+            nodes (dict): Dictionary containing all nodes in the graph.
+
+        Returns:
+            A tuple containing the following elements:
+                - The first element is a dict representing the found initial sampler node,
+                  or None if no such node was found.
+                - The second element is an integer representing the seed value for sampling.
+                - The third element is an integer representing the number of steps in the sampling process.
+                - The fourth element is a float representing the CFG scale.
+                - The fifth element is a string representing the name of the sampler used.
+            If no suitable node is found, the function returns None for the first element
+            and default values (0, 0, 0.0, "") for the remaining elements.
+        """
+        for node in nodes.values():
+            class_type = node.get("class_type")
+            if not class_type:
+                continue
+
+            if class_type == "KSampler":
+                latent_image = cls.get_input_node(node,"latent_image", nodes=nodes)
+                if cls.is_empty_latent(latent_image):
+                    seed         = int  ( cls.get_input_value(node, "seed"        , default=0      ))
+                    steps        = int  ( cls.get_input_value(node, "steps"       , default=8      ))
+                    cfg          = float( cls.get_input_value(node, "cfg"         , default=3.5    ))
+                    sampler_name = str  ( cls.get_input_value(node, "sampler_name", default="euler"))
+                    return (node, seed, steps, cfg, sampler_name)
+
+            if class_type.startswith("ZSamplerTurbo"):
+                latent_input = cls.get_input_node(node,"latent_input", nodes=nodes)
+                if cls.is_empty_latent(latent_input):
+                    seed         = int( cls.get_input_value(node, "seed" , default=0) )
+                    steps        = int( cls.get_input_value(node, "steps", default=8) )
+                    cfg          = 1.0
+                    sampler_name = "euler"
+                    return (node, seed, steps, cfg, sampler_name)
+
+        return None, 0, 0, 0.0, ""
+
+
+    @classmethod
+    def get_prompt_text(cls, node: dict, type: str, nodes: dict, depth: int = 0) -> str:
+        """
+        Returns the text prompt from a given node searching through its inputs.
+        Args:
+            node (dict): The current node under consideration.
+            type       : The specific type of prompt to retrieve ('positive' or 'negative').
+            nodes      : A dictionary containing all nodes in the workflow.
+            depth (optional): Internal parameter to track the recursion depth.
+        """
+        if not isinstance(node,dict) or not node or depth >= 8:
+            return ""
+
+        class_type = node.get("class_type", "")
+        if class_type == "ControlNetApply":
+            conditioning = cls.get_input_node(node,"conditioning", nodes=nodes)
+            return cls.get_prompt_text(conditioning, type, nodes=nodes, depth=depth+1)
+
+        if class_type == "FluxGuidance":
+            conditioning = cls.get_input_node(node,"conditioning", nodes=nodes)
+            return cls.get_prompt_text(conditioning, type, nodes=nodes, depth=depth+1)
+
+        TEXT_NAMES = ("text", "text_g", f"text_{type}", "populated_text")
+        for name in TEXT_NAMES:
+
+            text = str( cls.get_input_value(node, name , default="!") )
+            if text != "!": return text
+
+            text_node = cls.get_input_node(node,"text", nodes=nodes)
+            if text_node:
+                return cls.get_prompt_text(text_node, type, nodes=nodes, depth=depth+1)
+
+        return ""
+
+
+    @classmethod
+    def get_positive_negative(cls, sampler_node: dict, nodes: dict) -> tuple[str,str]:
+        """
+        Retrieves positive and negative prompt texts from the given sampler node.
+        Args:
+            sampler_node (dict): The sampler node with connections to positive and negative prompts.
+            nodes              : A dictionary containing all nodes in the workflow.
+
+        Returns:
+            tuple[str, str]: A pair of strings with the positive and negative prompt texts.
+        """
+        positive_node = cls.get_input_node(sampler_node,"positive",nodes=nodes)
+        positive      = cls.get_prompt_text(positive_node, type="positive", nodes=nodes)
+        negative_node = cls.get_input_node(sampler_node,"negative",nodes=nodes)
+        negative      = cls.get_prompt_text(negative_node, type="positive", nodes=nodes)
+        return positive, negative
+
+
+    @staticmethod
+    def get_input_node(node: dict, connection_name:str, *, nodes:dict) -> dict:
+        """
+        Retrieves the connected node for a given input connection.
+        Args:
+            node (dict)    : The current node in consideration.
+            connection_name: Name of the connection to look up.
+            nodes          : Dictionary containing all nodes in the workflow.
+        Returns:
+            A dictionary representing the connected node, or an empty dict if no such connection exists.
+        """
+        wire = node.get("inputs", {}).get(connection_name, {})
+        node_id = str(wire[0]) if isinstance(wire,list) and len(wire)>0 else ""
+        return nodes.get(node_id, {})
+
+
+    @staticmethod
+    def get_input_value(node: dict, value_name: str, default: str|float|int = 0) -> str | float | int:
+        """
+        Retrieves the value of a given parameter for a node.
+        Args:
+            node (dict): The current node in consideration.
+            value_name : Name of the input value to look up.
+            default    : Default value to return if `value_name` is not found in the node.
+        Returns:
+            The value or the provided default value if `value_name` is not found.
+        """
+        value = node.get("inputs", {}).get(value_name, default)
+        if not isinstance(value, (str,float,int)):
+            return default
+        return value
+
+
+    @staticmethod
+    def is_empty_latent(node: dict) -> bool:
+        """
+        Determines whether a given node represents an empty latent image generator.
+        """
+        class_type = node.get("class_type", "") if isinstance(node,dict) else ""
+        if class_type in ["EmptyLatentImage", "EmptySD3LatentImage"]:
+            return True
+        if class_type.startswith("EmptyZImageLatentImage"):
+            return True
+        return False
 
