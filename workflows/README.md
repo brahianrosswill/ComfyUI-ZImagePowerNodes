@@ -1,5 +1,8 @@
 # Z-Image Power Nodes Example Workflows
 
+ * `/development`: Folder containing draft or experimental workflows used during development.
+ * `/safetensors_versions`: Folder containing versions of workflows that use .safetensors checkpoint files.
+
 ## Requirements
 
 To use these workflows, you need to have "Z-Image Power Nodes" installed in ComfyUI.  
