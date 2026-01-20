@@ -1,8 +1,8 @@
-# Z-Image Power Nodes
+# Z-Image Power Nodes Example Workflows
 
 ## Requirements
 
-To use these workflows, you need to have "Z-Image Power Nodes" installed in ComfyUI.
+To use these workflows, you need to have "Z-Image Power Nodes" installed in ComfyUI.  
 It can be installed via the ComfyUI Manager or downloaded from its respective repository.
 
 ### Installation via ComfyUI Manager (Recommended)
@@ -31,19 +31,19 @@ when VRAM is limited. For simple image generation workflows, a safetensors file
 experience, using the Q5_K_S quantization typically offers the best balance between
 file size and prompt response.
 
-    Note: ComfyUI does not natively support GGUF format, so you need to install
-          - https://github.com/city96/ComfyUI-GGUF
+> [!IMPORTANT]
+> ComfyUI does not natively support GGUF format, so you need to have installed https://github.com/city96/ComfyUI-GGUF
 
 - "z_image_turbo-Q5_K_S.gguf" [5.19 GB]
-  Download: https://huggingface.co/jayn7/Z-Image-Turbo-GGUF/blob/main/z_image_turbo-Q5_K_S.gguf
+  [ Download ]( https://huggingface.co/jayn7/Z-Image-Turbo-GGUF/blob/main/z_image_turbo-Q5_K_S.gguf )  
   Local Directory: `ComfyUI/models/diffusion_models/`
 
 - "Qwen3-4B.i1-Q5_K_S.gguf" [2.82 GB]
-  Download: https://huggingface.co/mradermacher/Qwen3-4B-i1-GGUF/blob/main/Qwen3-4B.i1-Q5_K_S.gguf
+  [ Download ]( https://huggingface.co/mradermacher/Qwen3-4B-i1-GGUF/blob/main/Qwen3-4B.i1-Q5_K_S.gguf )  
   Local Directory: `ComfyUI/models/text_encoders/`
 
 - "ae.safetensors" [335 MB]
-  Download: https://huggingface.co/Comfy-Org/z_image_turbo/blob/main/split_files/vae/ae.safetensors 
+  [ Download ]( https://huggingface.co/Comfy-Org/z_image_turbo/blob/main/split_files/vae/ae.safetensors )  
   Local Directory: `ComfyUI/models/vae/`
 
 ### Safetensors Format
@@ -56,22 +56,22 @@ an RTX 50 series GPU based on Blackwell architecture, NVFP4 quantized safetensor
 a better choice.
 
 - "z_image_turbo_bf16.safetensors" [12.3 GB]
-  Download: https://huggingface.co/Comfy-Org/z_image_turbo/blob/main/split_files/diffusion_models/z_image_turbo_bf16.safetensors 
+  [ Download ]( https://huggingface.co/Comfy-Org/z_image_turbo/blob/main/split_files/diffusion_models/z_image_turbo_bf16.safetensors )  
   Local Directory: `ComfyUI/models/diffusion_models/`
 
 - "qwen_3_4b.safetensors" [8.04 GB]
-  Download: https://huggingface.co/Comfy-Org/z_image_turbo/blob/main/split_files/text_encoders/qwen_3_4b.safetensors
+  [ Download ]( https://huggingface.co/Comfy-Org/z_image_turbo/blob/main/split_files/text_encoders/qwen_3_4b.safetensors )  
   Local Directory: `ComfyUI/models/text_encoders/`
 
 - "ae.safetensors" [335 MB]
-  Download: https://huggingface.co/Comfy-Org/z_image_turbo/blob/main/split_files/vae/ae.safetensors
+  [ Download ]( https://huggingface.co/Comfy-Org/z_image_turbo/blob/main/split_files/vae/ae.safetensors )  
   Local Directory: `ComfyUI/models/vae/`
 
 
 ## License
 
-Copyright (c) 2026 Martin Rizzo
-This project is licensed under the MIT license.
+Copyright (c) 2026 Martin Rizzo  
+This project is licensed under the MIT license.  
 See the "LICENSE" file for details.
 
 
