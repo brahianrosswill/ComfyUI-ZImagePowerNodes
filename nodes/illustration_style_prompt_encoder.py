@@ -1,6 +1,6 @@
 """
 File    : illustration_style_prompt_encoder.py
-Purpose : This node converts a text prompt into an embedding, automatically
+Purpose : Node that converts a text prompt into an embedding, automatically
           adapting the prompt to match the selected illustrative style.
 Author  : Martin Rizzo | <martinrizzo@gmail.com>
 Date    : Jan 16, 2026
@@ -15,11 +15,11 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
     - https://docs.comfy.org/custom-nodes/v3_migration
 
 """
-from comfy_api.latest            import io
-from .core.system                import logger
-from .styles.base                import Styles, apply_style_to_prompt
-from .styles.styles_by_category  import STYLES_BY_CATEGORY
-ILLUSTRATION_STYLES = STYLES_BY_CATEGORY["illustration"]
+from comfy_api.latest           import io
+from .core.system               import logger
+from .styles.style_group        import StyleGroup, apply_style_to_prompt
+from .styles.predefined_styles  import STYLE_GROUPS
+ILLUSTRATION_STYLES = next((style_group for style_group in STYLE_GROUPS if style_group.category == "illustration"))
 
 
 class IllustrationStylePromptEncoder(io.ComfyNode):
@@ -70,22 +70,21 @@ class IllustrationStylePromptEncoder(io.ComfyNode):
     @classmethod
     def execute(cls, clip, style_to_apply: str, text: str, customization: str = "") -> io.NodeOutput:
         prompt        = text
-        found_style   = None
-        custom_styles = Styles.from_config(customization)
+        style_name    = style_to_apply if isinstance(style_to_apply, str) else "none"
+        custom_styles = StyleGroup.from_string(customization)
 
-        if isinstance(style_to_apply, str) and style_to_apply != "none":
-            # first search inside the custom styles that the user has defined,
-            # if not found, search inside the predefined styles
-            found_style = custom_styles.get(style_to_apply)
-            if not found_style:
-                found_style = ILLUSTRATION_STYLES.get(style_to_apply)
+        # try to find the definition of the style selected by the user,
+        # first search inside the custom styles that the user has defined (if any),
+        # if not found, then try to find it in the predefined styles
+        style = custom_styles.get(style_name) if style_name != "none" else None
+        if not style:
+            style = ILLUSTRATION_STYLES.get(style_name)
 
         # if the style was found, apply it to the prompt
-        if found_style:
-            prompt = apply_style_to_prompt(prompt, found_style, spicy_impact_booster=False)
+        if style:
+            prompt = apply_style_to_prompt(prompt, style, spicy_impact_booster=False)
 
-        if clip is None:
-            raise RuntimeError("ERROR: clip input is invalid: None\n\nIf the clip is from a checkpoint loader node your checkpoint does not contain a valid clip or text encoder model.")
+        # generate the embeddings and output them
         tokens = clip.tokenize(prompt)
         return io.NodeOutput( clip.encode_from_tokens_scheduled(tokens), prompt )
 

@@ -33,6 +33,7 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 """
 import os
 from comfy_api.latest import ComfyExtension, io
+from .nodes.server    import *
 __PROJECT_EMOJI = "⚡"                 #< emoji that identifies the project
 __PROJECT_MENU  = "Z-Image"            #< name of the menu where all the nodes will be
 __PROJECT_ID    = "//ZImagePowerNodes" #< used to identify the project in the ComfyUI node registry.
@@ -113,6 +114,9 @@ class ZImagePowerNodesExtension(ComfyExtension):
         from .nodes.save_image import SaveImage
         _register_node( SaveImage, subcategory, nodes )
 
+        from .nodes.style_prompt_encoder import StylePromptEncoder
+        _register_node( StylePromptEncoder, subcategory, nodes )
+
         from .nodes.zsampler_turbo import ZSamplerTurbo
         _register_node( ZSamplerTurbo, subcategory, nodes )
 
@@ -133,3 +137,6 @@ class ZImagePowerNodesExtension(ComfyExtension):
 async def comfy_entrypoint() -> ZImagePowerNodesExtension:
     return ZImagePowerNodesExtension()
 
+
+WEB_DIRECTORY = "./web"
+__all__ = ["WEB_DIRECTORY"]

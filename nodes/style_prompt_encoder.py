@@ -1,7 +1,6 @@
 """
-File    : photo_style_prompt_encoder.py
-Purpose : Node that converts a text prompt into an embedding, automatically
-          adapting the prompt to match the selected photographic style.
+File    : style_prompt_encoder.py
+Purpose : Node to get conditioning embeddings from a given style + prompt.
 Author  : Martin Rizzo | <martinrizzo@gmail.com>
 Date    : Jan 16, 2026
 Repo    : https://github.com/martin-rizzo/ComfyUI-ZImagePowerNodes
@@ -11,19 +10,18 @@ License : MIT
          ComfyUI nodes designed specifically for the "Z-Image" model.
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
-    The V3 schema documentation can be found here:
-    - https://docs.comfy.org/custom-nodes/v3_migration
+ ComfyUI V3 Schema oficial documentation:
+ - https://docs.comfy.org/custom-nodes/v3_migration
 
 """
 from comfy_api.latest           import io
 from .core.system               import logger
 from .styles.style_group        import StyleGroup, apply_style_to_prompt
 from .styles.predefined_styles  import STYLE_GROUPS
-PHOTO_STYLES = next((style_group for style_group in STYLE_GROUPS if style_group.category == "photo"))
 
 
-class PhotoStylePromptEncoder(io.ComfyNode):
-    xTITLE         = "Photo-Style Prompt Encoder"
+class StylePromptEncoder(io.ComfyNode):
+    xTITLE         = "Style & Prompt Encoder"
     xCATEGORY      = ""
     xCOMFY_NODE_ID = ""
     xDEPRECATED    = False
@@ -37,10 +35,10 @@ class PhotoStylePromptEncoder(io.ComfyNode):
             node_id       = cls.xCOMFY_NODE_ID,
             is_deprecated = cls.xDEPRECATED,
             description   = (
-                "Transforms a text prompt into an embedding, adapted to the selected photographic style. "
-                "This node takes a prompt, adjusts its visual style according to the chosen option, and "
-                "then encodes it using the provided text encoder to generate an embedding that will guide "
-                "image generation."
+                "Transforms a text prompt into embeddings, automatically adapting the prompt to match "
+                "the selected style. This node takes a prompt, adjusts its visual style according to "
+                "the chosen option, and then encodes it using the provided text encoder (clip) to "
+                "generate an embedding that will guide image generation."
             ),
             inputs=[
                 io.Clip.Input  ("clip",
@@ -53,8 +51,12 @@ class PhotoStylePromptEncoder(io.ComfyNode):
                                   'its description on the next lines. The description should incorporate "{$@}" where the '
                                   'main text prompt will be inserted.'),
                                ),
+                io.Combo.Input ("category", options=cls.category_names(),
+                                tooltip="The category of styles you want to select from.",
+                               ),
                 io.Combo.Input ("style_to_apply", options=cls.style_names(),
                                 tooltip="The style you want for your image.",
+                                extra_dict = { "extended_names": cls.style_extended_names() },
                                ),
                 io.String.Input("text", multiline=True, dynamic_prompts=True,
                                 tooltip="The prompt to encode.",
@@ -68,28 +70,52 @@ class PhotoStylePromptEncoder(io.ComfyNode):
 
     #__ FUNCTION __________________________________________
     @classmethod
-    def execute(cls, clip, style_to_apply: str, text: str, customization: str = "") -> io.NodeOutput:
+    def execute(cls, clip, category: str, style_to_apply: str, text: str, customization: str = "") -> io.NodeOutput:
         prompt        = text
-        style_name    = style_to_apply if isinstance(style_to_apply, str) else "none"
+        found_style   = None
         custom_styles = StyleGroup.from_string(customization)
 
-        # try to find the definition of the style selected by the user,
-        # first search inside the custom styles that the user has defined (if any),
-        # if not found, then try to find it in the predefined styles
-        style = custom_styles.get(style_name) if style_name != "none" else None
-        if not style:
-            style = PHOTO_STYLES.get(style_name)
+        if isinstance(style_to_apply, str) and style_to_apply != "none":
+            # first search inside the custom styles that the user has defined,
+            # if not found, search inside the predefined styles
+            found_style = custom_styles.get(style_to_apply)
+            if not found_style:
+                found_style = STYLE_GROUPS[0].get(style_to_apply)
 
         # if the style was found, apply it to the prompt
-        if style:
-            prompt = apply_style_to_prompt(prompt, style, spicy_impact_booster=False)
+        if found_style:
+            prompt = apply_style_to_prompt(prompt, found_style, spicy_impact_booster=False)
 
-        # generate the embeddings and output them
+        if clip is None:
+            raise RuntimeError("ERROR: clip input is invalid: None\n\nIf the clip is from a checkpoint loader node your checkpoint does not contain a valid clip or text encoder model.")
         tokens = clip.tokenize(prompt)
         return io.NodeOutput( clip.encode_from_tokens_scheduled(tokens), prompt )
 
+    #__ VALIDATION ________________________________________
+    @classmethod
+    def validate_inputs(cls, **kwargs) -> bool | str:
+        if kwargs["category"] not in cls.category_names():
+            return f"The category name '{kwargs['category']}' is invalid. May be the node is from an older version."
+        return True
+
+
+
+    #__ internal functions ________________________________
+
+    @classmethod
+    def category_names(cls) -> list[str]:
+        return ["illustration", "photo", "other"]
 
     @classmethod
     def style_names(cls) -> list[str]:
-        return ["none"] + PHOTO_STYLES.get_style_names()
+        return ["none"] + STYLE_GROUPS[0].get_style_names()
+
+
+    @classmethod
+    def style_extended_names(cls) -> list[str]:
+        result = []
+        for style_group in STYLE_GROUPS:
+            result.extend( style_group.get_style_names_ex() )
+        return result
+
 

@@ -39,12 +39,17 @@ def apply_style_to_prompt(prompt: str,
 
 
 
-class Styles:
+class StyleGroup:
 
     def __init__(self,
                  styles       : dict[str, str] | None = None,
                  ordered_names: list[str] | None      = None,
+                 category     : str                   = "",
+                 version      : str                   = "",
                  ):
+
+        self.category = category
+        self.version  = version
 
         if styles is None:
             self._styles       = {}
@@ -64,13 +69,17 @@ class Styles:
 
 
     @classmethod
-    def from_config(cls, config: str) -> "Styles":
-        styles  = Styles()
+    def from_string(cls,
+                    string   : str, /,*,
+                    category : str = "",
+                    version  : str = "",
+                    ) -> "StyleGroup":
+        style_group = StyleGroup(category=category, version=version)
         action  = None
         content = ""
 
         is_first_line = True
-        for line in config.splitlines():
+        for line in string.splitlines():
             is_shebang_line = is_first_line and line.startswith("#!")
             is_first_line   = False
 
@@ -83,7 +92,7 @@ class Styles:
                 # a new action is detected, so the previous pending one is processed
                 if action and action.startswith(">>>"):
                     style_name = action[3:].strip()
-                    styles.add_style(style_name, content.strip())
+                    style_group.add_style(style_name, content.strip())
 
                 # the new action is stored as pending
                 action, content = line, ""
@@ -93,9 +102,9 @@ class Styles:
         # before ending, process any pending action
         if action and action.startswith(">>>"):
             style_name = action[3:].strip()
-            styles.add_style(style_name, content.strip())
+            style_group.add_style(style_name, content.strip())
 
-        return styles
+        return style_group
 
 
     def add_style(self, name, style_value):
@@ -112,9 +121,13 @@ class Styles:
             self._ordered_keys.remove(name)
 
 
-    def get_style_names(self):
+    def get_style_names(self) -> list[str]:
         """Return all keys in the order they were added."""
         return self._ordered_keys
+
+
+    def get_style_names_ex(self) -> list[str]:
+        return [ f"{name}>>>{self.category}>>>{self.version}" for name in self._ordered_keys ]
 
 
     def get(self, name, default=None):
