@@ -26,6 +26,7 @@ import folder_paths
 from PIL                 import Image
 from PIL.PngImagePlugin  import PngInfo
 from comfy_api.latest    import io
+from typing              import Any
 
 
 class SaveImage(io.ComfyNode):
@@ -445,11 +446,9 @@ class SaveImage(io.ComfyNode):
         # that will be the base for inject CivitAI nodes
         if not_injected:
             base_index = 0
-            for index in nodes.keys():
-                if isinstance(index, str):
-                    index = int(index)
-                if isinstance(index, int) and index > base_index:
-                    base_index = index
+            for node_id in nodes.keys():
+                index = cls.max_index_from_node_identifier(node_id)
+                base_index = max(base_index, index)
             base_index += 100
 
             # reenumerate the CivitAI nodes from `base_index`
@@ -632,3 +631,28 @@ class SaveImage(io.ComfyNode):
             return True
         return False
 
+
+    @staticmethod
+    def max_index_from_node_identifier(identifier: Any) -> int:
+        """
+        Converts a node identifier to integer, taking into account sub-graphs format ("sub-graph:node").
+
+        Args:
+            identifier: The node identifier to convert to integer.
+
+        Returns:
+            The maximum index extracted from the identifier.
+            If the identifier cannot be processed, returns 0.
+        """
+        if isinstance(identifier, (int,float)):
+            return int(identifier)
+        if isinstance(identifier,str):
+            max_index = 0
+            # splitting the identifier by ':' to process sub-graph elements
+            # (sub-graph and internal elements seem to form a single identifier delimited by ':')
+            for index in identifier.split(":"):
+                if not index.isdigit():
+                    continue
+                max_index = max(int(index), max_index)
+            return max_index
+        return 0
