@@ -18,8 +18,8 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 from comfy_api.latest           import io
 from .core.system               import logger
 from .styles.style_group        import StyleGroup, apply_style_to_prompt
-from .styles.predefined_styles  import STYLE_GROUPS
-PHOTO_STYLES = next((style_group for style_group in STYLE_GROUPS if style_group.category == "photo"))
+from .styles.predefined_styles  import PREDEFINED_STYLE_GROUPS
+PHOTO_STYLES = next((style_group for style_group in PREDEFINED_STYLE_GROUPS if style_group.category == "photo"))
 
 
 class PhotoStylePromptEncoder(io.ComfyNode):
@@ -76,9 +76,9 @@ class PhotoStylePromptEncoder(io.ComfyNode):
         # try to find the definition of the style selected by the user,
         # first search inside the custom styles that the user has defined (if any),
         # if not found, then try to find it in the predefined styles
-        style = custom_styles.get(style_name) if style_name != "none" else None
+        style = custom_styles.get_style(style_name) if style_name != "none" else ""
         if not style:
-            style = PHOTO_STYLES.get(style_name)
+            style = PHOTO_STYLES.get_style(style_name)
 
         # if the style was found, apply it to the prompt
         if style:
@@ -91,5 +91,5 @@ class PhotoStylePromptEncoder(io.ComfyNode):
 
     @classmethod
     def style_names(cls) -> list[str]:
-        return ["none"] + PHOTO_STYLES.get_style_names()
+        return ["none"] + PHOTO_STYLES.get_names()
 

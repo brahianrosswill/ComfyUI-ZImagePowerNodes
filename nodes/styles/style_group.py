@@ -107,6 +107,11 @@ class StyleGroup:
         return style_group
 
 
+    def get_style(self, name: str, default: str = "") -> str:
+        """Return the style content for a given name. If it doesn't exist, returns `default` or empty string."""
+        return self._styles.get(name, default)
+
+
     def add_style(self, name, style_value):
         """Add a new style or update an existing one."""
         if name not in self._styles:
@@ -121,13 +126,9 @@ class StyleGroup:
             self._ordered_keys.remove(name)
 
 
-    def get_style_names(self) -> list[str]:
+    def get_names(self) -> list[str]:
         """Return all keys in the order they were added."""
         return self._ordered_keys
-
-
-    def get_style_names_ex(self) -> list[str]:
-        return [ f"{name}>>>{self.category}>>>{self.version}" for name in self._ordered_keys ]
 
 
     def get(self, name, default=None):

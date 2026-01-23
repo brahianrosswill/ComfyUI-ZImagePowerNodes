@@ -308,7 +308,7 @@ YOUR PHOTO:
 _OtherStyles = """
 """
 
-STYLE_GROUPS = [
+PREDEFINED_STYLE_GROUPS = [
     StyleGroup.from_string( _IllustrationStyles, category="illustration", version="v0.8.0" ),
     StyleGroup.from_string( _PhotoStyles       , category="photo"       , version="v0.8.0" ),
     StyleGroup.from_string( _OtherStyles       , category="other"       , version="v0.8.0" ),

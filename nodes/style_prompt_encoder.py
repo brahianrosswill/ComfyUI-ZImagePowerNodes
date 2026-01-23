@@ -15,9 +15,8 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 """
 from comfy_api.latest           import io
-from .core.system               import logger
 from .styles.style_group        import StyleGroup, apply_style_to_prompt
-from .styles.predefined_styles  import STYLE_GROUPS
+from .styles.predefined_styles  import PREDEFINED_STYLE_GROUPS
 
 
 class StylePromptEncoder(io.ComfyNode):
@@ -56,7 +55,6 @@ class StylePromptEncoder(io.ComfyNode):
                                ),
                 io.Combo.Input ("style_to_apply", options=cls.style_names(),
                                 tooltip="The style you want for your image.",
-                                extra_dict = { "extended_names": cls.style_extended_names() },
                                ),
                 io.String.Input("text", multiline=True, dynamic_prompts=True,
                                 tooltip="The prompt to encode.",
@@ -64,13 +62,19 @@ class StylePromptEncoder(io.ComfyNode):
             ],
             outputs=[
                 io.Conditioning.Output(tooltip="The encoded text used to guide the image generation."),
-                io.String.Output(tooltip="The prompt after applying the selected photographic style."),
+                io.String.Output(tooltip="The prompt after applying the selected visual style."),
             ]
         )
 
     #__ FUNCTION __________________________________________
     @classmethod
-    def execute(cls, clip, category: str, style_to_apply: str, text: str, customization: str = "") -> io.NodeOutput:
+    def execute(cls,
+                clip,
+                category      : str,
+                style_to_apply: str,
+                text          : str,
+                customization : str = ""
+                ) -> io.NodeOutput:
         prompt        = text
         found_style   = None
         custom_styles = StyleGroup.from_string(customization)
@@ -78,9 +82,9 @@ class StylePromptEncoder(io.ComfyNode):
         if isinstance(style_to_apply, str) and style_to_apply != "none":
             # first search inside the custom styles that the user has defined,
             # if not found, search inside the predefined styles
-            found_style = custom_styles.get(style_to_apply)
+            found_style = custom_styles.get_style(style_to_apply)
             if not found_style:
-                found_style = STYLE_GROUPS[0].get(style_to_apply)
+                found_style = cls.get_predefined_style(style_to_apply)
 
         # if the style was found, apply it to the prompt
         if found_style:
@@ -104,18 +108,25 @@ class StylePromptEncoder(io.ComfyNode):
 
     @classmethod
     def category_names(cls) -> list[str]:
-        return ["illustration", "photo", "other"]
+        """Returns all available category names."""
+        return [ group.category for group in PREDEFINED_STYLE_GROUPS ]
+
 
     @classmethod
     def style_names(cls) -> list[str]:
-        return ["none"] + STYLE_GROUPS[0].get_style_names()
+        """Returns all available style names."""
+        names = ["none"]
+        for style_group in PREDEFINED_STYLE_GROUPS:
+            names.extend( style_group.get_names() )
+        return names
 
 
     @classmethod
-    def style_extended_names(cls) -> list[str]:
-        result = []
-        for style_group in STYLE_GROUPS:
-            result.extend( style_group.get_style_names_ex() )
-        return result
-
+    def get_predefined_style(cls, style_name: str) -> str:
+        """Returns a predefined style content by its name, searching inside all category groups."""
+        for style_group in PREDEFINED_STYLE_GROUPS:
+            style = style_group.get_style(style_name)
+            if style:
+                return style
+        return ""
 

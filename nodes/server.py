@@ -17,7 +17,7 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 from functools                  import cache
 from server                     import PromptServer
 from aiohttp                    import web
-from .styles.predefined_styles  import STYLE_GROUPS
+from .styles.predefined_styles  import PREDEFINED_STYLE_GROUPS
 routes = PromptServer.instance.routes
 
 
@@ -31,9 +31,9 @@ def _style_names_by_category() -> dict[ str, list[str] ]:
         a list of style names belonging to that category.
     """
     names_by_category = {}
-    for style_group in STYLE_GROUPS:
+    for style_group in PREDEFINED_STYLE_GROUPS:
         names = names_by_category.setdefault( style_group.category, [] )
-        for name in style_group.get_style_names():
+        for name in style_group.get_names():
             names.append( name )
 
     return names_by_category

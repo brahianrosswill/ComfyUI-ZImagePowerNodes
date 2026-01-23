@@ -1,2 +1,2 @@
 
-from .predefined_styles_v080 import STYLE_GROUPS
+from .predefined_styles_v080 import PREDEFINED_STYLE_GROUPS
