@@ -106,7 +106,7 @@ class StyleStringInjector(io.ComfyNode):
 
     @classmethod
     def default_style_name(cls) -> str:
-        return PREDEFINED_STYLE_GROUPS[0].get_names()[0]
+        return PREDEFINED_STYLE_GROUPS[0].get_names(quoted=True)[0]
 
 
     @classmethod

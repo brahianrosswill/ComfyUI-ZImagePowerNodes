@@ -50,10 +50,10 @@ class StylePromptEncoder(io.ComfyNode):
                                   'its description on the next lines. The description should incorporate "{$@}" where the '
                                   'main text prompt will be inserted.'),
                                ),
-                io.Combo.Input ("category", options=cls.category_names(),
+                io.Combo.Input ("category", options=cls.category_names(), default=cls.default_category_name(),
                                 tooltip="The category of styles you want to select from.",
                                ),
-                io.Combo.Input ("style_to_apply", options=cls.style_names(),
+                io.Combo.Input ("style", options=cls.style_names(), default=cls.default_style_name(),
                                 tooltip="The style you want for your image.",
                                ),
                 io.String.Input("text", multiline=True, dynamic_prompts=True,
@@ -71,24 +71,24 @@ class StylePromptEncoder(io.ComfyNode):
     def execute(cls,
                 clip,
                 category      : str,
-                style_to_apply: str,
+                style: str,
                 text          : str,
                 customization : str = ""
                 ) -> io.NodeOutput:
-        prompt        = text
-        found_style   = None
-        custom_styles = StyleGroup.from_string(customization)
+        style_to_apply = None
+        prompt         = text
+        custom_styles  = StyleGroup.from_string(customization)
 
-        if isinstance(style_to_apply, str) and style_to_apply != "none":
+        if isinstance(style, str) and style != "none":
             # first search inside the custom styles that the user has defined,
             # if not found, search inside the predefined styles
-            found_style = custom_styles.get_style(style_to_apply)
-            if not found_style:
-                found_style = cls.get_predefined_style(style_to_apply)
+            style_to_apply = custom_styles.get_style(style)
+            if not style_to_apply:
+                style_to_apply = cls.get_predefined_style(style)
 
         # if the style was found, apply it to the prompt
-        if found_style:
-            prompt = apply_style_to_prompt(prompt, found_style, spicy_impact_booster=False)
+        if style_to_apply:
+            prompt = apply_style_to_prompt(prompt, style_to_apply, spicy_impact_booster=False)
 
         if clip is None:
             raise RuntimeError("ERROR: clip input is invalid: None\n\nIf the clip is from a checkpoint loader node your checkpoint does not contain a valid clip or text encoder model.")
@@ -117,8 +117,18 @@ class StylePromptEncoder(io.ComfyNode):
         """Returns all available style names."""
         names = ["none"]
         for style_group in PREDEFINED_STYLE_GROUPS:
-            names.extend( style_group.get_names() )
+            names.extend( style_group.get_names(quoted=True) )
         return names
+
+
+    @classmethod
+    def default_category_name(cls) -> str:
+        return PREDEFINED_STYLE_GROUPS[0].category
+
+
+    @classmethod
+    def default_style_name(cls) -> str:
+        return PREDEFINED_STYLE_GROUPS[0].get_names(quoted=True)[0]
 
 
     @classmethod
