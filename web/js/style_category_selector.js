@@ -1,8 +1,8 @@
 /**
- * File    : style_prompt_encoder.js
- * Purpose : The front-end code for the "Style Prompt Encoder" node.
+ * File    : style_category_selector.js
+ * Purpose : Implement a 'style' widget that shows only the styles corresponding with the selected category.
  * Author  : Martin Rizzo | <martinrizzo@gmail.com>
- * Date    : Jan 21, 2026
+ * Date    : Jan 22, 2026
  * Repo    : https://github.com/martin-rizzo/ComfyUI-ZImagePowerNodes
  * License : MIT
  *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -16,10 +16,10 @@ const ENABLED = true;
 
 
 /**
- * Object encapsulating the "Style Prompt Encoder" node functionality in the front-end.
- * @typedef {Object} StylePromptEncoder
- *   @property {Object}                         categoryWidget     - The combobox that manages categories.
- *   @property {Object}                         styleWidget        - The combobox that manages styles.
+ * Object encapsulating the style category selection functionality.
+ * @typedef {Object} StyleCategorySelector
+ *   @property {Object}                         categoryWidget     - The combobox that selects the category to show.
+ *   @property {Object}                         styleWidget        - The combobox that will be refilled with styles.
  *   @property {Object.<string, Array<string>>} stylesByCategory   - An object mapping each category to a list of styles.
  *   @property {string}                         oldCategory        - The name of the last selected category.
  *   @property {Object.<string, string>}        selectedByCategory - An object storing the last selected style for each category.
@@ -27,10 +27,10 @@ const ENABLED = true;
 
 
 /**
- * Initializes the StylePromptEncoder node with specific widgets and functionality.
- * @param {StylePromptEncoder} self - The StylePromptEncoder object to initialize.
- * @param {Object} categoryWidget   - The combobox that manages categories.
- * @param {Object} styleWidget      - The combobox that manages styles.
+ * Initializes the StyleCategorySelector node with specific widgets and functionality.
+ * @param {StyleCategorySelector} self           - The StyleCategorySelector object to initialize.
+ * @param {Object}                categoryWidget - The combobox that manages categories.
+ * @param {Object}                styleWidget    - The combobox that manages styles.
  * @param {Object.<string, Array<string>>} stylesByCategory - An object mapping each category to a list of styles.
  */
 function onInit(self, categoryWidget, styleWidget, stylesByCategory) {
@@ -53,7 +53,7 @@ function onInit(self, categoryWidget, styleWidget, stylesByCategory) {
 
 /**
  * Handles the change in category by updating available styles.
- * @param {StylePromptEncoder} self - The StylePromptEncoder object whose category has changed.
+ * @param {StyleCategorySelector} self - The StyleCategorySelector object whose category has changed.
  * @param {string} newCategory      - The name of the new selected category.
  */
 function onCategoryChange(self, newCategory) {
@@ -94,9 +94,9 @@ function onCategoryChange(self, newCategory) {
  * Fetches available styles by category from the API.
  * @returns - An object mapping categories to list of styles, or an empty object on failure.
  */
-async function fetchStyleByCategory() {
+async function fetchQuotedStylesByCategory() {
     try {
-        const response = await api.fetchApi("/zi_power/styles/by_category");
+        const response = await api.fetchApi("/zi_power/quoted_styles/by_category");
         if ( response.ok ) { return await response.json();  }
     }
     catch (error) { console.error(error); }
@@ -109,12 +109,13 @@ async function fetchStyleByCategory() {
 //#=========================================================================#
 
 app.registerExtension({
-    name: "ZImagePowerNodes.StylePromptEncoder",
+    name: "ZImagePowerNodes.StyleCategorySelector",
 
     /**
      * Called when the extension is loaded.
      */
-    init() {
+    init()
+    {
         if (!ENABLED) return;
         console.log("##>> Style Prompt Encoder: extension loaded.")
     },
@@ -123,19 +124,26 @@ app.registerExtension({
 	 * Called every time ComfyUI creates a new node.
 	 * @param {ComfyNode} node - The node that was created.
 	 */
-	async nodeCreated(node) {
+	async nodeCreated(node)
+    {
 		if (!ENABLED) return;
+        const comfyClass = node?.comfyClass ?? "";
 
-        // only applies to "Unified Prompt" nodes with a textarea
-		if( !node?.comfyClass?.startsWith("StylePromptEncoder ")  ) { return; }
+        // only applies to "Style & Prompt Encoder" and "Style String Injector"
+		if( !comfyClass.startsWith("StylePromptEncoder " ) &&
+            !comfyClass.startsWith("StyleStringInjector ")  )
+        { return; }
 
         const categoryWidget   = node.widgets.find(w => w.name === "category");
-        const styleWidget      = node.widgets.find(w => w.name === "style_to_apply");
-        const stylesByCategory = await fetchStyleByCategory();
+        const styleWidget      = node.widgets.find(w => w.name === "style"   );
+        const stylesByCategory = await fetchQuotedStylesByCategory();
 
-        node.myZObject = {};
-        onInit(node.myZObject, categoryWidget, styleWidget, stylesByCategory);
+        // if any of the widgets or stylesByCategory could not be created, return
+        if( !categoryWidget || !styleWidget || Object.keys(stylesByCategory).length === 0 )
+        { return; }
 
+        node.styleCategorySelectorZ = {};
+        onInit(node.styleCategorySelectorZ, categoryWidget, styleWidget, stylesByCategory);
 	},
 
 })
