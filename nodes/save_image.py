@@ -99,7 +99,7 @@ class SaveImage(io.ComfyNode):
 
         # attempt to inject CivitAI compatible metadata
         if civitai_compatible_metadata:
-            params = { "positive":"", "negative":"", "seed":-1, "steps":8, "cfg":1.0, "sampler_name":"", "scheduler_name":"" }
+            params = {}
 
             # try to find generation parameters from the initial sampler node,
             # initial sampler is defined as any sampler that is connected to an empty latent generator
@@ -112,16 +112,19 @@ class SaveImage(io.ComfyNode):
 
             # if important parameters are found, inject all into the image's metadata,
             # this is done by creating new nodes that contain these parameters but are recognizable by CivitAI
-            found_params = params["positive"] or params["seed"]>=0
+            found_params = ("positive" in params) or ("seed" in params)
             if found_params:
                 prompt_nodes = cls.inject_civitai_nodes(prompt_nodes,
-                                                        positive     = params["positive"],
-                                                        negative     = params["negative"],
-                                                        seed         = params["seed"],
-                                                        steps        = params["steps"],
-                                                        cfg          = params["cfg"],
-                                                        sampler_name = params["sampler_name"])
-
+                                                        positive     = params.get("positive"    , ""      ),
+                                                        negative     = params.get("negative"    , ""      ),
+                                                        seed         = params.get("seed"        , 0       ),
+                                                        steps        = params.get("steps"       , 50      ),
+                                                        cfg          = params.get("cfg"         , 1.0     ),
+                                                        sampler_name = params.get("sampler_name", "euler" ),
+                                                        scheduler    = params.get("scheduler"   , "simple"),
+                                                        width        = params.get("width"       , 1024    ),
+                                                        height       = params.get("height"      , 1024    ),
+                                                        )
             # log the outcome of this metadata injection process to provide feedback
             if not found_params:
                 logger.warning(f'"Save Image" was unable to locate generation parameters for injection as CivitAI metadata. Injection skipped.')
@@ -567,7 +570,7 @@ class SaveImage(io.ComfyNode):
         if not params.get("positive"    ): params.pop("positive"    , None)
         if not params.get("negative"    ): params.pop("negative"    , None)
         if not params.get("sampler_name"): params.pop("sampler_name", None)
-        if not params.get("sheduler"    ): params.pop("scheduler"   , None)
+        if not params.get("scheduler"   ): params.pop("scheduler"   , None)
         if params.get("seed" ,-1) < 0    : params.pop("seed"        , None)
         if params.get("steps",-1) < 1    : params.pop("steps"       , None)
         if params.get("cfg"  ,-1) < 0    : params.pop("cfg"         , None)
@@ -593,22 +596,31 @@ class SaveImage(io.ComfyNode):
 
             params = {}
 
+            prompt = get_input_string(node, "text", default="")
+            if prompt:
+                if "negative" in title.lower():  params["negative"] = prompt
+                else:                            params["positive"] = prompt
+
+            seed = get_input_int(node, "seed", default=-1)
+            if seed>=0: params["seed"] = int(seed)
+
+            steps = get_input_int(node, "steps", default=-1)
+            if steps>0: params["steps"] = int(steps)
+
+            cfg = get_input_float(node, "cfg", default=-1.0)
+            if cfg>=0: params["cfg"] = float(cfg)
+
+            sampler_name = get_input_string(node, "sampler_name", default="")
+            if sampler_name: params["sampler_name"] = sampler_name
+
+            scheduler = get_input_string(node, "scheduler", default="")
+            if scheduler: params["scheduler"] = scheduler
+
             width = get_input_int(node, "width", default=-1)
             if width>0: params["width"] = int(width)
 
             height = get_input_int(node, "height", default=-1)
             if height>0: params["height"] = int(height)
-
-            seed = get_input_int(node, "seed", default=-1)
-            if seed>=0: params["seed"] = int(seed)
-
-            cfg = get_input_float(node, "cfg", default=-1.0)
-            if cfg>=0: params["cfg"] = float(cfg)
-
-            prompt = get_input_string(node, "text", default="")
-            if prompt:
-                if "negative" in title.lower():  params["negative"] = prompt
-                else:                            params["positive"] = prompt
 
             if params:
                 contrib_count += 1
