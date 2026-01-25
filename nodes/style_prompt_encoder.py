@@ -15,7 +15,7 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 """
 from comfy_api.latest           import io
-from .styles.style_group        import StyleGroup, apply_style_to_prompt
+from .styles.style_group        import StyleGroup
 from .styles.predefined_styles  import PREDEFINED_STYLE_GROUPS
 
 
@@ -75,20 +75,20 @@ class StylePromptEncoder(io.ComfyNode):
                 text          : str,
                 customization : str = ""
                 ) -> io.NodeOutput:
-        style_to_apply = None
-        prompt         = text
-        custom_styles  = StyleGroup.from_string(customization)
+        template      = None
+        prompt        = text
+        custom_styles = StyleGroup.from_string(customization)
 
         if isinstance(style, str) and style != "none":
             # first search inside the custom styles that the user has defined,
             # if not found, search inside the predefined styles
-            style_to_apply = custom_styles.get_style(style)
-            if not style_to_apply:
-                style_to_apply = cls.get_predefined_style(style)
+            template = custom_styles.get_style_template(style)
+            if not template:
+                template = cls.get_predefined_style_template(style)
 
-        # if the style was found, apply it to the prompt
-        if style_to_apply:
-            prompt = apply_style_to_prompt(prompt, style_to_apply, spicy_impact_booster=False)
+        # if a style template was found, apply it to the prompt
+        if template:
+            prompt = StyleGroup.apply_style_template(prompt, template, spicy_impact_booster=False)
 
         if clip is None:
             raise RuntimeError("ERROR: clip input is invalid: None\n\nIf the clip is from a checkpoint loader node your checkpoint does not contain a valid clip or text encoder model.")
@@ -132,10 +132,10 @@ class StylePromptEncoder(io.ComfyNode):
 
 
     @classmethod
-    def get_predefined_style(cls, style_name: str) -> str:
-        """Returns a predefined style content by its name, searching inside all category groups."""
+    def get_predefined_style_template(cls, style_name: str) -> str:
+        """Returns a predefined style template by its name, searching inside all category groups."""
         for style_group in PREDEFINED_STYLE_GROUPS:
-            style = style_group.get_style(style_name)
+            style = style_group.get_style_template(style_name)
             if style:
                 return style
         return ""

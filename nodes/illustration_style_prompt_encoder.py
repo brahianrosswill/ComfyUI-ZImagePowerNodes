@@ -17,7 +17,7 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 """
 from comfy_api.latest           import io
 from .core.system               import logger
-from .styles.style_group        import StyleGroup, apply_style_to_prompt
+from .styles.style_group        import StyleGroup
 from .styles.predefined_styles  import PREDEFINED_STYLE_GROUPS
 ILLUSTRATION_STYLES = next((style_group for style_group in PREDEFINED_STYLE_GROUPS if style_group.category == "illustration"))
 
@@ -76,13 +76,13 @@ class IllustrationStylePromptEncoder(io.ComfyNode):
         # try to find the definition of the style selected by the user,
         # first search inside the custom styles that the user has defined (if any),
         # if not found, then try to find it in the predefined styles
-        style = custom_styles.get_style(style_name) if style_name != "none" else None
+        style = custom_styles.get_style_template(style_name) if style_name != "none" else None
         if not style:
-            style = ILLUSTRATION_STYLES.get_style(style_name)
+            style = ILLUSTRATION_STYLES.get_style_template(style_name)
 
         # if the style was found, apply it to the prompt
         if style:
-            prompt = apply_style_to_prompt(prompt, style, spicy_impact_booster=False)
+            prompt = StyleGroup.apply_style_template(prompt, style, spicy_impact_booster=False)
 
         # generate the embeddings and output them
         tokens = clip.tokenize(prompt)
