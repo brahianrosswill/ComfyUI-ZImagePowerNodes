@@ -389,40 +389,6 @@
       "shape": 1
     },
     {
-      "id": 32,
-      "type": "EmptyZImageLatentImage //ZImagePowerNodes",
-      "pos": [
-        530,
-        20
-      ],
-      "size": [
-        316.9362396240234,
-        130
-      ],
-      "flags": {},
-      "order": 4,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "LATENT",
-          "type": "LATENT",
-          "links": [
-            48
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "EmptyZImageLatentImage //ZImagePowerNodes"
-      },
-      "widgets_values": [
-        false,
-        "3:2  (photo)",
-        "small",
-        1
-      ]
-    },
-    {
       "id": 18,
       "type": "ZSamplerTurbo //ZImagePowerNodes",
       "pos": [
@@ -471,6 +437,95 @@
         1,
         "fixed",
         9,
+        1
+      ]
+    },
+    {
+      "id": 44,
+      "type": "Note",
+      "pos": [
+        -50,
+        -160
+      ],
+      "size": [
+        420,
+        250
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "properties": {},
+      "widgets_values": [
+        "This workflow demonstrates how to define a custom style by connecting through the \"customization\" input in the \"Style & Prompt Encoder\" node.\n\nA multi-line string must be defined using the following format:\nEach line starting with \">>>\" (three greater-than signs) defines the name of the style. From there, all subsequent lines until the next \">>>\" define the content of that style. Within this content, the tag \"{$@}\" will be replaced by the prompt.\n\nWhile the example shows all styles being defined as \"Custom <N>\", this method can be used to redefine any of the available styles in the style selector."
+      ],
+      "color": "#223",
+      "bgcolor": "#335",
+      "shape": 1
+    },
+    {
+      "id": 43,
+      "type": "PrimitiveStringMultiline",
+      "pos": [
+        -450,
+        320
+      ],
+      "size": [
+        590,
+        560
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            62
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PrimitiveStringMultiline"
+      },
+      "widgets_values": [
+        ">>>CUSTOM 1\nYOUR CONTEXT:\nYou are an illustrator of dark and disturbing themes.\nYour illustration includes {$spicy-content-with} stippling textures, dramatic raking side lighting, and a dread-filled atmosphere that is oppressive and claustrophobic. High contrast emphasizes form and shadow, employing cinematic chiaroscuro for depth.\nYOUR DRAWING:\n{$@}\n\n\n>>>Custom 2\nYOUR CONTEXT:\nYou are a sci-fi pulp magazine illustrator from the 1940s.\nYour drawing is a lush, painted-style comic cover including {$spicy-content-with} dramatic, heroic lighting and a vivid \"Technicolor\" palette of saturated oranges, deep teals, and bright yellows. It features soft airbrushed textures, muscular anatomy, and a grainy film-stock finish that evokes a sense of retro-futuristic adventure.\nYOUR DRAWING:\n{$@}\n\n\n>>>custom 3\nYOUR CONTEXT:\nAn eye-level, realistic photo of a glass-encased advertising poster (mupi) located on a clean city sidewalk. There are subtle reflections of nearby buildings and trees on the glass surface. The lighting is natural overcast daylight.\nWHAT'S BEHIND THE REFLECTIVE GLASS:\nA faded and sun-faded, low quality printed advertisement, showing: {$@}"
+      ]
+    },
+    {
+      "id": 32,
+      "type": "EmptyZImageLatentImage //ZImagePowerNodes",
+      "pos": [
+        530,
+        20
+      ],
+      "size": [
+        316.9362396240234,
+        130
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            48
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "EmptyZImageLatentImage //ZImagePowerNodes"
+      },
+      "widgets_values": [
+        false,
+        "3:2  (photo)",
+        "medium (recommended)",
         1
       ]
     },
@@ -526,61 +581,6 @@
       "color": "#232",
       "bgcolor": "#353",
       "shape": 1
-    },
-    {
-      "id": 44,
-      "type": "Note",
-      "pos": [
-        -50,
-        -160
-      ],
-      "size": [
-        420,
-        250
-      ],
-      "flags": {},
-      "order": 5,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [],
-      "properties": {},
-      "widgets_values": [
-        "This workflow demonstrates how to define a custom style by connecting through the \"customization\" input in the \"Style & Prompt Encoder\" node.\n\nA multi-line string must be defined using the following format:\nEach line starting with \">>>\" (three greater-than signs) defines the name of the style. From there, all subsequent lines until the next \">>>\" define the content of that style. Within this content, the tag \"{$@}\" will be replaced by the prompt.\n\nWhile the example shows all styles being defined as \"Custom <N>\", this method can be used to redefine any of the available styles in the style selector."
-      ],
-      "color": "#223",
-      "bgcolor": "#335",
-      "shape": 1
-    },
-    {
-      "id": 43,
-      "type": "PrimitiveStringMultiline",
-      "pos": [
-        -450,
-        320
-      ],
-      "size": [
-        590,
-        560
-      ],
-      "flags": {},
-      "order": 6,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "STRING",
-          "type": "STRING",
-          "links": [
-            62
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "PrimitiveStringMultiline"
-      },
-      "widgets_values": [
-        ">>>CUSTOM 1\nYOUR CONTEXT:\nYou are an illustrator of dark and disturbing themes.\nYour illustration includes {$spicy-content-with} stippling textures, dramatic raking side lighting, and a dread-filled atmosphere that is oppressive and claustrophobic. High contrast emphasizes form and shadow, employing cinematic chiaroscuro for depth.\nYOUR DRAWING:\n{$@}\n\n\n>>>CUSTOM 2\nYOUR CONTEXT:\nYou are a sci-fi pulp magazine illustrator from the 1940s.\nYour drawing is a lush, painted-style comic cover including {$spicy-content-with} dramatic, heroic lighting and a vivid \"Technicolor\" palette of saturated oranges, deep teals, and bright yellows. It features soft airbrushed textures, muscular anatomy, and a grainy film-stock finish that evokes a sense of retro-futuristic adventure.\nYOUR DRAWING:\n{$@}\n\n\n>>>custom 3\nYOUR CONTEXT:\nAn eye-level, realistic photo of a glass-encased advertising poster (mupi) located on a clean city sidewalk. There are subtle reflections of nearby buildings and trees on the glass surface. The lighting is natural overcast daylight.\nWHAT'S BEHIND THE REFLECTIVE GLASS:\nA faded and sun-faded, low quality printed advertisement, showing: {$@}"
-      ]
     }
   ],
   "links": [
@@ -709,8 +709,8 @@
     "ds": {
       "scale": 0.7513148009015777,
       "offset": [
-        887.127496130167,
-        204.6137027285906
+        961.948961147265,
+        293.7071617959685
       ]
     },
     "frontendVersion": "1.35.9",
