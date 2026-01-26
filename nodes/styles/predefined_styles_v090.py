@@ -1,6 +1,6 @@
 """
 File    : styles/styles_by_category_v090.py
-Purpose : Contain all style definitions grouped by category (v0.9.0)
+Purpose : Version 0.9.0 of all predefined styles grouped by category.
 Author  : Martin Rizzo | <martinrizzo@gmail.com>
 Date    : Jan 25, 2026
 Repo    : https://github.com/martin-rizzo/ComfyUI-ZImagePowerNodes
@@ -10,7 +10,7 @@ License : MIT
          ComfyUI nodes designed specifically for the "Z-Image" model.
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 """
-from .style_group import StyleGroup
+from ..lib.style_group  import StyleGroup
 
 
 _PhotoStyles = """

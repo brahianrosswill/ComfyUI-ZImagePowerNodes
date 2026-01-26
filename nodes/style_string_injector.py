@@ -15,7 +15,7 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 """
 from comfy_api.latest           import io
-from .styles.style_group        import StyleGroup
+from .lib.style_group           import StyleGroup
 from .styles.predefined_styles  import PREDEFINED_STYLE_GROUPS
 
 
