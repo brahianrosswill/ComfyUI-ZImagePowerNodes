@@ -124,10 +124,10 @@ class ZImagePowerNodesExtension(ComfyExtension):
         # this is where nodes that were deprecated and
         # maintained only for compatibility go
 
-        from .nodes.photo_style_prompt_encoder import PhotoStylePromptEncoder
+        from .nodes.deprecated_nodes.photo_style_prompt_encoder import PhotoStylePromptEncoder
         _register_node( PhotoStylePromptEncoder, subcategory, nodes, deprecated=True )
 
-        from .nodes.illustration_style_prompt_encoder import IllustrationStylePromptEncoder
+        from .nodes.deprecated_nodes.illustration_style_prompt_encoder import IllustrationStylePromptEncoder
         _register_node( IllustrationStylePromptEncoder, subcategory, nodes, deprecated=True )
 
         logger.info(f"Imported {len(nodes)} nodes")
