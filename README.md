@@ -42,10 +42,10 @@
  * Creates an empty latent image of the appropriate size for Z-Image, selecting aspect ratio, scale, and orientation.  \
    **["Empty Z-Image Latent Image" node documentation](docs/empty_zimage_latent_image.md)**.
 
-### 💀 Photo-Style Prompt Encoder
+### 💀 ~~Photo-Style Prompt Encoder~~
  * Deprecated, use "Style & Prompt Encoder" node.
 
-### 💀 Illustration-Style Prompt Encoder
+### 💀 ~~Illustration-Style Prompt Encoder~~
  * Deprecated, use "Style & Prompt Encoder" node.
 
 
