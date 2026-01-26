@@ -23,7 +23,6 @@
 ## Nodes
 
 ### ⚡ ZSampler Turbo
-
  * A specialized sampler designed to divide the denoising process into three stages: composition, details, and refinement. It maintains image stability between 4 and 9 steps and achieves sufficient quality and detail starting from step 7, eliminating the need for further refining or post-processing. \
    **["ZSampler Turbo" node documentation](docs/zsampler_turbo.md)**.
 
@@ -32,14 +31,16 @@
    **["Style Prompt Encoder" node documentation](docs/style_prompt_encoder.md)**
 
 ### ⚡ Style String Injector
- * Applies ...
+ * Seamlessly integrates a chosen style into your prompt text. It accepts a string as input and modifies it based on the selected style. \
+   **["Style String Injector" node documentation](docs/style_string_injector.md)**
 
 ### ⚡ Save Image
  * This node saves generated images with an option to include CivitAI-compatible metadata. \
    **["Save Image" node documentation](docs/save_image.md)**.
 
 ### ⚡ Empty Z-Image Latent Image
- * Applies ...
+ * Creates an empty latent image of the appropriate size for Z-Image, selecting aspect ratio, scale, and orientation.  \
+   **["Empty Z-Image Latent Image" node documentation](docs/empty_zimage_latent_image.md)**.
 
 ### 💀 Photo-Style Prompt Encoder
  * Deprecated, use "Style & Prompt Encoder" node.
