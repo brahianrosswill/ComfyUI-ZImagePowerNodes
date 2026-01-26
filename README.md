@@ -35,7 +35,7 @@
    **["Style String Injector" node documentation](docs/style_string_injector.md)**
 
 ### ⚡ Save Image
- * This node saves generated images with an option to include CivitAI-compatible metadata. \
+ * Saves generated images with the option to embed CivitAI-compatible metadata, making it easy to share generation parameters through that platform. \
    **["Save Image" node documentation](docs/save_image.md)**.
 
 ### ⚡ Empty Z-Image Latent Image
