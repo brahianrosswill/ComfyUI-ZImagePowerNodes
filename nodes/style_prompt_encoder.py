@@ -14,7 +14,9 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
  - https://docs.comfy.org/custom-nodes/v3_migration
 
 """
+from functools                  import cache
 from comfy_api.latest           import io
+from .core.system               import logger
 from .styles.style_group        import StyleGroup
 from .styles.predefined_styles  import PREDEFINED_STYLE_GROUPS
 
@@ -106,33 +108,38 @@ class StylePromptEncoder(io.ComfyNode):
 
     #__ internal functions ________________________________
 
-    @classmethod
-    def category_names(cls) -> list[str]:
+    @staticmethod
+    @cache
+    def category_names() -> list[str]:
         """Returns all available category names."""
         return [ group.category for group in PREDEFINED_STYLE_GROUPS ]
 
 
-    @classmethod
-    def style_names(cls) -> list[str]:
+    @staticmethod
+    @cache
+    def style_names() -> list[str]:
         """Returns all available style names."""
         names = ["none"]
         for style_group in PREDEFINED_STYLE_GROUPS:
             names.extend( style_group.get_names(quoted=True) )
+        logger.info(f'"Style & Prompt Encoder" includes support for {len(names)-1} different styles.')
         return names
 
 
-    @classmethod
-    def default_category_name(cls) -> str:
+    @staticmethod
+    @cache
+    def default_category_name() -> str:
         return PREDEFINED_STYLE_GROUPS[0].category
 
 
-    @classmethod
-    def default_style_name(cls) -> str:
+    @staticmethod
+    @cache
+    def default_style_name() -> str:
         return PREDEFINED_STYLE_GROUPS[0].get_names(quoted=True)[0]
 
 
-    @classmethod
-    def get_predefined_style_template(cls, style_name: str) -> str:
+    @staticmethod
+    def get_predefined_style_template(style_name: str) -> str:
         """Returns a predefined style template by its name, searching inside all category groups."""
         for style_group in PREDEFINED_STYLE_GROUPS:
             style = style_group.get_style_template(style_name)
