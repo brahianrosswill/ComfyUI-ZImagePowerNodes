@@ -6,7 +6,7 @@
 [![Version](https://img.shields.io/github/v/tag/martin-rizzo/ComfyUI-ZImagePowerNodes?label=version%3A&color=D07250)](#)
 [![Last](https://img.shields.io/github/last-commit/martin-rizzo/ComfyUI-ZImagePowerNodes?label=last%20commit%3A)](#)
 
-<img src="banner.jpg" width="66%"></img>
+<img src="banner_readme.jpg" width="66%"></img>
 
 </div>
 
