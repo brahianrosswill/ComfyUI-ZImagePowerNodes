@@ -54,6 +54,7 @@
 
 A few example workflows demonstrating basic usage of these nodes can be found in the **[/workflows](/workflows)** directory.
 
+And hundreds of images generated with Z-Image model and the Power Nodes are available on the **[Z-Image Power Nodes page on CivitAI](https://civitai.com/models/2322533)**. The images posted by me include their prompts and complete generation workflows and you can use them freely as a basis for your own images. Additionally, there are also many users sharing their amazing creations there.
 
 ## Installation
 _Ensure you have the latest version of [ComfyUi](https://github.com/comfyanonymous/ComfyUI)._
