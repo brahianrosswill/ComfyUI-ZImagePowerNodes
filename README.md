@@ -132,7 +132,7 @@ Note: ComfyUI does not natively support GGUF format, so you need to install the 
 
 ## ❤️ Support my work
 
-If you find this tool useful or it has helped you in your projects, please consider becoming a sponsor. Your support allows me to keep my tools free and accessible for everyone.
+If you find these nodes useful or it has helped you in your projects, please consider becoming a sponsor. Your support allows me to keep my tools free and accessible for everyone.
 
 - **Ko-fi:** https://ko-fi.com/martinrizzo
 
