@@ -1,0 +1,103 @@
+{
+  "id": "7364e11b-0ae8-4cd9-a3bc-aa177381600d",
+  "revision": 0,
+  "last_node_id": 2,
+  "last_link_id": 1,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "MyTop10Styles //ZImagePowerNodes",
+      "pos": [
+        240,
+        270
+      ],
+      "size": [
+        270,
+        274
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            1
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "MyTop10Styles //ZImagePowerNodes"
+      },
+      "widgets_values": [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "id": 2,
+      "type": "PreviewAny",
+      "pos": [
+        580,
+        260
+      ],
+      "size": [
+        290,
+        280
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "source",
+          "type": "*",
+          "link": 1
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "PreviewAny"
+      },
+      "widgets_values": [
+        null,
+        null,
+        null
+      ]
+    }
+  ],
+  "links": [
+    [
+      1,
+      1,
+      0,
+      2,
+      0,
+      "STRING"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 1.1000000000000005,
+      "offset": [
+        200.03578916646927,
+        25.742233070652034
+      ]
+    },
+    "workflowRendererVersion": "LG",
+    "frontendVersion": "1.35.9"
+  },
+  "version": 0.4
+}
