@@ -120,6 +120,9 @@ class ZImagePowerNodesExtension(ComfyExtension):
         from .nodes.my_top_10_styles import MyTop10Styles
         _register_node( MyTop10Styles, subcategory, nodes )
 
+        from .nodes.my_top_10_styles_selector import MyTop10StylesSelector
+        _register_node( MyTop10StylesSelector, subcategory, nodes )
+
 
         #--[ __deprecated ]----------------------
         subcategory = "__deprecated"

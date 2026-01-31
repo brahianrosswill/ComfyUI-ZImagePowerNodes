@@ -1,6 +1,6 @@
 """
 File    : my_top_10_styles.py
-Purpose : Node that shows the user personal top 10 styles to select from.
+Purpose : Node that lets users build a list with their personal top-10 visual styles.
 Author  : Martin Rizzo | <martinrizzo@gmail.com>
 Date    : Jan 31, 2026
 Repo    : https://github.com/martin-rizzo/ComfyUI-ZImagePowerNodes
@@ -14,12 +14,15 @@ The V3 schema documentation can be found here:
  - https://docs.comfy.org/custom-nodes/v3_migration
 
 """
+from functools                  import cache
 from comfy_api.latest           import io
+from .styles.predefined_styles  import PREDEFINED_STYLE_GROUPS
+
 
 
 
 class MyTop10Styles(io.ComfyNode):
-    xTITLE         = "My Top 10 Styles"
+    xTITLE         = "My Top-10 Styles"
     xCATEGORY      = ""
     xCOMFY_NODE_ID = ""
     xDEPRECATED    = False
@@ -33,22 +36,22 @@ class MyTop10Styles(io.ComfyNode):
             node_id       = cls.xCOMFY_NODE_ID,
             is_deprecated = cls.xDEPRECATED,
             description   = (
-                "Allows you to select a style from your personal top 10 styles and apply it to your prompt."
+                "Allows you to build a list with the 10 styles you like most"
             ),
             inputs=[
-                io.Boolean.Input( "a", default=True,),
-                io.Boolean.Input( "b", default=True,),
-                io.Boolean.Input( "c", default=True,),
-                io.Boolean.Input( "d", default=True,),
-                io.Boolean.Input( "e", default=True,),
-                io.Boolean.Input( "f", default=True,),
-                io.Boolean.Input( "g", default=True,),
-                io.Boolean.Input( "h", default=True,),
-                io.Boolean.Input( "i", default=True,),
-                io.Boolean.Input( "j", default=True,),
+                io.Combo.Input( "style_1" , options=cls.all_style_names(), ),
+                io.Combo.Input( "style_2" , options=cls.all_style_names(), ),
+                io.Combo.Input( "style_3" , options=cls.all_style_names(), ),
+                io.Combo.Input( "style_4" , options=cls.all_style_names(), ),
+                io.Combo.Input( "style_5" , options=cls.all_style_names(), ),
+                io.Combo.Input( "style_6" , options=cls.all_style_names(), ),
+                io.Combo.Input( "style_7" , options=cls.all_style_names(), ),
+                io.Combo.Input( "style_8" , options=cls.all_style_names(), ),
+                io.Combo.Input( "style_9" , options=cls.all_style_names(), ),
+                io.Combo.Input( "style_10", options=cls.all_style_names(), ),
             ],
             outputs=[
-                io.String.Output(tooltip="The prompt after applying the selected style."),
+                io.Custom("style_name_list").Output("top_styles"),
             ]
         )
 
@@ -57,7 +60,7 @@ class MyTop10Styles(io.ComfyNode):
     def execute(cls, **kwargs) -> io.NodeOutput:
 
         prompt = str(kwargs)
-        return io.NodeOutput( prompt )
+        return io.NodeOutput( [ "selected_style1", "selected_style2"] )
 
 
     #__ VALIDATION ________________________________________
@@ -67,4 +70,15 @@ class MyTop10Styles(io.ComfyNode):
         #    return f"The category name '{kwargs['style_type']}' is invalid. May be the node is from an older version."
         return True
 
+
+    #__ internal functions ________________________________
+
+    @staticmethod
+    @cache
+    def all_style_names() -> list[str]:
+        """Returns all available style names."""
+        names = ["none"]
+        for style_group in PREDEFINED_STYLE_GROUPS:
+            names.extend( style_group.get_names(quoted=True) )
+        return names
 
