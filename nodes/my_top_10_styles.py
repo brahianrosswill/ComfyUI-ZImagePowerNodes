@@ -51,7 +51,7 @@ class MyTop10Styles(io.ComfyNode):
                 io.Combo.Input( "style_10", options=cls.all_style_names(), ),
             ],
             outputs=[
-                io.Custom("style_name_list").Output("top_styles"),
+                io.Custom("TOP_STYLES").Output("TOP_STYLES"),
             ]
         )
 

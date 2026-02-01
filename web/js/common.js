@@ -10,7 +10,7 @@
  *       ComfyUI nodes designed specifically for the "Z-Image" model.
  *_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 */
-export { getOutputNodes };
+export { getOutputNodes, renameWidget }
 
 /**
  * Get all nodes connected to a given node's outputs.
@@ -45,4 +45,80 @@ function getOutputNodes(node, outputName) {
         }
     }
     return outputNodes;
+}
+
+
+/**
+ * Checks if a given widget is a proxy widget.
+ *
+ * This code is not fully tested but the concept comes from the ComfyUI Frontend:
+ *  - https://github.com/Comfy-Org/ComfyUI_frontend/blob/v1.39.4/src/core/graph/subgraph/proxyWidget.ts#L51
+ *
+ * @param {IBaseWidget} widget - The widget object to check.
+ * @returns {boolean} Returns true if the widget has an overlay that is a proxy widget, otherwise false.
+ */
+function isProxyWidget(widget) {
+  return !!(widget?._overlay?.isProxyWidget);
+}
+
+
+/**
+ * Renames a widget and its corresponding input.
+ *
+ * Handles both regular widgets and proxy widgets in subgraphs.
+ * This code is not fully tested but it comes from the ComfyUI Frontend:
+ *  - https://github.com/Comfy-Org/ComfyUI_frontend/blob/v1.39.4/src/utils/widgetUtil.ts#L16
+ *
+ * @param {IBaseWidget}    widget    - The widget to rename
+ * @param {LGraphNode}     node      - The node containing the widget
+ * @param {string}         newLabel  - The new label for the widget (empty string or undefined to clear)
+ * @param {SubgraphNode[]} [parents] - Optional array of parent SubgraphNodes (for proxy widgets)
+ * @returns {boolean} true if the rename was successful, false otherwise
+ */
+function renameWidget(widget, node, newLabel, parents)
+{
+    // for proxy widgets in subgraphs, we need to rename the original interior widget
+    if (isProxyWidget(widget) && parents?.length) {
+        console.log("##>> is proxy widget in subgraph")
+        const subgraph = parents[0].subgraph
+        if (!subgraph) {
+            console.error('Could not find subgraph for proxy widget')
+            return false
+        }
+        const interiorNode = subgraph.getNodeById(widget._overlay.nodeId)
+
+        if (!interiorNode) {
+            console.error('Could not find interior node for proxy widget')
+            return false
+        }
+
+        const originalWidget = interiorNode.widgets?.find(
+            (w) => w.name === widget._overlay.widgetName
+        )
+
+        if (!originalWidget) {
+            console.error('Could not find original widget for proxy widget')
+            return false
+        }
+
+        // rename the original widget
+        originalWidget.label = newLabel || undefined
+
+        // also rename the corresponding input on the interior node
+        const interiorInput = interiorNode.inputs?.find(
+            (inp) => inp.widget?.name === widget._overlay.widgetName
+        )
+        if (interiorInput) {
+            interiorInput.label = newLabel || undefined
+        }
+    }
+
+    // always rename the widget on the current node (either regular widget or proxy widget)
+    const input = node.inputs?.find((inp) => inp.widget?.name === widget.name)
+
+    // intentionally mutate the widget object here as it's a reference
+    // to the actual widget in the graph
+    widget.label = newLabel || undefined
+    if (input) { input.label = newLabel || undefined }
+    return true
 }

@@ -34,7 +34,12 @@ class MyTop10StylesSelector(io.ComfyNode):
                 "Allows you to select a style from your personal top 10 styles and apply it to your prompt."
             ),
             inputs=[
-                io.Custom("style_name_list").Input( "top_styles"),
+                io.String.Input("input" , optional=True, multiline=True, force_input=True, dynamic_prompts=False,
+                                tooltip="Input to chain ther top styles nodes to this one.",
+                                ),
+                io.Custom("TOP_STYLES").Input( "top_styles", optional=True,
+                                tooltip="Configuration with your personal top-10 styles to show in this node.",
+                                ),
                 io.Boolean.Input( "style_1" , default=True,),
                 io.Boolean.Input( "style_2" , default=True,),
                 io.Boolean.Input( "style_3" , default=True,),
@@ -45,9 +50,10 @@ class MyTop10StylesSelector(io.ComfyNode):
                 io.Boolean.Input( "style_8" , default=True,),
                 io.Boolean.Input( "style_9" , default=True,),
                 io.Boolean.Input( "style_10", default=True,),
+                io.Combo.Input( "output_as", options=cls.custom_styles(), ),
             ],
             outputs=[
-                io.String.Output(tooltip="The prompt after applying the selected style."),
+                io.String.Output("output", tooltip="The prompt after applying the selected style."),
             ]
         )
 
@@ -67,3 +73,8 @@ class MyTop10StylesSelector(io.ComfyNode):
         return True
 
 
+    #__ internal functions ________________________________
+
+    @classmethod
+    def custom_styles(cls) -> list[str]:
+        return ["custom 1", "custom 2", "custom 3", "custom 4"]

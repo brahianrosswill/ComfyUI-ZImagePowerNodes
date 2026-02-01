@@ -11,6 +11,7 @@
  *_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 */
 import { app } from "../../../scripts/app.js";
+import { renameWidget } from "./common.js";
 const ENABLED = true;
 
 //#========================== MyTop10 Controller ===========================#
@@ -43,12 +44,33 @@ function init(self, node) {
     for( let i=0 ; i<allStyleWidgets.length ; ++i ) {
         const widget = allStyleWidgets[i];
         widget.label = '"Style Name"'
-        widget.callback = async (value) => {
-            onStyleSelect(self, widget, value)
+
+        //widget.originalCallback = widget.callback;
+
+        const oldCallback = widget.callback;
+        widget.callback = function(value) {
+            if( !self.selecting ) {
+                self.selecting = true;
+                onStyleSelect(self, widget, value);
+                self.selecting = false;
+            }
+            if( typeof oldCallback === 'function' ) {
+                oldCallback.apply(this, arguments);
+            }
         }
+
+        // const oldCallback = widget.callback;
+        // widget.callback = async (value) => {
+        //     onStyleSelect(self, widget, value);
+        //     if( oldCallback && typeof(oldCallback) === "function" ) {
+        //         oldCallback.apply(widget, arguments);
+        //     }
+        // }
     }
 
     // set controller properties
+    self.node            = node;
+    self.selecting       = false;
     self.topStyles       = [];
     self.allStyleWidgets = allStyleWidgets;
     self.updateTopStyles = function(topStyles) { updateTopStyles(this, topStyles); };
@@ -58,11 +80,27 @@ function init(self, node) {
 function onStyleSelect(self, widget, value) {
 
     // mostrar en consola el nombre
-    console.log("##>> My Top Styles: selected style:", widget.name)
+    //console.log("##>> My Top Styles: selected style:", widget.name)
 
     // only allow one widget to be active at a time
-    for( const otherWidget of self.allStyleWidgets ) {
-        otherWidget.value = otherWidget === widget;
+    //const allStyleWidgets = self.allStyleWidgets;
+    const allStyleWidgets = self.node.widgets.filter(w => w.name.startsWith("style_"));
+
+    //console.log("##>> WIDGETS:", allStyleWidgets)
+    //console.log("##>> onStyleSelect NODE:", self.node)
+
+    for( const styleWidget of allStyleWidgets ) {
+        if( styleWidget === widget ) {
+            styleWidget.value = true;
+        }
+        else {
+            styleWidget.value = false;
+            //renameWidget(styleWidget, self.node, "Pepino")
+            //styleWidget.label = "Pepe";
+            //console.log("##>> TRIGER TYPE:", typeof styleWidget.triggerDraw );
+            styleWidget.callback(false);
+        }
+
     }
 
     // // evitar que el usuario desactive el widget
@@ -73,23 +111,72 @@ function onStyleSelect(self, widget, value) {
 
 }
 
+function forceLabelUpdate(widget, node, newLabel) {
+    widget.label = newLabel;
+    
+    // Forzamos a LiteGraph a marcar el nodo para re-cálculo
+    node.setDirtyCanvas(true, true);
+    
+    // Hack: Si el componente Vue está escuchando cambios en el objeto 'options'
+    // actualizamos una propiedad ficticia para disparar el observador de Vue
+    if (widget.options) {
+        widget.options._force_update = Date.now(); 
+    }
+
+    // Nodes 2.0 a veces requiere que el nodo "parpadee" para redibujar el DOM de Vue
+    const originalSize = [...node.size];
+    node.size[0] += 0.001; 
+    node.setSize(node.size);
+    node.size[0] = originalSize[0];
+    node.setSize(originalSize);
+}
+
 // necesito que topStyleList sea un parametro opcional
 function updateTopStyles(self, topStyles) {
 
-    console.log("##>> My Top Styles: updating top styles!!:", topStyles);
+    console.log("##>> My Top Styles Selector: updating top styles!!:", topStyles);
 
     if( topStyles && topStyles.length > 0 ) {
         self.topStyles = topStyles;
     }
-    for( let i=0 ; i<self.allStyleWidgets.length ; i++ ) {
-        const widget    = self.allStyleWidgets[i];
+
+    const node = app.graph.getNodeById(self.node.id)
+    //const allStyleWidgets = self.allStyleWidgets;
+    const allStyleWidgets = node.widgets.filter(w => w.name.startsWith("style_"));
+
+    for( let i=0 ; i<allStyleWidgets.length ; i++ ) {
+        const widget    = allStyleWidgets[i];
         const styleName = i<self.topStyles.length ? self.topStyles[i] : "";
         if( isValidStyleName(self, styleName) ) {
-            widget.label = styleName;
+            renameWidget(widget, node, styleName)
+            forceLabelUpdate(widget, node, styleName)
         } else {
-            widget.label = "-";
+            renameWidget(widget, node, "-")
+            forceLabelUpdate(widget, node, "-")
         }
     }
+
+    for( let i=0 ; i<allStyleWidgets.length ; i++ ) {
+        const widget    = allStyleWidgets[i];
+        const styleName = i<self.topStyles.length ? self.topStyles[i] : "";
+
+        if( widget.setProperty ) {
+            console.log("##>> setProperty is available");
+        } else {
+            console.log("##>> setProperty is NOT available");
+        }
+
+        if( !isValidStyleName(self, styleName) ) {
+            widget.value = true;
+            widget.callback(widget.value);
+            break;
+        }
+    }
+    //node.onResize?.(node.size);
+    //node.setDirtyCanvas(true,true);
+    //app.graph.setDirtyCanvas(true, true);
+    //app.graph.onGraphChanged();
+    //app.canvas.emitAfterChange();
 }
 
 function isValidStyleName(self, styleName) {

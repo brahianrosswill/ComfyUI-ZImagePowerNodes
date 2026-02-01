@@ -16,11 +16,21 @@ const ENABLED = true;
 
 
 //#======================= My Top Styles Controller ========================#
+/**
+ * Object encapsulating the style category selection functionality.
+ * @typedef {Object} MyTopStylesController
+ *   @property {Array<Object>} allStyleWidgets - A list of all widgets whose name starts with "style_".
+ *   @property {Object}        node            - The node this controller is attached to.
+ */
 
+
+/**
+ * Initializes the MyTopStylesController.
+ *
+ * @param {MyTopStylesController} self - The instance of the controller being initialized.
+ * @param {Object} node                - The node to control.
+ */
 function init(self, node) {
-
-    // imprimir el contenido de node
-    console.log('##>> NODE:', node);
 
     // build a list with all widgets whose name starts with "style_"
     const allStyleWidgets = node.widgets.filter(w => w.name.startsWith("style_"));
@@ -33,46 +43,51 @@ function init(self, node) {
     for( let i=0 ; i<allStyleWidgets.length ; ++i ) {
         const widget = allStyleWidgets[i];
         widget.callback = function (v) {
-            const topStyleList = buildTopStyleList(self);
-            onTopStyleListChanged(self, topStyleList);
+            const topStyles = getTopStylesFromWidgets(self);
+            onTopStylesChanged(self, topStyles);
+            self.node?.setDirtyCanvas?.(true);
         }
     }
 
-    // set controller properties
-    self.topStylesList   = [];
+    // controller properties
     self.allStyleWidgets = allStyleWidgets;
     self.node            = node;
-    //update_list(self);
-
-    // impirmir en la consola todos los outpus
-    console.log('##>> MyTopStyles: outputs:', node.outputs);
-
 }
 
 
-function onTopStyleListChanged(self, topStyles) {
-    self.node?.setDirtyCanvas?.(true);
+/**
+ * Retrieves all the selected top styles from the node widgets.
+ *
+ * @param {MyTopStylesController} self - The instance of MyTopStylesController.
+ * @returns {Array<string>} An array of strings representing the selected top styles.
+ */
+function getTopStylesFromWidgets(self) {
+    const allStyleWidgets = self.allStyleWidgets;
 
-    // update the top styles list for each output node
-    const outputNodes = getOutputNodes(self.node, 'top_styles');
+    let topStyles = [];
+    for( let i=0 ; i<allStyleWidgets.length ; ++i ) {
+        const widget = allStyleWidgets[i];
+        topStyles.push( widget.value.toString() );
+    }
+    return topStyles;
+}
+
+
+/**
+ * Handles the change of top styles by notifying all connected output nodes.
+ *
+ * @param {MyTopStylesController} self - The instance of MyTopStylesController.
+ * @param {Array<string>} topStyles - An array of strings representing the new top styles.
+ */
+function onTopStylesChanged(self, topStyles) {
+
+    // send the new top styles to all nodes connected to the 'TOP_STYLES' output
+    const outputNodes = getOutputNodes(self.node, 'TOP_STYLES');
     for( let i=0 ; i<outputNodes.length ; ++i ) {
         const outputNode = outputNodes[i];
         outputNode?.zzController?.updateTopStyles?.(topStyles);
     }
-    console.log("##>> OUTPUT NODES:", outputNodes);
 }
-
-function buildTopStyleList(self) {
-
-    let topStylesList = [];
-    for( let i=0 ; i<self.allStyleWidgets.length ; ++i ) {
-        const widget = self.allStyleWidgets[i];
-        topStylesList.push( widget.value.toString() );
-    }
-    return topStylesList;
-}
-
-
 
 
 //#=========================================================================#
