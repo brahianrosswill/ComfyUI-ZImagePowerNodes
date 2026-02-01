@@ -11,11 +11,28 @@
  *_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 */
 import { app } from "../../../scripts/app.js";
-import { renameWidget } from "./common.js";
+import { forceRenameWidget } from "./common.js";
 const ENABLED = true;
 
-//#======================= My Top Styles Controller ========================#
 
+//#======================= My Top Styles Controller ========================#
+/**
+ * Controller for any node that selects from a list of top styles. (e.g., "My Top-10 Styles")
+ * @typedef {Object} MyTopStylesCtrl
+ *   @property {Object}        node            - The node this controller is attached to.
+ *   @property {Array<string>} topStyles       - The list of styles names that are currently selected.
+ *   @property {Array<Object>} allStyleWidgets - A list of all widgets whose name starts with "style_".
+ *   @property {boolean}       selecting       - Whether or not the controller is currently in the middle of a selection.
+ *                                               (used to prevent infinite recursion when updating the list)
+ */
+
+
+/**
+ * Initializes the `MyTopStylesCtrl` controller.
+ *
+ * @param {MyTopStylesCtrl} self - The instance of the controller being initialized.
+ * @param {Object}          node - The node to control.
+ */
 function init(self, node) {
 
     // build a list with all widgets whose name starts with "style"
@@ -25,163 +42,117 @@ function init(self, node) {
         return;
     }
 
-    // // nos colgamos del evento onConnectionChange
-    // const originalOnConnectionChange = node.onConnectionChange;
-    // node.onConnectionChange = function(type, slot, connected, link_info, input_info) {
-    //     if( originalOnConnectionChange == "function" ) {
-    //         originalOnConnectionChange.apply(this, arguments);
-    //     }
-
-    //     // comunicar en consola el event
-    //     console.log("##>> My Top Styles: connection change:", type, slot, connected)
-
-    //     MyTop10_onConnectionChange(self, type, slot, connected);
-    // }
-
-
-    // reemplazar la funcion callback en todos los widgets
+    // iterate through all "style_" widgets
     for( let i=0 ; i<allStyleWidgets.length ; ++i ) {
         const widget = allStyleWidgets[i];
-        widget.label = '"Style Name"'
 
-        //widget.originalCallback = widget.callback;
-
+        // replacing the `callback` function in all widgets,
+        // using the safest way to call original function
         const oldCallback = widget.callback;
         widget.callback = function(value) {
             if( !self.selecting ) {
                 self.selecting = true;
-                onStyleSelect(self, widget, value);
+                onBooleanSwitchChanged(self, widget, value);
                 self.selecting = false;
             }
             if( typeof oldCallback === 'function' ) {
                 oldCallback.apply(this, arguments);
             }
         }
-
-        // const oldCallback = widget.callback;
-        // widget.callback = async (value) => {
-        //     onStyleSelect(self, widget, value);
-        //     if( oldCallback && typeof(oldCallback) === "function" ) {
-        //         oldCallback.apply(widget, arguments);
-        //     }
-        // }
     }
 
-    // set controller properties
+    // set controller properties and functions
     self.node            = node;
-    self.selecting       = false;
     self.topStyles       = [];
     self.allStyleWidgets = allStyleWidgets;
+    self.selecting       = false;
     self.updateTopStyles = function(topStyles) { updateTopStyles(this, topStyles); };
 }
 
 
-function onStyleSelect(self, widget, value) {
+/**
+ * Handles the change of the switch widget associated with a style.
+ *
+ * Ensures only one style can be active at a time by setting other
+ * widgets' values to false.
+ * @param {MyTopStylesCtrl} self   - The controller instance.
+ * @param {Object}          widget - The widget whose value has changed.
+ * @param {boolean}         value  - The new boolean value of the switch widget.
+ */
+function onBooleanSwitchChanged(self, widget, value) {
 
-    // mostrar en consola el nombre
-    //console.log("##>> My Top Styles: selected style:", widget.name)
+  //// SAFE (debugging)
+  //const node            = self.node?.graph?.getNodeById?.(self.node.id);
+  //const allStyleWidgets = node.widgets.filter(w => w.name.startsWith("style_"));
+
+    // FAST
+    const allStyleWidgets = self.allStyleWidgets;
 
     // only allow one widget to be active at a time
-    //const allStyleWidgets = self.allStyleWidgets;
-    const allStyleWidgets = self.node.widgets.filter(w => w.name.startsWith("style_"));
-
-    //console.log("##>> WIDGETS:", allStyleWidgets)
-    //console.log("##>> onStyleSelect NODE:", self.node)
-
+    widget.value = true;
     for( const styleWidget of allStyleWidgets ) {
-        if( styleWidget === widget ) {
-            styleWidget.value = true;
-        }
-        else {
+        if( styleWidget !== widget ) {
             styleWidget.value = false;
-            //renameWidget(styleWidget, self.node, "Pepino")
-            //styleWidget.label = "Pepe";
-            //console.log("##>> TRIGER TYPE:", typeof styleWidget.triggerDraw );
             styleWidget.callback(false);
         }
-
     }
-
-    // // evitar que el usuario desactive el widget
-    // if( value === false ) {
-    //     widget.value = true;
-    //     return;
-    // }
-
 }
 
-function forceLabelUpdate(widget, node, newLabel) {
-    widget.label = newLabel;
-    
-    // Forzamos a LiteGraph a marcar el nodo para re-cálculo
-    node.setDirtyCanvas(true, true);
-    
-    // Hack: Si el componente Vue está escuchando cambios en el objeto 'options'
-    // actualizamos una propiedad ficticia para disparar el observador de Vue
-    if (widget.options) {
-        widget.options._force_update = Date.now(); 
-    }
 
-    // Nodes 2.0 a veces requiere que el nodo "parpadee" para redibujar el DOM de Vue
-    const originalSize = [...node.size];
-    node.size[0] += 0.001; 
-    node.setSize(node.size);
-    node.size[0] = originalSize[0];
-    node.setSize(originalSize);
-}
-
-// necesito que topStyleList sea un parametro opcional
+/**
+ * Updates the top styles of a controller and refreshes their widgets accordingly.
+ *
+ * @param {MyTopStylesCtrl} self        - The controller instance.
+ * @param {Array<string>}   [topStyles] - The list of new top styles (optional).
+ */
 function updateTopStyles(self, topStyles) {
 
-    console.log("##>> My Top Styles Selector: updating top styles!!:", topStyles);
-
+    // update the internal list of top styles, if a new one is provided
     if( topStyles && topStyles.length > 0 ) {
         self.topStyles = topStyles;
     }
 
-    const node = app.graph.getNodeById(self.node.id)
-    //const allStyleWidgets = self.allStyleWidgets;
-    const allStyleWidgets = node.widgets.filter(w => w.name.startsWith("style_"));
+  //// SAFE (debugging)
+  //const node            = self.node?.graph?.getNodeById?.(self.node.id);
+  //const allStyleWidgets = node.widgets.filter(w => w.name.startsWith("style_"));
+
+    // FAST
+    const node            = self.node
+    const allStyleWidgets = self.allStyleWidgets;
 
     for( let i=0 ; i<allStyleWidgets.length ; i++ ) {
         const widget    = allStyleWidgets[i];
         const styleName = i<self.topStyles.length ? self.topStyles[i] : "";
-        if( isValidStyleName(self, styleName) ) {
-            renameWidget(widget, node, styleName)
-            forceLabelUpdate(widget, node, styleName)
+        if( isValidStyleName(styleName) ) {
+            forceRenameWidget(widget, node, styleName)
         } else {
-            renameWidget(widget, node, "-")
-            forceLabelUpdate(widget, node, "-")
+            forceRenameWidget(widget, node, "-")
         }
     }
 
-    for( let i=0 ; i<allStyleWidgets.length ; i++ ) {
-        const widget    = allStyleWidgets[i];
-        const styleName = i<self.topStyles.length ? self.topStyles[i] : "";
-
-        if( widget.setProperty ) {
-            console.log("##>> setProperty is available");
-        } else {
-            console.log("##>> setProperty is NOT available");
-        }
-
-        if( !isValidStyleName(self, styleName) ) {
-            widget.value = true;
-            widget.callback(widget.value);
-            break;
-        }
-    }
-    //node.onResize?.(node.size);
-    //node.setDirtyCanvas(true,true);
-    //app.graph.setDirtyCanvas(true, true);
-    //app.graph.onGraphChanged();
-    //app.canvas.emitAfterChange();
 }
 
-function isValidStyleName(self, styleName) {
-    // if starts with quotes it's a valid style (for now)
-    return styleName.startsWith('"');
+
+//#-------------------------------- HELPERS --------------------------------#
+
+/**
+ * Checks whether a given style name is valid.
+ * 
+ * @param {string} styleName - The name of the style to validate.
+ * @returns {boolean} True if the style name is valid, false otherwise.
+ */
+function isValidStyleName(styleName)
+{
+    // discard any name that is not a string
+    if( typeof styleName  != 'string' ) { return false; }
+
+    // discard any empty string, dash or  "none"
+    const trimmedName = styleName.trim();
+    if( trimmedName === "" || trimmedName === "-" || trimmedName === "none" ) { return false; }
+
+    return true;
 }
+
 
 
 

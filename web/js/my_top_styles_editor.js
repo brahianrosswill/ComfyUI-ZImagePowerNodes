@@ -17,25 +17,25 @@ const ENABLED = true;
 
 //#==================== My Top Styles Editor Controller ====================#
 /**
- * Object encapsulating the style category selection functionality.
- * @typedef {Object} MyTopStylesController
- *   @property {Array<Object>} allStyleWidgets - A list of all widgets whose name starts with "style_".
+ * Controller for any node that edits the top styles. (e.g. "My Top-10 Style Editor")
+ * @typedef {Object} MyTopStylesEditorCtrl
  *   @property {Object}        node            - The node this controller is attached to.
+ *   @property {Array<Object>} allStyleWidgets - A list of all widgets whose name starts with "style_".
  */
 
 
 /**
- * Initializes the MyTopStylesController.
+ * Initializes the MyTopStylesEditorCtrl.
  *
- * @param {MyTopStylesController} self - The instance of the controller being initialized.
- * @param {Object} node                - The node to control.
+ * @param {MyTopStylesEditorCtrl} self - The instance of the controller being initialized.
+ * @param {Object}                node - The node to control.
  */
 function init(self, node) {
 
     // build a list with all widgets whose name starts with "style_"
     const allStyleWidgets = node.widgets.filter(w => w.name.startsWith("style_"));
     if( !allStyleWidgets || allStyleWidgets.length == 0 ) {
-        console.error(`##>> MyTopStyles: No widgets found whose name starts with "style_"`);
+        console.error(`##>> MyTopStylesEditorCtrl: No widgets found whose name starts with "style_"`);
         return;
     }
 
@@ -58,7 +58,7 @@ function init(self, node) {
 /**
  * Retrieves all the selected top styles from the node widgets.
  *
- * @param {MyTopStylesController} self - The instance of MyTopStylesController.
+ * @param {MyTopStylesEditorCtrl} self - The controller instance.
  * @returns {Array<string>} An array of strings representing the selected top styles.
  */
 function getTopStylesFromWidgets(self) {
@@ -76,8 +76,8 @@ function getTopStylesFromWidgets(self) {
 /**
  * Handles the change of top styles by notifying all connected output nodes.
  *
- * @param {MyTopStylesController} self - The instance of MyTopStylesController.
- * @param {Array<string>} topStyles - An array of strings representing the new top styles.
+ * @param {MyTopStylesEditorCtrl} self      - The controller instance.
+ * @param {Array<string>}         topStyles - An array of strings representing the new top styles.
  */
 function onTopStylesChanged(self, topStyles) {
 

@@ -10,7 +10,7 @@
  *       ComfyUI nodes designed specifically for the "Z-Image" model.
  *_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 */
-export { getOutputNodes, renameWidget }
+export { getOutputNodes, renameWidget, forceRenameWidget }
 
 /**
  * Get all nodes connected to a given node's outputs.
@@ -121,4 +121,34 @@ function renameWidget(widget, node, newLabel, parents)
     widget.label = newLabel || undefined
     if (input) { input.label = newLabel || undefined }
     return true
+}
+
+
+/**
+ * Updates the label of a given widget and forces a redraw.
+ *
+ * This is an attempt to make `renameWidget` work with Nodes 2.0 of ComfyUI.
+ *
+ * @param {Object} widget   - The widget whose label is to be updated.
+ * @param {Object} node     - The node associated with the widget.
+ * @param {string} newLabel - The new label for the widget.
+ */
+function forceRenameWidget(widget, node, newLabel, parents) {
+    renameWidget(widget, node, newLabel, parents)
+
+    // force LiteGraph to mark the node as needing a redraw
+    node.setDirtyCanvas(true, true);
+
+    // if the Vue component is listening for changes in the 'options' object,
+    // update a fictitious property to trigger Vue's observer.
+    if (widget.options) {
+        widget.options._force_update = Date.now();
+    }
+
+    // Nodes 2.0 could require the node to "blink" to redraw the DOM of Vue (??)
+    const originalSize = [...node.size];
+    node.size[0] += 0.001; 
+    node.setSize(node.size);
+    node.size[0] = originalSize[0];
+    node.setSize(originalSize);
 }

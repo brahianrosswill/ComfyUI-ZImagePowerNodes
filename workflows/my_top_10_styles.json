@@ -76,190 +76,6 @@
       ]
     },
     {
-      "id": 44,
-      "type": "MyTop10StylesEditor //ZImagePowerNodes",
-      "pos": [
-        -960,
-        -80
-      ],
-      "size": [
-        320,
-        274
-      ],
-      "flags": {},
-      "order": 1,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "TOP_STYLES",
-          "type": "TOP_STYLES",
-          "links": [
-            42
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "MyTop10StylesEditor //ZImagePowerNodes"
-      },
-      "widgets_values": [
-        "\"Comic 1\"",
-        "\"Comic 2\"",
-        "\"Action Cover Art\"",
-        "\"Vintage Comic\"",
-        "\"Pop-Art\"",
-        "\"Modern Pin-Up Illustration\"",
-        "none",
-        "none",
-        "none",
-        "none"
-      ]
-    },
-    {
-      "id": 43,
-      "type": "MyTop10Styles //ZImagePowerNodes",
-      "pos": [
-        -610,
-        280
-      ],
-      "size": [
-        360,
-        318
-      ],
-      "flags": {},
-      "order": 2,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "input",
-          "shape": 7,
-          "type": "STRING",
-          "link": null
-        },
-        {
-          "name": "top_styles",
-          "shape": 7,
-          "type": "TOP_STYLES",
-          "link": 42
-        },
-        {
-          "label": "\"Comic 1\"",
-          "name": "style_1",
-          "type": "BOOLEAN",
-          "widget": {
-            "name": "style_1"
-          },
-          "link": null
-        },
-        {
-          "label": "\"Comic 2\"",
-          "name": "style_2",
-          "type": "BOOLEAN",
-          "widget": {
-            "name": "style_2"
-          },
-          "link": null
-        },
-        {
-          "label": "\"Action Cover Art\"",
-          "name": "style_3",
-          "type": "BOOLEAN",
-          "widget": {
-            "name": "style_3"
-          },
-          "link": null
-        },
-        {
-          "label": "\"Vintage Comic\"",
-          "name": "style_4",
-          "type": "BOOLEAN",
-          "widget": {
-            "name": "style_4"
-          },
-          "link": null
-        },
-        {
-          "label": "\"Pop-Art\"",
-          "name": "style_5",
-          "type": "BOOLEAN",
-          "widget": {
-            "name": "style_5"
-          },
-          "link": null
-        },
-        {
-          "label": "\"Modern Pin-Up Illustration\"",
-          "name": "style_6",
-          "type": "BOOLEAN",
-          "widget": {
-            "name": "style_6"
-          },
-          "link": null
-        },
-        {
-          "label": "-",
-          "name": "style_7",
-          "type": "BOOLEAN",
-          "widget": {
-            "name": "style_7"
-          },
-          "link": null
-        },
-        {
-          "label": "-",
-          "name": "style_8",
-          "type": "BOOLEAN",
-          "widget": {
-            "name": "style_8"
-          },
-          "link": null
-        },
-        {
-          "label": "-",
-          "name": "style_9",
-          "type": "BOOLEAN",
-          "widget": {
-            "name": "style_9"
-          },
-          "link": null
-        },
-        {
-          "label": "-",
-          "name": "style_10",
-          "type": "BOOLEAN",
-          "widget": {
-            "name": "style_10"
-          },
-          "link": null
-        }
-      ],
-      "outputs": [
-        {
-          "name": "output",
-          "type": "STRING",
-          "links": [
-            43
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "MyTop10Styles //ZImagePowerNodes"
-      },
-      "widgets_values": [
-        false,
-        false,
-        true,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        "custom 1"
-      ]
-    },
-    {
       "id": 42,
       "type": "MyTop10Styles //ZImagePowerNodes",
       "pos": [
@@ -402,6 +218,190 @@
         false,
         "custom 1"
       ]
+    },
+    {
+      "id": 43,
+      "type": "MyTop10Styles //ZImagePowerNodes",
+      "pos": [
+        -610,
+        280
+      ],
+      "size": [
+        360,
+        318
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "input",
+          "shape": 7,
+          "type": "STRING",
+          "link": null
+        },
+        {
+          "name": "top_styles",
+          "shape": 7,
+          "type": "TOP_STYLES",
+          "link": 42
+        },
+        {
+          "label": "\"Noir Photo\"",
+          "name": "style_1",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "style_1"
+          },
+          "link": null
+        },
+        {
+          "label": "\"Flash 90s Photo\"",
+          "name": "style_2",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "style_2"
+          },
+          "link": null
+        },
+        {
+          "label": "\"80s Dark Fantasy Photo\"",
+          "name": "style_3",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "style_3"
+          },
+          "link": null
+        },
+        {
+          "label": "\"Vintage Comic\"",
+          "name": "style_4",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "style_4"
+          },
+          "link": null
+        },
+        {
+          "label": "\"Pop-Art\"",
+          "name": "style_5",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "style_5"
+          },
+          "link": null
+        },
+        {
+          "label": "\"Modern Pin-Up Illustration\"",
+          "name": "style_6",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "style_6"
+          },
+          "link": null
+        },
+        {
+          "label": "-",
+          "name": "style_7",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "style_7"
+          },
+          "link": null
+        },
+        {
+          "label": "-",
+          "name": "style_8",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "style_8"
+          },
+          "link": null
+        },
+        {
+          "label": "-",
+          "name": "style_9",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "style_9"
+          },
+          "link": null
+        },
+        {
+          "label": "-",
+          "name": "style_10",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "style_10"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "STRING",
+          "links": [
+            43
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "MyTop10Styles //ZImagePowerNodes"
+      },
+      "widgets_values": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        false,
+        false,
+        false,
+        false,
+        "custom 1"
+      ]
+    },
+    {
+      "id": 44,
+      "type": "MyTop10StylesEditor //ZImagePowerNodes",
+      "pos": [
+        -960,
+        -80
+      ],
+      "size": [
+        320,
+        274
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "TOP_STYLES",
+          "type": "TOP_STYLES",
+          "links": [
+            42
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "MyTop10StylesEditor //ZImagePowerNodes"
+      },
+      "widgets_values": [
+        "\"Noir Photo\"",
+        "\"Flash 90s Photo\"",
+        "\"80s Dark Fantasy Photo\"",
+        "\"Vintage Comic\"",
+        "\"Pop-Art\"",
+        "\"Modern Pin-Up Illustration\"",
+        "none",
+        "none",
+        "none",
+        "none"
+      ]
     }
   ],
   "links": [
@@ -442,10 +442,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.620921323059155,
+      "scale": 0.6830134553650705,
       "offset": [
-        1117.7027677801884,
-        518.0312145218637
+        1293.9586750458132,
+        492.67940795936374
       ]
     },
     "workflowRendererVersion": "LG",
