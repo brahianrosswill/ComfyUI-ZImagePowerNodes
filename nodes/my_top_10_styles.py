@@ -1,6 +1,6 @@
 """
 File    : my_top_10_styles.py
-Purpose : Node that lets users build a list with their personal top-10 visual styles.
+Purpose : Node that lets users select a visual style from their personal top-10.
 Author  : Martin Rizzo | <martinrizzo@gmail.com>
 Date    : Jan 31, 2026
 Repo    : https://github.com/martin-rizzo/ComfyUI-ZImagePowerNodes
@@ -14,11 +14,7 @@ The V3 schema documentation can be found here:
  - https://docs.comfy.org/custom-nodes/v3_migration
 
 """
-from functools                  import cache
-from comfy_api.latest           import io
-from .styles.predefined_styles  import PREDEFINED_STYLE_GROUPS
-
-
+from comfy_api.latest import io
 
 
 class MyTop10Styles(io.ComfyNode):
@@ -36,22 +32,30 @@ class MyTop10Styles(io.ComfyNode):
             node_id       = cls.xCOMFY_NODE_ID,
             is_deprecated = cls.xDEPRECATED,
             description   = (
-                "Allows you to build a list with the 10 styles you like most"
+                "Allows you to select a visual style from your personalized top 10 list. "
+                "This node relies on 'My Top-10 Style Editor' to provide the list of your favorite styles."
             ),
             inputs=[
-                io.Combo.Input( "style_1" , options=cls.all_style_names(), ),
-                io.Combo.Input( "style_2" , options=cls.all_style_names(), ),
-                io.Combo.Input( "style_3" , options=cls.all_style_names(), ),
-                io.Combo.Input( "style_4" , options=cls.all_style_names(), ),
-                io.Combo.Input( "style_5" , options=cls.all_style_names(), ),
-                io.Combo.Input( "style_6" , options=cls.all_style_names(), ),
-                io.Combo.Input( "style_7" , options=cls.all_style_names(), ),
-                io.Combo.Input( "style_8" , options=cls.all_style_names(), ),
-                io.Combo.Input( "style_9" , options=cls.all_style_names(), ),
-                io.Combo.Input( "style_10", options=cls.all_style_names(), ),
+                io.String.Input("input" , optional=True, multiline=True, force_input=True, dynamic_prompts=False,
+                                tooltip="Input to chain ther top styles nodes to this one.",
+                                ),
+                io.Custom("TOP_STYLES").Input( "top_styles", optional=True,
+                                tooltip="Configuration with your personal top-10 styles to show in this node.",
+                                ),
+                io.Boolean.Input( "style_1" , default=True,),
+                io.Boolean.Input( "style_2" , default=True,),
+                io.Boolean.Input( "style_3" , default=True,),
+                io.Boolean.Input( "style_4" , default=True,),
+                io.Boolean.Input( "style_5" , default=True,),
+                io.Boolean.Input( "style_6" , default=True,),
+                io.Boolean.Input( "style_7" , default=True,),
+                io.Boolean.Input( "style_8" , default=True,),
+                io.Boolean.Input( "style_9" , default=True,),
+                io.Boolean.Input( "style_10", default=True,),
+                io.Combo.Input( "output_as", options=cls.custom_styles(), ),
             ],
             outputs=[
-                io.Custom("TOP_STYLES").Output("TOP_STYLES"),
+                io.String.Output("output", tooltip="The prompt after applying the selected style."),
             ]
         )
 
@@ -60,7 +64,7 @@ class MyTop10Styles(io.ComfyNode):
     def execute(cls, **kwargs) -> io.NodeOutput:
 
         prompt = str(kwargs)
-        return io.NodeOutput( [ "selected_style1", "selected_style2"] )
+        return io.NodeOutput( prompt )
 
 
     #__ VALIDATION ________________________________________
@@ -73,12 +77,6 @@ class MyTop10Styles(io.ComfyNode):
 
     #__ internal functions ________________________________
 
-    @staticmethod
-    @cache
-    def all_style_names() -> list[str]:
-        """Returns all available style names."""
-        names = ["none"]
-        for style_group in PREDEFINED_STYLE_GROUPS:
-            names.extend( style_group.get_names(quoted=True) )
-        return names
-
+    @classmethod
+    def custom_styles(cls) -> list[str]:
+        return ["custom 1", "custom 2", "custom 3", "custom 4"]

@@ -1,8 +1,8 @@
 {
   "id": "7364e11b-0ae8-4cd9-a3bc-aa177381600d",
   "revision": 0,
-  "last_node_id": 36,
-  "last_link_id": 36,
+  "last_node_id": 44,
+  "last_link_id": 43,
   "nodes": [
     {
       "id": 2,
@@ -16,13 +16,13 @@
         580
       ],
       "flags": {},
-      "order": 2,
+      "order": 4,
       "mode": 0,
       "inputs": [
         {
           "name": "source",
           "type": "*",
-          "link": 36
+          "link": 41
         }
       ],
       "outputs": [],
@@ -36,15 +36,15 @@
       ]
     },
     {
-      "id": 35,
-      "type": "MyTop10Styles //ZImagePowerNodes",
+      "id": 41,
+      "type": "MyTop10StylesEditor //ZImagePowerNodes",
       "pos": [
-        -580,
-        450
+        -490,
+        -90
       ],
       "size": [
         310,
-        328.80208333333337
+        280
       ],
       "flags": {},
       "order": 0,
@@ -55,39 +55,79 @@
           "name": "TOP_STYLES",
           "type": "TOP_STYLES",
           "links": [
-            35
+            40
           ]
         }
       ],
       "properties": {
-        "Node name for S&R": "MyTop10Styles //ZImagePowerNodes"
+        "Node name for S&R": "MyTop10StylesEditor //ZImagePowerNodes"
       },
       "widgets_values": [
         "\"Phone Photo\"",
+        "\"Casual Photo\"",
+        "\"Portra Film Photo\"",
+        "\"70s Memories Photo\"",
+        "\"Noir Photo\"",
         "\"Dramatic Viewpoint\"",
-        "\"Dark-Side Photo\"",
-        "\"Pastel Dream Aesthetic\"",
-        "\"Comic 1\"",
-        "\"Comic 2\"",
-        "\"Comic 3\"",
-        "\"Explosive Cover Art\"",
-        "\"Phone Photo\"",
-        "\"Orthochromatic Spirit Photo\""
+        "\"High-Key Fashion Photo\"",
+        "\"Quiet Luxury Photo\"",
+        "\"Tilt Shift / Toy Photo\"",
+        "\"Pop Photo\""
       ]
     },
     {
-      "id": 36,
-      "type": "MyTop10StylesSelector //ZImagePowerNodes",
+      "id": 44,
+      "type": "MyTop10StylesEditor //ZImagePowerNodes",
       "pos": [
-        -150,
-        130
+        -960,
+        -80
       ],
       "size": [
-        460,
-        320
+        320,
+        274
       ],
       "flags": {},
       "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "TOP_STYLES",
+          "type": "TOP_STYLES",
+          "links": [
+            42
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "MyTop10StylesEditor //ZImagePowerNodes"
+      },
+      "widgets_values": [
+        "\"Comic 1\"",
+        "\"Comic 2\"",
+        "\"Action Cover Art\"",
+        "\"Vintage Comic\"",
+        "\"Pop-Art\"",
+        "\"Modern Pin-Up Illustration\"",
+        "none",
+        "none",
+        "none",
+        "none"
+      ]
+    },
+    {
+      "id": 43,
+      "type": "MyTop10Styles //ZImagePowerNodes",
+      "pos": [
+        -610,
+        280
+      ],
+      "size": [
+        360,
+        318
+      ],
+      "flags": {},
+      "order": 2,
       "mode": 0,
       "inputs": [
         {
@@ -100,10 +140,10 @@
           "name": "top_styles",
           "shape": 7,
           "type": "TOP_STYLES",
-          "link": 35
+          "link": 42
         },
         {
-          "label": "\"Phone Photo\"",
+          "label": "\"Comic 1\"",
           "name": "style_1",
           "type": "BOOLEAN",
           "widget": {
@@ -112,7 +152,7 @@
           "link": null
         },
         {
-          "label": "\"Dramatic Viewpoint\"",
+          "label": "\"Comic 2\"",
           "name": "style_2",
           "type": "BOOLEAN",
           "widget": {
@@ -121,7 +161,7 @@
           "link": null
         },
         {
-          "label": "\"Dark-Side Photo\"",
+          "label": "\"Action Cover Art\"",
           "name": "style_3",
           "type": "BOOLEAN",
           "widget": {
@@ -130,7 +170,7 @@
           "link": null
         },
         {
-          "label": "\"Pastel Dream Aesthetic\"",
+          "label": "\"Vintage Comic\"",
           "name": "style_4",
           "type": "BOOLEAN",
           "widget": {
@@ -139,7 +179,7 @@
           "link": null
         },
         {
-          "label": "\"Comic 1\"",
+          "label": "\"Pop-Art\"",
           "name": "style_5",
           "type": "BOOLEAN",
           "widget": {
@@ -148,7 +188,7 @@
           "link": null
         },
         {
-          "label": "\"Comic 2\"",
+          "label": "\"Modern Pin-Up Illustration\"",
           "name": "style_6",
           "type": "BOOLEAN",
           "widget": {
@@ -157,7 +197,7 @@
           "link": null
         },
         {
-          "label": "\"Comic 3\"",
+          "label": "-",
           "name": "style_7",
           "type": "BOOLEAN",
           "widget": {
@@ -166,7 +206,7 @@
           "link": null
         },
         {
-          "label": "\"Explosive Cover Art\"",
+          "label": "-",
           "name": "style_8",
           "type": "BOOLEAN",
           "widget": {
@@ -175,7 +215,7 @@
           "link": null
         },
         {
-          "label": "\"Phone Photo\"",
+          "label": "-",
           "name": "style_9",
           "type": "BOOLEAN",
           "widget": {
@@ -184,7 +224,7 @@
           "link": null
         },
         {
-          "label": "\"Orthochromatic Spirit Photo\"",
+          "label": "-",
           "name": "style_10",
           "type": "BOOLEAN",
           "widget": {
@@ -198,12 +238,156 @@
           "name": "output",
           "type": "STRING",
           "links": [
-            36
+            43
           ]
         }
       ],
       "properties": {
-        "Node name for S&R": "MyTop10StylesSelector //ZImagePowerNodes"
+        "Node name for S&R": "MyTop10Styles //ZImagePowerNodes"
+      },
+      "widgets_values": [
+        false,
+        false,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        "custom 1"
+      ]
+    },
+    {
+      "id": 42,
+      "type": "MyTop10Styles //ZImagePowerNodes",
+      "pos": [
+        -130,
+        280
+      ],
+      "size": [
+        350,
+        318
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "input",
+          "shape": 7,
+          "type": "STRING",
+          "link": 43
+        },
+        {
+          "name": "top_styles",
+          "shape": 7,
+          "type": "TOP_STYLES",
+          "link": 40
+        },
+        {
+          "label": "\"Phone Photo\"",
+          "name": "style_1",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "style_1"
+          },
+          "link": null
+        },
+        {
+          "label": "\"Casual Photo\"",
+          "name": "style_2",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "style_2"
+          },
+          "link": null
+        },
+        {
+          "label": "\"Portra Film Photo\"",
+          "name": "style_3",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "style_3"
+          },
+          "link": null
+        },
+        {
+          "label": "\"70s Memories Photo\"",
+          "name": "style_4",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "style_4"
+          },
+          "link": null
+        },
+        {
+          "label": "\"Noir Photo\"",
+          "name": "style_5",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "style_5"
+          },
+          "link": null
+        },
+        {
+          "label": "\"Dramatic Viewpoint\"",
+          "name": "style_6",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "style_6"
+          },
+          "link": null
+        },
+        {
+          "label": "\"High-Key Fashion Photo\"",
+          "name": "style_7",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "style_7"
+          },
+          "link": null
+        },
+        {
+          "label": "\"Quiet Luxury Photo\"",
+          "name": "style_8",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "style_8"
+          },
+          "link": null
+        },
+        {
+          "label": "\"Tilt Shift / Toy Photo\"",
+          "name": "style_9",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "style_9"
+          },
+          "link": null
+        },
+        {
+          "label": "\"Pop Photo\"",
+          "name": "style_10",
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "style_10"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "output",
+          "type": "STRING",
+          "links": [
+            41
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "MyTop10Styles //ZImagePowerNodes"
       },
       "widgets_values": [
         false,
@@ -222,18 +406,34 @@
   ],
   "links": [
     [
-      35,
-      35,
+      40,
+      41,
       0,
-      36,
+      42,
       1,
       "TOP_STYLES"
     ],
     [
-      36,
-      36,
+      41,
+      42,
       0,
       2,
+      0,
+      "STRING"
+    ],
+    [
+      42,
+      44,
+      0,
+      43,
+      1,
+      "TOP_STYLES"
+    ],
+    [
+      43,
+      43,
+      0,
+      42,
       0,
       "STRING"
     ]
@@ -242,10 +442,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.9090909090909091,
+      "scale": 0.620921323059155,
       "offset": [
-        812.7875355926883,
-        217.01078413123864
+        1117.7027677801884,
+        518.0312145218637
       ]
     },
     "workflowRendererVersion": "LG",

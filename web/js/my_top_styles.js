@@ -1,6 +1,6 @@
 /**
  * File    : my_top_styles.js
- * Purpose : Frontend implementation for "My Top Styles" kind of node.
+ * Purpose : Frontend implementation of "My Top-<N> Styles" node functionality.
  * Author  : Martin Rizzo | <martinrizzo@gmail.com>
  * Date    : Jan 31, 2026
  * Repo    : https://github.com/martin-rizzo/ComfyUI-ZImagePowerNodes
@@ -11,83 +11,178 @@
  *_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 */
 import { app } from "../../../scripts/app.js";
-import { getOutputNodes } from "./common.js";
+import { renameWidget } from "./common.js";
 const ENABLED = true;
 
-
 //#======================= My Top Styles Controller ========================#
-/**
- * Object encapsulating the style category selection functionality.
- * @typedef {Object} MyTopStylesController
- *   @property {Array<Object>} allStyleWidgets - A list of all widgets whose name starts with "style_".
- *   @property {Object}        node            - The node this controller is attached to.
- */
 
-
-/**
- * Initializes the MyTopStylesController.
- *
- * @param {MyTopStylesController} self - The instance of the controller being initialized.
- * @param {Object} node                - The node to control.
- */
 function init(self, node) {
 
-    // build a list with all widgets whose name starts with "style_"
+    // build a list with all widgets whose name starts with "style"
     const allStyleWidgets = node.widgets.filter(w => w.name.startsWith("style_"));
     if( !allStyleWidgets || allStyleWidgets.length == 0 ) {
         console.error(`##>> MyTopStyles: No widgets found whose name starts with "style_"`);
         return;
     }
 
-    // add a callback to each widget so we can know when the user makes any modification
+    // // nos colgamos del evento onConnectionChange
+    // const originalOnConnectionChange = node.onConnectionChange;
+    // node.onConnectionChange = function(type, slot, connected, link_info, input_info) {
+    //     if( originalOnConnectionChange == "function" ) {
+    //         originalOnConnectionChange.apply(this, arguments);
+    //     }
+
+    //     // comunicar en consola el event
+    //     console.log("##>> My Top Styles: connection change:", type, slot, connected)
+
+    //     MyTop10_onConnectionChange(self, type, slot, connected);
+    // }
+
+
+    // reemplazar la funcion callback en todos los widgets
     for( let i=0 ; i<allStyleWidgets.length ; ++i ) {
         const widget = allStyleWidgets[i];
-        widget.callback = function (v) {
-            const topStyles = getTopStylesFromWidgets(self);
-            onTopStylesChanged(self, topStyles);
-            self.node?.setDirtyCanvas?.(true);
+        widget.label = '"Style Name"'
+
+        //widget.originalCallback = widget.callback;
+
+        const oldCallback = widget.callback;
+        widget.callback = function(value) {
+            if( !self.selecting ) {
+                self.selecting = true;
+                onStyleSelect(self, widget, value);
+                self.selecting = false;
+            }
+            if( typeof oldCallback === 'function' ) {
+                oldCallback.apply(this, arguments);
+            }
+        }
+
+        // const oldCallback = widget.callback;
+        // widget.callback = async (value) => {
+        //     onStyleSelect(self, widget, value);
+        //     if( oldCallback && typeof(oldCallback) === "function" ) {
+        //         oldCallback.apply(widget, arguments);
+        //     }
+        // }
+    }
+
+    // set controller properties
+    self.node            = node;
+    self.selecting       = false;
+    self.topStyles       = [];
+    self.allStyleWidgets = allStyleWidgets;
+    self.updateTopStyles = function(topStyles) { updateTopStyles(this, topStyles); };
+}
+
+
+function onStyleSelect(self, widget, value) {
+
+    // mostrar en consola el nombre
+    //console.log("##>> My Top Styles: selected style:", widget.name)
+
+    // only allow one widget to be active at a time
+    //const allStyleWidgets = self.allStyleWidgets;
+    const allStyleWidgets = self.node.widgets.filter(w => w.name.startsWith("style_"));
+
+    //console.log("##>> WIDGETS:", allStyleWidgets)
+    //console.log("##>> onStyleSelect NODE:", self.node)
+
+    for( const styleWidget of allStyleWidgets ) {
+        if( styleWidget === widget ) {
+            styleWidget.value = true;
+        }
+        else {
+            styleWidget.value = false;
+            //renameWidget(styleWidget, self.node, "Pepino")
+            //styleWidget.label = "Pepe";
+            //console.log("##>> TRIGER TYPE:", typeof styleWidget.triggerDraw );
+            styleWidget.callback(false);
+        }
+
+    }
+
+    // // evitar que el usuario desactive el widget
+    // if( value === false ) {
+    //     widget.value = true;
+    //     return;
+    // }
+
+}
+
+function forceLabelUpdate(widget, node, newLabel) {
+    widget.label = newLabel;
+    
+    // Forzamos a LiteGraph a marcar el nodo para re-cálculo
+    node.setDirtyCanvas(true, true);
+    
+    // Hack: Si el componente Vue está escuchando cambios en el objeto 'options'
+    // actualizamos una propiedad ficticia para disparar el observador de Vue
+    if (widget.options) {
+        widget.options._force_update = Date.now(); 
+    }
+
+    // Nodes 2.0 a veces requiere que el nodo "parpadee" para redibujar el DOM de Vue
+    const originalSize = [...node.size];
+    node.size[0] += 0.001; 
+    node.setSize(node.size);
+    node.size[0] = originalSize[0];
+    node.setSize(originalSize);
+}
+
+// necesito que topStyleList sea un parametro opcional
+function updateTopStyles(self, topStyles) {
+
+    console.log("##>> My Top Styles Selector: updating top styles!!:", topStyles);
+
+    if( topStyles && topStyles.length > 0 ) {
+        self.topStyles = topStyles;
+    }
+
+    const node = app.graph.getNodeById(self.node.id)
+    //const allStyleWidgets = self.allStyleWidgets;
+    const allStyleWidgets = node.widgets.filter(w => w.name.startsWith("style_"));
+
+    for( let i=0 ; i<allStyleWidgets.length ; i++ ) {
+        const widget    = allStyleWidgets[i];
+        const styleName = i<self.topStyles.length ? self.topStyles[i] : "";
+        if( isValidStyleName(self, styleName) ) {
+            renameWidget(widget, node, styleName)
+            forceLabelUpdate(widget, node, styleName)
+        } else {
+            renameWidget(widget, node, "-")
+            forceLabelUpdate(widget, node, "-")
         }
     }
 
-    // controller properties
-    self.allStyleWidgets = allStyleWidgets;
-    self.node            = node;
-}
+    for( let i=0 ; i<allStyleWidgets.length ; i++ ) {
+        const widget    = allStyleWidgets[i];
+        const styleName = i<self.topStyles.length ? self.topStyles[i] : "";
 
+        if( widget.setProperty ) {
+            console.log("##>> setProperty is available");
+        } else {
+            console.log("##>> setProperty is NOT available");
+        }
 
-/**
- * Retrieves all the selected top styles from the node widgets.
- *
- * @param {MyTopStylesController} self - The instance of MyTopStylesController.
- * @returns {Array<string>} An array of strings representing the selected top styles.
- */
-function getTopStylesFromWidgets(self) {
-    const allStyleWidgets = self.allStyleWidgets;
-
-    let topStyles = [];
-    for( let i=0 ; i<allStyleWidgets.length ; ++i ) {
-        const widget = allStyleWidgets[i];
-        topStyles.push( widget.value.toString() );
+        if( !isValidStyleName(self, styleName) ) {
+            widget.value = true;
+            widget.callback(widget.value);
+            break;
+        }
     }
-    return topStyles;
+    //node.onResize?.(node.size);
+    //node.setDirtyCanvas(true,true);
+    //app.graph.setDirtyCanvas(true, true);
+    //app.graph.onGraphChanged();
+    //app.canvas.emitAfterChange();
 }
 
-
-/**
- * Handles the change of top styles by notifying all connected output nodes.
- *
- * @param {MyTopStylesController} self - The instance of MyTopStylesController.
- * @param {Array<string>} topStyles - An array of strings representing the new top styles.
- */
-function onTopStylesChanged(self, topStyles) {
-
-    // send the new top styles to all nodes connected to the 'TOP_STYLES' output
-    const outputNodes = getOutputNodes(self.node, 'TOP_STYLES');
-    for( let i=0 ; i<outputNodes.length ; ++i ) {
-        const outputNode = outputNodes[i];
-        outputNode?.zzController?.updateTopStyles?.(topStyles);
-    }
+function isValidStyleName(self, styleName) {
+    // if starts with quotes it's a valid style (for now)
+    return styleName.startsWith('"');
 }
+
 
 
 //#=========================================================================#
@@ -102,7 +197,7 @@ app.registerExtension({
      */
     init() {
         if (!ENABLED) return;
-        console.log("##>> MyTopStyles: extension loaded.")
+        console.log("##>> My Top Styles: extension loaded.")
     },
 
     /**
@@ -113,8 +208,8 @@ app.registerExtension({
         if (!ENABLED) return;
         const comfyClass = node?.comfyClass ?? "";
 
-        // inject controller only to nodes of type "My Top-X Styles"
-        if( comfyClass.startsWith("MyTop10Styles //ZImage") ) {
+        // inject controller only to nodes of type "My Top-X Styles Selector"
+        if( comfyClass.startsWith("MyTop10Styles //ZImage" ) ) {
             node.zzController = {};
             init(node.zzController, node)
         }
