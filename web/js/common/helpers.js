@@ -1,5 +1,5 @@
 /**
- * File    : common.js
+ * File    : common/helpers.js
  * Purpose : Common script file with helper functions.
  * Author  : Martin Rizzo | <martinrizzo@gmail.com>
  * Date    : Jan 31, 2026

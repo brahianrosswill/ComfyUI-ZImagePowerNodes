@@ -11,7 +11,8 @@
  *_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 */
 import { app } from "../../../scripts/app.js";
-import { forceRenameWidget } from "./common.js";
+import { forceRenameWidget } from "./common/helpers.js";
+import { scheduleIntervalCalls } from "./common/timer.js";
 const ENABLED = true;
 
 
@@ -67,6 +68,8 @@ function init(self, node) {
     self.allStyleWidgets = allStyleWidgets;
     self.selecting       = false;
     self.updateTopStyles = function(topStyles) { updateTopStyles(this, topStyles); };
+    self.onInterval      = function() { onInterval(self); };
+    scheduleIntervalCalls(self);
 }
 
 
@@ -96,6 +99,10 @@ function onBooleanSwitchChanged(self, widget, value) {
             styleWidget.callback(false);
         }
     }
+}
+
+function onInterval(self) {
+    console.log("##>> My Top Styles: onInterval()");
 }
 
 
