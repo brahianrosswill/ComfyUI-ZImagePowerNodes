@@ -18,6 +18,12 @@ const DATA_INPUT       = 'input';      // name of the input socket
 const DATA_OUTPUT      = 'output';     // name of the output socket
 const TOP_STYLES_INPUT = 'top_styles'; // name of the input socket that connects to the "Top-Styles" provider.
 
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// Here I leave a safe way to get the node and widgets of the controller,
+// it's been used for debugging but doesn't offer any advantage.
+// const node            = self.node?.graph?.getNodeById?.(self.node.id);
+// const allStyleWidgets = node.widgets.filter(w => w.name.startsWith("style_"));
+//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 
 //#======================= My Top Styles Controller ========================#
@@ -47,7 +53,7 @@ function init(self, node) {
     const channelWidget   = channelWidgets.length > 0 ? channelWidgets[0] : null;
 
     if( !allStyleWidgets || allStyleWidgets.length == 0 || !channelWidget ) {
-        console.error(`##>> MyTopStyles: Missing required widgets!`);
+        console.error("Missing required widgets!");
         return;
     }
 
@@ -86,21 +92,96 @@ function init(self, node) {
 
 
 /**
- * Handles the change of the switch widget associated with a style.
+ * Processes a chain message by delegating the task to appropriate handlers.
  *
- * Ensures only one style can be active at a time by setting other
- * widgets' values to false.
+ * All messages should be launched with the prefix "launch:", this causes the
+ * message to search left from the initial node of the chain. Once the initial
+ * node is reached, the message loses its prefix "launch:" and moves to the
+ * right reaching all nodes of the chain in order.
+ *
+ * @param {MyTopStylesCtrl} self    - The controller instance.
+ * @param {Object}          message - The message object containing at least
+ *                                    `type` and `sender_id`. properties.
+ */
+function processChainMessage(self, message) {
+    let type      = message.type;
+    let sender_id = message.sender_id;
+    if( typeof type !== "string" || sender_id == null )
+    { console.error("Invalid chain message!", message); return; }
+
+    // <<< go left while `type` starts with "launch:"
+    if( type.startsWith("launch:") ) {
+        const inputNode = getInputNode(self.node, DATA_INPUT);
+        if( inputNode?.id === sender_id )
+        { console.error("Recursive chain detected!"); return; }
+
+        if( inputNode?.zzController?.processChainMessage ) {
+            inputNode.zzController.processChainMessage(message);
+        } else {
+            // if there's no left node, go right
+            type = type.substring("launch:".length);
+            message["type"] = type;
+        }
+    }
+
+    // >>> go right when `type` doesn't start with "launch:"
+    if( !type.startsWith("launch:") ) {
+        onChainMessage(self, message);
+
+        const outputNodes = getOutputNodes(self.node, DATA_OUTPUT);
+        for( const outputNode of outputNodes ) {
+            outputNode.zzController?.processChainMessage(message);
+        }
+    }
+}
+
+
+/**
+ * Updates the top styles of a controller and refreshes their widgets accordingly.
+ * @param {MyTopStylesCtrl} self        - The controller instance.
+ * @param {Array<string>}   [topStyles] - The list of new top styles (optional).
+ */
+function updateTopStyles(self, topStyles) {
+
+    const node            = self.node
+    const allStyleWidgets = self.allStyleWidgets;
+    if( !topStyles ) { topStyles = [] }
+
+    for( let i=0 ; i<allStyleWidgets.length ; i++ ) {
+        const widget    = allStyleWidgets[i];
+        const styleName = i<topStyles.length ? topStyles[i] : "";
+        if( isValidStyleName(styleName) ) {
+            forceRenameWidget(widget, node, styleName)
+        } else {
+            forceRenameWidget(widget, node, "-")
+        }
+    }
+}
+
+
+/**
+ * Deselects all styles turning off all switch widgets.
+ * @param {MyTopStylesCtrl} self - The controller instance.
+ */
+function deselectAllStyles(self) {
+    for( const widget of self.allStyleWidgets ) {
+        if( widget.value ) {
+            widget.value = false;
+            widget.callback(false, "no-event");
+        }
+    }
+}
+
+
+//#-------------------------------- EVENTS ---------------------------------#
+
+/**
+ * Called when the switch associated with a style changes its state.
  * @param {MyTopStylesCtrl} self   - The controller instance.
  * @param {Object}          widget - The widget whose value has changed.
  * @param {boolean}         value  - The new boolean value of the switch widget.
  */
 function onBooleanSwitchChanged(self, widget, value) {
-
-  //// SAFE (debugging)
-  //const node            = self.node?.graph?.getNodeById?.(self.node.id);
-  //const allStyleWidgets = node.widgets.filter(w => w.name.startsWith("style_"));
-
-    // FAST
     const allStyleWidgets = self.allStyleWidgets;
 
     // only allow one widget to be active at a time
@@ -112,27 +193,38 @@ function onBooleanSwitchChanged(self, widget, value) {
         }
     }
 
+    // send a message to all nodes in the chain to deselect styles linked to "channel"
+    // (currently there are 4 channels "custom_1", "custom_2", "custom_3" and "custom_4")
     processChainMessage(self, { type     : "launch:deselectAllStyles",
                                 channel  : self.channelWidget.value,
-                                sender_id: self.node.id
-                        });
+                                sender_id: self.node.id });
 }
 
 
+/**
+ * Called when the input slot 'top_styles' changes its connection to another node (or disconnects).
+ * @param {MyTopStylesCtrl} self - The controller instance.
+ * @param {Object|null}     node - The connected node or null if disconnected.
+ */
 function onTopStylesConnectionChanged(self, node) {
-    console.log("##>> onTopStylesConnectionChanged");
-    console.log(node);
+    // updates the top styles based on the new connected node's list.
     updateTopStyles( self, node?.zzController?.getTopStyles?.() );
 }
 
 
+/**
+ * Called when the input slot 'input' changes its connection to another node (or disconnects).
+ * @param {MyTopStylesCtrl} self - The controller instance.
+ * @param {Object|null}     node - The connected node or null if disconnected.
+ */
 function onInputConnectionChanged(self, node) {
 
     if( node ) {
+        // send a message to all nodes in the chain forcing no 2 styles selected on same channel
+        // (currently there are 4 channels "custom_1", "custom_2", "custom_3" and "custom_4")
         processChainMessage(self, { type     : "launch:forceNoRepeatChannels",
                                     channels : new Set(),
-                                    sender_id: self.node_id
-                           });
+                                    sender_id: self.node.id });
     }
     else {
         console.log("##>> DISCONNECTED from input connection");
@@ -140,6 +232,12 @@ function onInputConnectionChanged(self, node) {
 }
 
 
+/**
+ * Called when a message from another node in the chain is received.
+ * @param {MyTopStylesCtrl} self    - The controller instance.
+ * @param {Object}          message - The received message containing `type`,
+ *                                    `sender_id`, and custom properties.
+ */
 function onChainMessage(self, message) {
     const type      = message.type;
     const sender_id = message.sender_id;
@@ -161,39 +259,16 @@ function onChainMessage(self, message) {
         if( repeated ) { deselectAllStyles(self); }
         else           { channels.add(self.channelWidget.value); }
     }
-
 }
 
 
-function processChainMessage(self, message) {
-    let type = message["type"];
-    if( typeof type !== "string" ) { return; }
-
-    if( type.startsWith("launch:") ) {
-        const inputNode = getInputNode(self.node, DATA_INPUT);
-        if( inputNode ) { inputNode.zzController?.processChainMessage(message); }
-        else {
-            type = type.substring("launch:".length);
-            message["type"] = type;
-        }
-    }
-
-    if( !type.startsWith("launch:") ) {
-        onChainMessage(self, message);
-
-        const outputNodes = getOutputNodes(self.node, DATA_OUTPUT);
-        for( const outputNode of outputNodes ) {
-            outputNode.zzController?.processChainMessage(message);
-        }
-    }
-
-
-}
-
-// verifica periodicamente las conexiones del nodo ya que el evento
-// `onConnectionChange` de LiteGraph puede no funcionar en algunas versiones de ComfyUI
+/**
+ * Called periodically to verify node connections.
+ * @param {MyTopStylesCtrl} self - The controller instance.
+ */
 function onInterval(self) {
 
+    // verify the `top_styles` slot connection
     const topStylesOriginID = getInputOriginID(self.node, "top_styles");
     if( self.topStylesOriginID !== topStylesOriginID ) {
         self.topStylesOriginID = topStylesOriginID;
@@ -201,6 +276,7 @@ function onInterval(self) {
         onTopStylesConnectionChanged(self, originNode);
     }
 
+    // verify the `input` slot connection
     const inputOriginID = getInputOriginID(self.node, "input");
     if( self.inputOriginID !== inputOriginID ) {
         self.inputOriginID = inputOriginID;
@@ -210,62 +286,15 @@ function onInterval(self) {
 }
 
 
-/**
- * Updates the top styles of a controller and refreshes their widgets accordingly.
- *
- * @param {MyTopStylesCtrl} self        - The controller instance.
- * @param {Array<string>}   [topStyles] - The list of new top styles (optional).
- */
-function updateTopStyles(self, topStyles) {
-
-    if( !topStyles ) { topStyles = [] }
-
-
-    // // update the internal list of top styles, if a new one is provided
-    // if( topStyles && topStyles.length > 0 ) {
-    //     self.topStyles = topStyles;
-    // }
-
-  //// SAFE (debugging)
-  //const node            = self.node?.graph?.getNodeById?.(self.node.id);
-  //const allStyleWidgets = node.widgets.filter(w => w.name.startsWith("style_"));
-
-    // FAST
-    const node            = self.node
-    const allStyleWidgets = self.allStyleWidgets;
-
-    for( let i=0 ; i<allStyleWidgets.length ; i++ ) {
-        const widget    = allStyleWidgets[i];
-        const styleName = i<topStyles.length ? topStyles[i] : "";
-        if( isValidStyleName(styleName) ) {
-            forceRenameWidget(widget, node, styleName)
-        } else {
-            forceRenameWidget(widget, node, "-")
-        }
-    }
-
-}
-
-function deselectAllStyles(self) {
-    for( const widget of self.allStyleWidgets ) {
-        if( widget.value ) {
-            widget.value = false;
-            widget.callback(false, "no-event");
-        }
-    }
-}
-
-
 //#-------------------------------- HELPERS --------------------------------#
 
 /**
  * Checks whether a given style name is valid.
- * 
  * @param {string} styleName - The name of the style to validate.
  * @returns {boolean} True if the style name is valid, false otherwise.
  */
-function isValidStyleName(styleName)
-{
+function isValidStyleName(styleName) {
+
     // discard any name that is not a string
     if( typeof styleName  != 'string' ) { return false; }
 
