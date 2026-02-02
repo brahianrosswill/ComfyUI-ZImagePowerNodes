@@ -11,9 +11,13 @@
  *_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 */
 import { app } from "../../../scripts/app.js";
-import { forceRenameWidget, getInputOriginID } from "./common/helpers.js";
+import { forceRenameWidget, getInputNode, getInputOriginID, getOutputNodes } from "./common/helpers.js";
 import { scheduleIntervalCalls } from "./common/timer.js";
 const ENABLED = true;
+const DATA_INPUT       = 'input';      // name of the input socket
+const DATA_OUTPUT      = 'output';     // name of the output socket
+const TOP_STYLES_INPUT = 'top_styles'; // name of the input socket that connects to the "Top-Styles" provider.
+
 
 
 //#======================= My Top Styles Controller ========================#
@@ -22,7 +26,7 @@ const ENABLED = true;
  * @typedef {Object} MyTopStylesCtrl
  *   @property {Object}        node             - The node this controller is attached to.
  *   @property {Array<Object>} allStyleWidgets  - A list of all widgets whose name starts with "style_".
- *   @property {boolean}       selecting        - Whether or not the controller is currently in the middle of a selection.
+ *   @property {boolean}       eventEnabled     - Whether or not the controller generate 'onBooleanSwitchChanged' event.
  *                                                (used to prevent infinite recursion when updating the list)
  *   @property {number|null}  topStylesOriginID - The ID of the node connected to the 'top_styles" input.
  *   @property {number|null}  inputOriginID     - The ID of the node connected to the 'input' input.
@@ -39,8 +43,11 @@ function init(self, node) {
 
     // build a list with all widgets whose name starts with "style"
     const allStyleWidgets = node.widgets.filter(w => w.name.startsWith("style_"));
-    if( !allStyleWidgets || allStyleWidgets.length == 0 ) {
-        console.error(`##>> MyTopStyles: No widgets found whose name starts with "style_"`);
+    const channelWidgets  = node.widgets.filter(w => w.name === "output_as");
+    const channelWidget   = channelWidgets.length > 0 ? channelWidgets[0] : null;
+
+    if( !allStyleWidgets || allStyleWidgets.length == 0 || !channelWidget ) {
+        console.error(`##>> MyTopStyles: Missing required widgets!`);
         return;
     }
 
@@ -51,11 +58,12 @@ function init(self, node) {
         // replacing the `callback` function in all widgets,
         // using the safest way to call original function
         const oldCallback = widget.callback;
-        widget.callback = function(value) {
-            if( !self.selecting ) {
-                self.selecting = true;
+        widget.callback = function(value, mode) {
+            const eventEnabled = self.eventEnabled && mode !== "no-event";
+            if( eventEnabled ) {
+                self.eventEnabled = false;
                 onBooleanSwitchChanged(self, widget, value);
-                self.selecting = false;
+                self.eventEnabled = true;
             }
             if( typeof oldCallback === 'function' ) {
                 oldCallback.apply(this, arguments);
@@ -64,13 +72,15 @@ function init(self, node) {
     }
 
     // set controller properties and methods
-    self.node              = node;
-    self.allStyleWidgets   = allStyleWidgets;
-    self.selecting         = false;
-    self.topStylesOriginID = null;
-    self.inputOriginID     = null;
-    self.updateTopStyles   = function(topStyles) { updateTopStyles(this, topStyles); };
-    self.onInterval        = function() { onInterval(self); };
+    self.node                = node;
+    self.allStyleWidgets     = allStyleWidgets;
+    self.channelWidget       = channelWidget;
+    self.eventEnabled        = true;
+    self.topStylesOriginID   = null;
+    self.inputOriginID       = null;
+    self.updateTopStyles     = function(topStyles) { updateTopStyles(self, topStyles); };
+    self.processChainMessage = function(message) { processChainMessage(self, message); }
+    self.onInterval          = function() { onInterval(self); };
     scheduleIntervalCalls(self);
 }
 
@@ -98,9 +108,14 @@ function onBooleanSwitchChanged(self, widget, value) {
     for( const styleWidget of allStyleWidgets ) {
         if( styleWidget !== widget ) {
             styleWidget.value = false;
-            styleWidget.callback(false);
+            styleWidget.callback(false, "no-event");
         }
     }
+
+    processChainMessage(self, { type     : "launch:deselectAllStyles",
+                                channel  : self.channelWidget.value,
+                                sender_id: self.node.id
+                        });
 }
 
 
@@ -113,11 +128,67 @@ function onTopStylesConnectionChanged(self, node) {
 
 function onInputConnectionChanged(self, node) {
 
-    if( !node ) {
+    if( node ) {
+        processChainMessage(self, { type     : "launch:forceNoRepeatChannels",
+                                    channels : new Set(),
+                                    sender_id: self.node_id
+                           });
+    }
+    else {
         console.log("##>> DISCONNECTED from input connection");
     }
 }
 
+
+function onChainMessage(self, message) {
+    const type      = message.type;
+    const sender_id = message.sender_id;
+
+    // message that deselects all styles of a specific channel:
+    //  - this message should not be processed by the same node that sent it.
+    //  - don't process if channel is specified and it's different from the current one,
+    if( type === 'deselectAllStyles' ) {
+        if( self.node.id === sender_id ) { return; }
+        if( message.channel && message.channel !== self.channelWidget.value ) { return; }
+        deselectAllStyles(self);
+        return;
+    }
+
+    // message that forces no 2 styles to be selected in the same channel
+    if( type == 'forceNoRepeatChannels' ) {
+        const channels = message.channels;
+        const repeated = channels.has(self.channelWidget.value);
+        if( repeated ) { deselectAllStyles(self); }
+        else           { channels.add(self.channelWidget.value); }
+    }
+
+}
+
+
+function processChainMessage(self, message) {
+    let type = message["type"];
+    if( typeof type !== "string" ) { return; }
+
+    if( type.startsWith("launch:") ) {
+        const inputNode = getInputNode(self.node, DATA_INPUT);
+        if( inputNode ) { inputNode.zzController?.processChainMessage(message); }
+        else {
+            type = type.substring("launch:".length);
+            message["type"] = type;
+        }
+    }
+
+    if( !type.startsWith("launch:") ) {
+        onChainMessage(self, message);
+
+        const outputNodes = getOutputNodes(self.node, DATA_OUTPUT);
+        for( const outputNode of outputNodes ) {
+            outputNode.zzController?.processChainMessage(message);
+        }
+    }
+
+
+}
 
 // verifica periodicamente las conexiones del nodo ya que el evento
 // `onConnectionChange` de LiteGraph puede no funcionar en algunas versiones de ComfyUI
@@ -173,6 +244,15 @@ function updateTopStyles(self, topStyles) {
         }
     }
 
+}
+
+function deselectAllStyles(self) {
+    for( const widget of self.allStyleWidgets ) {
+        if( widget.value ) {
+            widget.value = false;
+            widget.callback(false, "no-event");
+        }
+    }
 }
 
 
