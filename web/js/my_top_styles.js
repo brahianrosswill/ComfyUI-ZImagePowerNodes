@@ -151,7 +151,8 @@ function updateTopStyles(self, topStyles) {
         const widget    = allStyleWidgets[i];
         const styleName = i<topStyles.length ? topStyles[i] : "";
         if( isValidStyleName(styleName) ) {
-            forceRenameWidget(widget, node, styleName)
+            const text = (i+1) + " - " + styleName;
+            forceRenameWidget(widget, node, text)
         } else {
             forceRenameWidget(widget, node, "-")
         }
