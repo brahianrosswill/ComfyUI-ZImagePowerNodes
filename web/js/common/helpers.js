@@ -10,7 +10,8 @@
  *       ComfyUI nodes designed specifically for the "Z-Image" model.
  *_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 */
-export { getOutputNodes, renameWidget, forceRenameWidget }
+export { getOutputNodes, getInputOriginID, getInputNode, renameWidget, forceRenameWidget }
+
 
 /**
  * Get all nodes connected to a given node's outputs.
@@ -45,6 +46,47 @@ function getOutputNodes(node, outputName) {
         }
     }
     return outputNodes;
+}
+
+
+/**
+ * Get the ID of the node connected to a given node's input.
+ *
+ * @param {Object} node        - The node whose input will be analyzed.
+ * @param {string} [inputName] - Optional. The name of the input connection to search.
+ *                               If not provided, it searches only the first input connection.
+ * @returns {(string|null)} The ID of the node connected as input or `null` if nothing is connected.
+ */
+function getInputOriginID(node, inputName) {
+
+    // get the graph safely
+    const graph = (node?.graph || app.graph);
+    if( !graph ) { return null; }
+
+    const inputs = node?.inputs || [];
+    for( let i=0 ; i<inputs.length ; ++i ) {
+        const input = inputs[i];
+
+        // if outputName is provided, compare it with the current name
+        if( inputName && inputName !== input?.name ) { continue; }
+
+        return graph.links[ input?.link || 0 ]?.origin_id;
+    }
+    return null;
+}
+
+
+/**
+ * Get the node that is connected to a given node's input.
+ *
+ * @param {Object} node        - The node whose input will be analyzed.
+ * @param {string} [inputName] - Optional. The name of the input connection to search.
+ *                               If not provided, it searches only the first input connection.
+ * @returns {(Object|null)} The node that is connected as input or `null` if nothing is connected.
+ */
+function getInputNode(node, inputName) {
+    const originID = getInputOriginID(node, inputName);
+    return originID != null ? graph.getNodeById(originID) : null;
 }
 
 

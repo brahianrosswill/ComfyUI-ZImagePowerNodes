@@ -42,7 +42,7 @@ app.registerExtension({
                     restartTimer();
 
                 }, { timeout: 10000 });
-            }, 2000);
+            }, 1000);
         };
 
         // start the timer

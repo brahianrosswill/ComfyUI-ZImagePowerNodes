@@ -11,7 +11,7 @@
  *_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 */
 import { app } from "../../../scripts/app.js";
-import { forceRenameWidget } from "./common/helpers.js";
+import { forceRenameWidget, getInputOriginID } from "./common/helpers.js";
 import { scheduleIntervalCalls } from "./common/timer.js";
 const ENABLED = true;
 
@@ -20,11 +20,12 @@ const ENABLED = true;
 /**
  * Controller for any node that selects from a list of top styles. (e.g., "My Top-10 Styles")
  * @typedef {Object} MyTopStylesCtrl
- *   @property {Object}        node            - The node this controller is attached to.
- *   @property {Array<string>} topStyles       - The list of styles names that are currently selected.
- *   @property {Array<Object>} allStyleWidgets - A list of all widgets whose name starts with "style_".
- *   @property {boolean}       selecting       - Whether or not the controller is currently in the middle of a selection.
- *                                               (used to prevent infinite recursion when updating the list)
+ *   @property {Object}        node             - The node this controller is attached to.
+ *   @property {Array<Object>} allStyleWidgets  - A list of all widgets whose name starts with "style_".
+ *   @property {boolean}       selecting        - Whether or not the controller is currently in the middle of a selection.
+ *                                                (used to prevent infinite recursion when updating the list)
+ *   @property {number|null}  topStylesOriginID - The ID of the node connected to the 'top_styles" input.
+ *   @property {number|null}  inputOriginID     - The ID of the node connected to the 'input' input.
  */
 
 
@@ -62,13 +63,14 @@ function init(self, node) {
         }
     }
 
-    // set controller properties and functions
-    self.node            = node;
-    self.topStyles       = [];
-    self.allStyleWidgets = allStyleWidgets;
-    self.selecting       = false;
-    self.updateTopStyles = function(topStyles) { updateTopStyles(this, topStyles); };
-    self.onInterval      = function() { onInterval(self); };
+    // set controller properties and methods
+    self.node              = node;
+    self.allStyleWidgets   = allStyleWidgets;
+    self.selecting         = false;
+    self.topStylesOriginID = null;
+    self.inputOriginID     = null;
+    self.updateTopStyles   = function(topStyles) { updateTopStyles(this, topStyles); };
+    self.onInterval        = function() { onInterval(self); };
     scheduleIntervalCalls(self);
 }
 
@@ -101,8 +103,39 @@ function onBooleanSwitchChanged(self, widget, value) {
     }
 }
 
+
+function onTopStylesConnectionChanged(self, node) {
+    console.log("##>> onTopStylesConnectionChanged");
+    console.log(node);
+    updateTopStyles( self, node?.zzController?.getTopStyles?.() );
+}
+
+
+function onInputConnectionChanged(self, node) {
+
+    if( !node ) {
+        console.log("##>> DISCONNECTED from input connection");
+    }
+}
+
+
+// verifica periodicamente las conexiones del nodo ya que el evento
+// `onConnectionChange` de LiteGraph puede no funcionar en algunas versiones de ComfyUI
 function onInterval(self) {
-    console.log("##>> My Top Styles: onInterval()");
+
+    const topStylesOriginID = getInputOriginID(self.node, "top_styles");
+    if( self.topStylesOriginID !== topStylesOriginID ) {
+        self.topStylesOriginID = topStylesOriginID;
+        const originNode = topStylesOriginID == null ? null : self.node?.graph?.getNodeById(topStylesOriginID);
+        onTopStylesConnectionChanged(self, originNode);
+    }
+
+    const inputOriginID = getInputOriginID(self.node, "input");
+    if( self.inputOriginID !== inputOriginID ) {
+        self.inputOriginID = inputOriginID;
+        const originNode = inputOriginID == null ? null : self.node?.graph?.getNodeById(inputOriginID);
+        onInputConnectionChanged(self, originNode);
+    }
 }
 
 
@@ -114,10 +147,13 @@ function onInterval(self) {
  */
 function updateTopStyles(self, topStyles) {
 
-    // update the internal list of top styles, if a new one is provided
-    if( topStyles && topStyles.length > 0 ) {
-        self.topStyles = topStyles;
-    }
+    if( !topStyles ) { topStyles = [] }
+
+
+    // // update the internal list of top styles, if a new one is provided
+    // if( topStyles && topStyles.length > 0 ) {
+    //     self.topStyles = topStyles;
+    // }
 
   //// SAFE (debugging)
   //const node            = self.node?.graph?.getNodeById?.(self.node.id);
@@ -129,7 +165,7 @@ function updateTopStyles(self, topStyles) {
 
     for( let i=0 ; i<allStyleWidgets.length ; i++ ) {
         const widget    = allStyleWidgets[i];
-        const styleName = i<self.topStyles.length ? self.topStyles[i] : "";
+        const styleName = i<topStyles.length ? topStyles[i] : "";
         if( isValidStyleName(styleName) ) {
             forceRenameWidget(widget, node, styleName)
         } else {

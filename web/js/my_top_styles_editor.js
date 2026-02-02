@@ -49,9 +49,10 @@ function init(self, node) {
         }
     }
 
-    // controller properties
+    // controller properties and methods
     self.allStyleWidgets = allStyleWidgets;
     self.node            = node;
+    self.getTopStyles    = function() { return getTopStylesFromWidgets(self); }
 }
 
 
