@@ -185,8 +185,7 @@ function deselectAllStyles(self) {
 function onBooleanSwitchChanged(self, widget, value) {
     const allStyleWidgets = self.allStyleWidgets;
 
-    // only allow one widget to be active at a time
-    widget.value = true;
+    // only one style can be selected, or none at all
     for( const styleWidget of allStyleWidgets ) {
         if( styleWidget !== widget ) {
             styleWidget.value = false;
