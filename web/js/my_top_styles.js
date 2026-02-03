@@ -49,7 +49,7 @@ function init(self, node) {
 
     // build a list with all widgets whose name starts with "style"
     const allStyleWidgets = node.widgets.filter(w => w.name.startsWith("style_"));
-    const channelWidgets  = node.widgets.filter(w => w.name === "output_as");
+    const channelWidgets  = node.widgets.filter(w => w.name === "output_to");
     const channelWidget   = channelWidgets.length > 0 ? channelWidgets[0] : null;
 
     if( !allStyleWidgets || allStyleWidgets.length == 0 || !channelWidget ) {

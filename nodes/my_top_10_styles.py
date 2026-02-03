@@ -14,7 +14,9 @@ The V3 schema documentation can be found here:
  - https://docs.comfy.org/custom-nodes/v3_migration
 
 """
-from comfy_api.latest import io
+from comfy_api.latest           import io
+from .lib.style_helpers         import get_style_template, append_style_to_text, remove_style_from_text
+from .styles.predefined_styles  import PREDEFINED_STYLE_GROUPS
 
 
 class MyTop10Styles(io.ComfyNode):
@@ -52,7 +54,7 @@ class MyTop10Styles(io.ComfyNode):
                 io.Boolean.Input( "style_8" , default=True,),
                 io.Boolean.Input( "style_9" , default=True,),
                 io.Boolean.Input( "style_10", default=True,),
-                io.Combo.Input( "output_as", options=cls.custom_styles(), ),
+                io.Combo.Input( "output_to", options=cls.channels(), ),
             ],
             outputs=[
                 io.String.Output("output", tooltip="The prompt after applying the selected style."),
@@ -61,22 +63,37 @@ class MyTop10Styles(io.ComfyNode):
 
     #__ FUNCTION __________________________________________
     @classmethod
-    def execute(cls, **kwargs) -> io.NodeOutput:
+    def execute(cls, /,*, output_to: str, top_styles: list[str], input: str = "", **kwargs) -> io.NodeOutput:
 
-        prompt = str(kwargs)
-        return io.NodeOutput( prompt )
+        text    = input
+        channel = output_to[len("custom_"):] if output_to.startswith("custom_") else "1"
+
+        # checks which style is active (may not be any)
+        selected_index = -1
+        for i in range(0, 100):
+            if kwargs.get(f"style_{i+1}", False):
+                selected_index = i
+                break
+
+        # get the selected style name
+        selected_name = top_styles[selected_index] if 0 <= selected_index < len(top_styles) else ""
+
+        # adds the selected style template to the input text
+        style_template = get_style_template(PREDEFINED_STYLE_GROUPS, selected_name)
+        if style_template:
+            text = remove_style_from_text(text, f"Custom {channel}")
+            text = append_style_to_text  (text, f"Custom {channel}", style_template)
+        return io.NodeOutput( text )
 
 
     #__ VALIDATION ________________________________________
     @classmethod
     def validate_inputs(cls, **kwargs) -> bool | str:
-        #if kwargs["category"] not in cls.category_names():
-        #    return f"The category name '{kwargs['style_type']}' is invalid. May be the node is from an older version."
         return True
 
 
     #__ internal functions ________________________________
 
     @classmethod
-    def custom_styles(cls) -> list[str]:
-        return ["custom 1", "custom 2", "custom 3", "custom 4"]
+    def channels(cls) -> list[str]:
+        return ["custom_1", "custom_2", "custom_3", "custom_4"]

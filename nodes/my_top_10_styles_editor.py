@@ -17,6 +17,7 @@ The V3 schema documentation can be found here:
 from functools                  import cache
 from comfy_api.latest           import io
 from .styles.predefined_styles  import PREDEFINED_STYLE_GROUPS
+from .lib.style_helpers         import normalize_style_name
 
 
 
@@ -63,8 +64,16 @@ class MyTop10StylesEditor(io.ComfyNode):
     @classmethod
     def execute(cls, **kwargs) -> io.NodeOutput:
 
-        prompt = str(kwargs)
-        return io.NodeOutput( [ "selected_style1", "selected_style2"] )
+        # collect the top styles selected by the user
+        top_styles = []
+        for i in range(0, 100):
+            input_id = f"style_{i+1}"
+            if input_id not in kwargs:
+                break
+            top_styles.append( normalize_style_name(kwargs[input_id]) )
+
+        # output the top styles as a array of strings
+        return io.NodeOutput( top_styles )
 
 
     #__ VALIDATION ________________________________________
