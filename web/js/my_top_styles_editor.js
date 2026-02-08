@@ -11,7 +11,7 @@
  *_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 */
 import { app } from "../../../scripts/app.js";
-import { getOutputNodes } from "./common/helpers.js";
+import { getOutputNodes } from "./common.js";
 const ENABLED = true;
 
 

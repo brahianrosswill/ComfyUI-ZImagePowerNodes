@@ -11,7 +11,7 @@
  *_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 */
 import { app } from "../../../scripts/app.js";
-import { executeLowPriorityTasks } from "./common/timer.js";
+import { executeLowPriorityTasks } from "./common_timer.js";
 const ENABLED = true;
 
 

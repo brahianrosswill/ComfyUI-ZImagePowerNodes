@@ -11,12 +11,12 @@
  *_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 */
 import { app } from "../../../scripts/app.js";
-import { forceRenameWidget, getInputNode, getInputOriginID, getOutputNodes } from "./common/helpers.js";
-import { scheduleIntervalCalls } from "./common/timer.js";
+import { forceRenameWidget, getInputNode, getInputOriginID, getOutputNodes } from "./common.js";
+import { scheduleIntervalCalls } from "./common_timer.js";
 const ENABLED = true;
 const DATA_INPUT       = 'input';      // name of the input socket
 const DATA_OUTPUT      = 'output';     // name of the output socket
-const TOP_STYLES_INPUT = 'top_styles'; // name of the input socket that connects to the "Top-Styles" provider.
+//const TOP_STYLES_INPUT = 'top_styles'; // name of the input socket that connects to the "Top-Styles" provider.
 
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // Here I leave a safe way to get the node and widgets of the controller,
@@ -207,7 +207,7 @@ function deselectAllStyles(self) {
  * @param {Object}          widget - The widget whose value has changed.
  * @param {boolean}         value  - The new boolean value of the switch widget.
  */
-function onBooleanSwitchChanged(self, widget, value) {
+function onBooleanSwitchChanged(self, widget, _value) {
     const allStyleWidgets = self.allStyleWidgets;
 
     // only one style can be selected, or none at all

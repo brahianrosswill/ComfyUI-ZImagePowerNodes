@@ -1,0 +1,16 @@
+
+.zipn-spacer {
+  width         : 0.5em;
+  height        : 20px;
+  display       : inline-block;   /*< allows that div to be in the same line and accept width/height */
+  vertical-align: middle;         /*< optional alignment to not affect the text line */
+}
+
+.zipn-divider {
+  width        : 1px;
+  height       : 20px;
+  margin-inline: 0.5em;           /*< space on both sides of the vertical line */
+  display: inline-block;          /*< allows that div to be in the same line and accept width/height */
+  background-color: rgb(113, 113, 113); /* < color of the simulated vertical line */
+  vertical-align: middle;         /*< optional alignment to not affect the text line */
+}

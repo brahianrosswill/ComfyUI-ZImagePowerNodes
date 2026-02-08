@@ -1,5 +1,5 @@
 /**
- * File    : common/helpers.js
+ * File    : common.js
  * Purpose : Common script file with helper functions.
  * Author  : Martin Rizzo | <martinrizzo@gmail.com>
  * Date    : Jan 31, 2026
@@ -10,7 +10,43 @@
  *       ComfyUI nodes designed specifically for the "Z-Image" model.
  *_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 */
-export { getOutputNodes, getInputOriginID, getInputNode, renameWidget, forceRenameWidget }
+export {
+    loadCSS,
+    isNodeFromMyProject,
+    getOutputNodes,
+    getInputOriginID,
+    getInputNode,
+    renameWidget,
+    forceRenameWidget
+};
+
+/**
+ * This constant represents the project ID used to identify nodes in the ComfyUI node registry.
+ * IMPORTANT: It must match the value defined in `__init__.py` !!.
+ * @type {string}
+ */
+const __PROJECT_ID = "//ZImagePowerNodes";
+
+
+function loadCSS(fileName) {
+    const fullPath = import.meta.resolve(`./${fileName}`);
+    const link     = document.createElement("link");
+    link.rel  = "stylesheet";
+    link.href = fullPath;
+    document.head.appendChild(link);
+    console.log("##>> document.head", document.head);
+}
+
+
+/**
+ * Checks if a given node belongs to the current project.
+ *
+ * @param {Object} node - The node object to check.
+ * @returns {boolean} True if the node belongs to the current project, false otherwise.
+ */
+function isNodeFromMyProject(node) {
+    return (node?.comfyClass ?? "").includes(__PROJECT_ID);
+}
 
 
 /**

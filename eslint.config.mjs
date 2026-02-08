@@ -23,6 +23,7 @@ export default [
           "argsIgnorePattern": "^_",   /* Ignore arguments starting with underscore*/
           "varsIgnorePattern": "^_"    /* Ignore variables starting with underscore*/
       }],
+      "semi": ["error", "always"],     /* Require semicolons at the end            */
       "no-console"   : "off",          /* Set to off/error for console.log usage   */
       "compat/compat": "error",        /* Enforce browser compatibility checks     */
     },
