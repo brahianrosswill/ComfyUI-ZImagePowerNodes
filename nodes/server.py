@@ -14,10 +14,10 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
  - https://docs.comfy.org/development/comfyui-server/comms_routes
 
 """
-from functools                  import cache
-from server                     import PromptServer
-from aiohttp                    import web
-from .styles.predefined_styles  import PREDEFINED_STYLE_GROUPS
+from functools                   import cache
+from server                      import PromptServer
+from aiohttp                     import web
+from ..styles.predefined_styles  import PREDEFINED_STYLE_GROUPS
 routes = PromptServer.instance.routes
 
 
