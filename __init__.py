@@ -151,5 +151,5 @@ async def comfy_entrypoint() -> ZImagePowerNodesExtension:
     return ZImagePowerNodesExtension()
 
 
-WEB_DIRECTORY = "./web"
+WEB_DIRECTORY = "./js"
 __all__ = ["WEB_DIRECTORY"]
