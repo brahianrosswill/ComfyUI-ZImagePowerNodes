@@ -20,7 +20,8 @@
   overflow-y: auto; /* Aquí ocurre la magia del scroll vertical */
   padding: 20px;
   min-width: 400px;  /* Ajusta según el ancho de tus thumbnails */
-  min-height: 300px; /* Evita que el dialog se vea "aplastado" al buscar */
+  min-height: 500px; /* Evita que el dialog se vea "aplastado" al buscar */
+  max-height: 500px;
 }
 
 /* Grid optimizado para thumbnails */
@@ -30,6 +31,7 @@
   gap: 16px;
 }
 
+
 .zipn-status-bar {
   flex: 0 0 auto;
   padding: 8px 16px;
@@ -37,4 +39,50 @@
   border-top: 1px solid #ccc;
   font-size: 0.9rem;
   color: #555;
+}
+
+/* --------------------------------- */
+
+/* Estilos Base de la Card */
+.zipn-style-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+}
+
+.zipn-style-card img {
+  object-fit: cover;
+  display: block;
+}
+
+/* Manejo del Texto (Truncado) */
+.zipn-style-card p {
+  margin: 8px 0 0;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis; /* Agrega "..." si el texto es largo */
+  text-align: center;
+}
+
+/* Variante FULL (256x256) */
+.zipn-style-full-card {
+  width: 256px;
+}
+.zipn-style-full-card img {
+  width: 256px;
+  height: 256px;
+}
+
+/* Variante THUMB (64x64) */
+.zipn-style-thumb-card {
+  width: 64px;
+}
+.zipn-style-thumb-card img {
+  width: 64px;
+  height: 64px;
+}
+.zipn-style-thumb-card p {
+  display: none; /* Oculta el texto en modo miniatura */
 }

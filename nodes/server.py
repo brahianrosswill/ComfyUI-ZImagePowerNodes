@@ -22,56 +22,44 @@ routes = PromptServer.instance.routes
 
 
 @cache
-def _style_names_by_category(quoted: bool | str = False) -> dict[ str, list[str] ]:
+def _get_last_version_styles() -> list[list[str]]:
     """
-    Generates a dictionary mapping categories to all the style names in that category.
-
+    Retrieves all styles from the last version of this project.
     Returns:
-        A dictionary where each key is a category and its value is
-        a list of style names belonging to that category.
+        list[list[str]]: A list containing lists of style data. Each inner list contains:
+                         [0] name        (str): The name of the style.
+                         [1] category    (str): The category to which the style belongs.
+                         [2] description (str): Description of the style (currently empty).
+                         [3] tags        (str): Tags associated with the style, comma-separated
+                         [4] template    (str): Template associated with the style.
+                         [5] thumbnail   (str): URL for the style's thumbnail (currently empty).
     """
-    names_by_category = {}
-    for style_group in PREDEFINED_STYLE_GROUPS:
-        names = names_by_category.setdefault( style_group.category, [] )
-        names.extend( style_group.get_names(quoted=quoted) )
-
-    return names_by_category
-
-
-@cache
-def _style_names_by_category_by_version() -> dict:
-    """
-    Not implemented yet.
-    """
-    return {}
+    LAST_VERSION_STYLE_GROUPS = PREDEFINED_STYLE_GROUPS
+    last_version_styles = []
+    for style_group in LAST_VERSION_STYLE_GROUPS:
+        category = style_group.category
+        names    = style_group.get_names()
+        for name in names:
+            thumbnail   = ""
+            description = ""
+            tags        = ""
+            template    = style_group.get_style_template(name)
+            style_data : list[str] = [
+                name,         # 0: name
+                category,     # 1: category
+                description,  # 2: description
+                tags,         # 3: tags (comma-separated)
+                template,     # 4: template
+                thumbnail,    # 5: thumbnail url (front-end generated)
+            ]
+            last_version_styles.append(style_data)
+    return last_version_styles
 
 
 #============================== SERVER ROUTES ==============================#
 
-@routes.get("/zi_power/styles/by_category")
-async def get_styles_by_category(_):
-    """
-    Handles GET requests to '/zi_power/styles/by_category'.
-    This route returns style names grouped by their respective categories.
-    """
-    return web.json_response( _style_names_by_category() )
+@routes.get("/zi_power/styles/last_version")
+async def get_last_version_styles(_):
+    return web.json_response( _get_last_version_styles() )
 
-@routes.get("/zi_power/quoted_styles/by_category")
-async def get_quoted_styles_by_category(_):
-    """
-    Handles GET requests to '/zi_power/quoted_styles/by_category'.
-    This route returns quoted style names grouped by their respective categories.
-    """
-    return web.json_response( _style_names_by_category(quoted=True) )
-
-
-
-@routes.get("/zi_power/styles/by_version")
-async def get_styles_by_version(_):
-    """
-    Handles GET requests to '/zi_power/styles/by_version'.
-    This route returns each historical version,
-    where each one contains the styles names in that version grouped by category.
-    """
-    return web.json_response( _style_names_by_category_by_version() )
 

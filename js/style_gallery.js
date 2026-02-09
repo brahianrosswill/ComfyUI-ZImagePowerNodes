@@ -14,6 +14,7 @@ import { app }                      from "../../../scripts/app.js";
 import { ComfyDialog, $el as html } from "../../../scripts/ui.js"; //< deprrecated ?
 import { loadCSS }                  from "./common.js";
 import { makeCustomDialog }         from "./common_dialog.js";
+import { fetchLastVersionStyles }   from "./common_server.js";
 const ENABLED = true;
 
 loadCSS("style_gallery.css");
@@ -68,16 +69,7 @@ class StyleGalleryDialog extends ComfyDialog {
         // create the first time and use the same instance the next time
         if( !this._instance ) { this._instance = new StyleGalleryDialog(); }
         this._instance.show();
-
-        const styles = [
-            { id: 1, name: 'Phone Photo', category: "Photo", type: "Wild",
-              thumb: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABjUlEQVR4AeyWjVHDMBSDDZPAJMAkwCTAJMAkwCSwCehzEfeSONQpefSu15xV28+uJP/E8WnZ83M0MJ6BO63Io/CSiBtxnwk1RQOI3itKB2UpCWEGeG12G6DhUsEn4US4SsK5eNFgoOgVG6gVNT4LmMFlBuBGQzKF8o+BEh4aWIYMwB2kStPAoEN2xUuQrTPLfzRwUDPg93t2vVsNS2fgQyRA2SC9qnYrPAgcMsr60hIDCCPCKUnZCpSJuY4JYq7/mi8xgDgjhRxBcsiJk0fE9hiflHsNIIK4CRBHBMR4bGdPuD6b9xiACIxJMNESdz+WYut+6DHA+c2nehf4I2dTk7zHACR/wUQ0BnoMxP6rl1sGWFs2XQbgHgxizgCbLgNdBuyQG9GnKmsALlFNU2sG3OtNhbVmAS7RTZMNeGou1IXXTllBfK19AFf5fnwjrpo2wIECODh2ed97//MuE9w10QKDOyHHKiOuztQxIyHKINGq/J6BWtEPU0VjFhggR7SkNmlsYBP9x990A9vG8gUAAP//OwMAAgAAAAZJREFUAwBhh8BBG6NQRQAAAABJRU5ErkJggg=='
-            },
-            { id: 2, name: '70s Memories Photo', category: "Photo", type: "Wild",
-              thumb: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABjUlEQVR4AeyWjVHDMBSDDZPAJMAkwCTAJMAkwCSwCehzEfeSONQpefSu15xV28+uJP/E8WnZ83M0MJ6BO63Io/CSiBtxnwk1RQOI3itKB2UpCWEGeG12G6DhUsEn4US4SsK5eNFgoOgVG6gVNT4LmMFlBuBGQzKF8o+BEh4aWIYMwB2kStPAoEN2xUuQrTPLfzRwUDPg93t2vVsNS2fgQyRA2SC9qnYrPAgcMsr60hIDCCPCKUnZCpSJuY4JYq7/mi8xgDgjhRxBcsiJk0fE9hiflHsNIIK4CRBHBMR4bGdPuD6b9xiACIxJMNESdz+WYut+6DHA+c2nehf4I2dTk7zHACR/wUQ0BnoMxP6rl1sGWFs2XQbgHgxizgCbLgNdBuyQG9GnKmsALlFNU2sG3OtNhbVmAS7RTZMNeGou1IXXTllBfK19AFf5fnwjrpo2wIECODh2ed97//MuE9w10QKDOyHHKiOuztQxIyHKINGq/J6BWtEPU0VjFhggR7SkNmlsYBP9x990A9vG8gUAAP//OwMAAgAAAAZJREFUAwBhh8BBG6NQRQAAAABJRU5ErkJggg=='
-            }
-        ];
-        this._instance.renderGrid(styles);
+        fetchLastVersionStyles( (styles) => { this._instance?.renderGrid(styles, 'thumb'); } );
     }
 
     /**
@@ -85,16 +77,32 @@ class StyleGalleryDialog extends ComfyDialog {
      * @param {Array<Object>} styles - The array of style objects to be displayed in the grid.
      * Each object should contain at least an 'id', 'name', 'category', 'type', and 'thumb' property.
      */
-    renderGrid(styles) {
+    renderGrid(styles, mode) {
+
+        if( mode !== 'full' && mode !== 'thumb' && mode !== 'list' ) {
+            mode = 'full';
+        }
+
         const grid   = this.element.querySelector('#zipn-style-grid');
         const status = this.element.querySelector('#zipn-status-text');
 
-        grid.innerHTML = styles.map(item => `
-        <div class="card">
-            <img src="${item.thumb}" loading="lazy" alt="${item.name}">
-            <p>${item.name}</p>
-        </div>
-        `).join('');
+        if( mode === 'full' ) {
+            grid.innerHTML = styles.map(item => `
+            <div class="zipn-style-full-card">
+                <img src="${item.thumb}" loading="lazy" alt="${item.name}">
+                <p>${item.name}</p>
+            </div>
+            `).join('');
+        }
+        else if ( mode === 'thumb' ) {
+            grid.innerHTML = styles.map(item => `
+            <div class="zipn-style-thumb-card">
+                <img src="${item.thumb}" loading="lazy" alt="${item.name}">
+                <p>${item.name}</p>
+            </div>
+            `).join('');
+        }
+
 
         status.innerText = `Resultados encontrados: ${styles.length}`;
     }
