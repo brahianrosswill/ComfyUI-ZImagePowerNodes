@@ -14,3 +14,27 @@
   background-color: rgb(113, 113, 113); /* < color of the simulated vertical line */
   vertical-align: middle;         /*< optional alignment to not affect the text line */
 }
+
+.zipn-result-container {
+  flex: 1 1 auto; /* Toma todo el espacio restante */
+  overflow-y: auto; /* Aquí ocurre la magia del scroll vertical */
+  padding: 20px;
+  min-width: 400px;  /* Ajusta según el ancho de tus thumbnails */
+  min-height: 300px; /* Evita que el dialog se vea "aplastado" al buscar */
+}
+
+/* Grid optimizado para thumbnails */
+.zipn-style-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 16px;
+}
+
+.zipn-status-bar {
+  flex: 0 0 auto;
+  padding: 8px 16px;
+  /* background: #eee; */
+  border-top: 1px solid #ccc;
+  font-size: 0.9rem;
+  color: #555;
+}

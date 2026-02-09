@@ -23,6 +23,31 @@ loadCSS("style_gallery.css");
 
 class StyleGalleryDialog extends ComfyDialog {
 
+    /**
+     * Constructor.
+     */
+    constructor() {
+        super();
+        // icons can be taken from PrimeIcons or Pictogrammers MDT
+        // PrimeIcons       : e.g. "i.pi.pi-image"   (https://primevue.org/icons)
+        // Pictogrammers MDI: e.g. "i.mdi.mdi-image" (https://pictogrammers.com/library/mdi)
+        this.element = makeCustomDialog(
+            'zipn-style-gallery-dialog'  , //< dialog id
+            'Select Style'               , //< title
+            'i.mdi.mdi-image-multiple'   , //< icon
+            StyleGalleryDialog.CONTENT   , //< dialog content
+            () => this.close() //< close callback
+        );
+    }
+
+    /**
+     * Creates a button for the toolbar.
+     * @param {string}   icon    - The icon name to be used in the button. e.g., "i.pi.pi-image"
+     * @param {string}   text    - The text content of the button.
+     * @param {string}   tooltip - The title attribute value for the button, representing its tooltip.
+     * @param {function} onClick - Function to be executed when the button is clicked.
+     * @returns {HTMLElement} A button element with the specified icon, text, tooltip and onclick function.
+     */
     static makeToolButton(icon, text, tooltip, onClick) {
         if( icon && icon.includes(' ') ) { icon = icon.replace(' ', '.'); }
         if( icon && !text ) {
@@ -36,17 +61,61 @@ class StyleGalleryDialog extends ComfyDialog {
         ]);
     }
 
-    // un separador de la toolbar (espacio en blanco)
+    /**
+     * Launches the style gallery dialog.
+     */
+    static launch() {
+        // create the first time and use the same instance the next time
+        if( !this._instance ) { this._instance = new StyleGalleryDialog(); }
+        this._instance.show();
+
+        const styles = [
+            { id: 1, name: 'Phone Photo', category: "Photo", type: "Wild",
+              thumb: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABjUlEQVR4AeyWjVHDMBSDDZPAJMAkwCTAJMAkwCSwCehzEfeSONQpefSu15xV28+uJP/E8WnZ83M0MJ6BO63Io/CSiBtxnwk1RQOI3itKB2UpCWEGeG12G6DhUsEn4US4SsK5eNFgoOgVG6gVNT4LmMFlBuBGQzKF8o+BEh4aWIYMwB2kStPAoEN2xUuQrTPLfzRwUDPg93t2vVsNS2fgQyRA2SC9qnYrPAgcMsr60hIDCCPCKUnZCpSJuY4JYq7/mi8xgDgjhRxBcsiJk0fE9hiflHsNIIK4CRBHBMR4bGdPuD6b9xiACIxJMNESdz+WYut+6DHA+c2nehf4I2dTk7zHACR/wUQ0BnoMxP6rl1sGWFs2XQbgHgxizgCbLgNdBuyQG9GnKmsALlFNU2sG3OtNhbVmAS7RTZMNeGou1IXXTllBfK19AFf5fnwjrpo2wIECODh2ed97//MuE9w10QKDOyHHKiOuztQxIyHKINGq/J6BWtEPU0VjFhggR7SkNmlsYBP9x990A9vG8gUAAP//OwMAAgAAAAZJREFUAwBhh8BBG6NQRQAAAABJRU5ErkJggg=='
+            },
+            { id: 2, name: '70s Memories Photo', category: "Photo", type: "Wild",
+              thumb: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAABjUlEQVR4AeyWjVHDMBSDDZPAJMAkwCTAJMAkwCSwCehzEfeSONQpefSu15xV28+uJP/E8WnZ83M0MJ6BO63Io/CSiBtxnwk1RQOI3itKB2UpCWEGeG12G6DhUsEn4US4SsK5eNFgoOgVG6gVNT4LmMFlBuBGQzKF8o+BEh4aWIYMwB2kStPAoEN2xUuQrTPLfzRwUDPg93t2vVsNS2fgQyRA2SC9qnYrPAgcMsr60hIDCCPCKUnZCpSJuY4JYq7/mi8xgDgjhRxBcsiJk0fE9hiflHsNIIK4CRBHBMR4bGdPuD6b9xiACIxJMNESdz+WYut+6DHA+c2nehf4I2dTk7zHACR/wUQ0BnoMxP6rl1sGWFs2XQbgHgxizgCbLgNdBuyQG9GnKmsALlFNU2sG3OtNhbVmAS7RTZMNeGou1IXXTllBfK19AFf5fnwjrpo2wIECODh2ed97//MuE9w10QKDOyHHKiOuztQxIyHKINGq/J6BWtEPU0VjFhggR7SkNmlsYBP9x990A9vG8gUAAP//OwMAAgAAAAZJREFUAwBhh8BBG6NQRQAAAABJRU5ErkJggg=='
+            }
+        ];
+        this._instance.renderGrid(styles);
+    }
+
+    /**
+     * Renders the gallery grid with the provided visual styles.
+     * @param {Array<Object>} styles - The array of style objects to be displayed in the grid.
+     * Each object should contain at least an 'id', 'name', 'category', 'type', and 'thumb' property.
+     */
+    renderGrid(styles) {
+        const grid   = this.element.querySelector('#zipn-style-grid');
+        const status = this.element.querySelector('#zipn-status-text');
+
+        grid.innerHTML = styles.map(item => `
+        <div class="card">
+            <img src="${item.thumb}" loading="lazy" alt="${item.name}">
+            <p>${item.name}</p>
+        </div>
+        `).join('');
+
+        status.innerText = `Resultados encontrados: ${styles.length}`;
+    }
+
+
+    //-- DIALOG COMPONENTS ------------------------------------------------
+
+    /** A spacer element in the toolbar. */
     static get SPACER() {
         return html("div.zipn-spacer");
     }
 
-    // un divisor de la toolbar (una linea vertical)
+    /** A divider element (vertical line) in the toolbar. */
     static get DIVIDER() {
         return html("div.zipn-divider");
     }
 
-    // la barra de busqueda que se muestra en la parte superior
+    /**
+     * An input search bar for searching within the gallery dialog.
+     * @returns {HTMLElement} An HTML structure representing a search bar.
+     */
     static get SEARCH_BAR() {
         return html("div", {}, [
             html("input.p-inputtext.p-component", { type: "search", placeholder: "Search" }),
@@ -63,33 +132,34 @@ class StyleGalleryDialog extends ComfyDialog {
         ]);
     }
 
-    static get CONTENT() {
-        return html("div.zipn-dialog", {}, [
-            this.SEARCH_BAR,
-            html("div.zipn-style-options"),
+    /**
+     * A container for displaying the gallery results in grid format.
+     * @returns {HTMLElement} An HTML structure representing the grid container.
+     */
+    static get RESULT_GRID() {
+        return html("main.zipn-result-container", { id: "result-container" }, [
+            html("div.zipn-style-grid", { id: "zipn-style-grid" })
         ]);
     }
 
-    constructor() {
-        super();
-
-        // icons can be taken from PrimeIcons or Pictogrammers MDT
-        // PrimeIcons       : e.g. "i.pi.pi-image"   (https://primevue.org/icons)
-        // Pictogrammers MDI: e.g. "i.mdi.mdi-image" (https://pictogrammers.com/library/mdi)
-        this.element = makeCustomDialog(
-            'zipn-style-gallery-dialog'  , //< dialog id
-            'Select Style'               , //< title
-            'i.mdi.mdi-image-multiple'   , //< icon
-            StyleGalleryDialog.CONTENT   , //< dialog content
-            () => this.close() //< close callback
-        );
+    /**
+     * A status bar to show current status or messages.
+     * @returns {HTMLElement} An HTML structure representing the status bar.
+     */
+    static get STATUS_BAR() {
+        return html("footer.zipn-status-bar", {}, [
+            html("span", { id: "zipn-status-text", textContent: "Showing 0 elements"})
+        ]);
     }
 
-    static launch() {
-        // create the first time and use the same instance the next time
-        if( !this._instance ) { this._instance = new StyleGalleryDialog(); }
-        this._instance.show();
+    static get CONTENT() {
+        return html("div.zipn-dialog", {}, [
+            this.SEARCH_BAR,
+            this.RESULT_GRID,
+            this.STATUS_BAR
+        ]);
     }
+
 }
 
 
