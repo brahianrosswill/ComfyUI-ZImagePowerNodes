@@ -36,30 +36,16 @@ class StyleGalleryDialog extends ComfyDialog {
             'zipn-style-gallery-dialog'  , //< dialog id
             'Select Style'               , //< title
             'i.mdi.mdi-image-multiple'   , //< icon
-            StyleGalleryDialog.CONTENT   , //< dialog content
+            this.createDialogContent()   , //< dialog content
             () => this.close() //< close callback
         );
-    }
 
-    /**
-     * Creates a button for the toolbar.
-     * @param {string}   icon    - The icon name to be used in the button. e.g., "i.pi.pi-image"
-     * @param {string}   text    - The text content of the button.
-     * @param {string}   tooltip - The title attribute value for the button, representing its tooltip.
-     * @param {function} onClick - Function to be executed when the button is clicked.
-     * @returns {HTMLElement} A button element with the specified icon, text, tooltip and onclick function.
-     */
-    static makeToolButton(icon, text, tooltip, onClick) {
-        if( icon && icon.includes(' ') ) { icon = icon.replace(' ', '.'); }
-        if( icon && !text ) {
-            return html( "button.p-button-text", { title: tooltip, onclick: onClick }, [ html(`i.${icon}`) ] );
-        }
-        if( !icon && text ) {
-            return html( "button.p-button-text", { title: tooltip, textContent: text, onclick: onClick }, [] );
-        }
-        return html("button.p-button-text", { title: tooltip, onclick: onClick }, [
-            html(`i.${icon}`, { textContent: text})
-        ]);
+        this.filterCategory = "";
+        this.viewMode       = "grid"; // "grid" or "list"
+        this.allStyles      = {};
+        this.gridEl         = this.element.querySelector('#zipn-style-grid');
+        this.statusEl       = this.element.querySelector('#zipn-status-text');
+
     }
 
     /**
@@ -69,7 +55,26 @@ class StyleGalleryDialog extends ComfyDialog {
         // create the first time and use the same instance the next time
         if( !this._instance ) { this._instance = new StyleGalleryDialog(); }
         this._instance.show();
-        fetchLastVersionStyles( (styles) => { this._instance?.renderGrid(styles, 'thumb'); } );
+        fetchLastVersionStyles( (styles) => {
+            this._instance.allStyles = styles;
+            this._instance.update("!refresh");
+        });
+    }
+
+    update(command) {
+
+        // si comando comienza con "@", modificar el modo de visualizacion
+        if( command.startsWith('@') ) {
+            const viewMode = command.substring(1);
+            if( viewMode == this.viewMode ) { return; }
+
+            this.viewMode = viewMode;
+            // activateViewModeButton(viewMode)
+            // this.element.querySelector("#zip-view-{viewmode}-button")..classList.add("active");")
+        }
+
+        // re-render the gallery
+        this.renderGrid( this.allStyles, this.viewMode );
     }
 
     /**
@@ -77,34 +82,17 @@ class StyleGalleryDialog extends ComfyDialog {
      * @param {Array<Object>} styles - The array of style objects to be displayed in the grid.
      * Each object should contain at least an 'id', 'name', 'category', 'type', and 'thumb' property.
      */
-    renderGrid(styles, mode) {
+    renderGrid(styles, viewMode) {
 
-        if( mode !== 'full' && mode !== 'thumb' && mode !== 'list' ) {
-            mode = 'full';
-        }
+        this.gridEl.className = `zipn-style-${viewMode}`;
+        this.gridEl.innerHTML = styles.map(item => `
+        <div class="zipn-style-${viewMode}-card">
+            <img src="${item.thumbnail}" loading="lazy" alt="${item.name}">
+            <p>${item.name}</p>
+        </div>
+        `).join('');
 
-        const grid   = this.element.querySelector('#zipn-style-grid');
-        const status = this.element.querySelector('#zipn-status-text');
-
-        if( mode === 'full' ) {
-            grid.innerHTML = styles.map(item => `
-            <div class="zipn-style-full-card">
-                <img src="${item.thumb}" loading="lazy" alt="${item.name}">
-                <p>${item.name}</p>
-            </div>
-            `).join('');
-        }
-        else if ( mode === 'thumb' ) {
-            grid.innerHTML = styles.map(item => `
-            <div class="zipn-style-thumb-card">
-                <img src="${item.thumb}" loading="lazy" alt="${item.name}">
-                <p>${item.name}</p>
-            </div>
-            `).join('');
-        }
-
-
-        status.innerText = `Resultados encontrados: ${styles.length}`;
+        this.statusEl.innerText = `Resultados encontrados: ${styles.length}`;
     }
 
 
@@ -121,22 +109,44 @@ class StyleGalleryDialog extends ComfyDialog {
     }
 
     /**
-     * An input search bar for searching within the gallery dialog.
+     * Creates a button for the toolbar.
+     * @param {string}   icon    - The icon name to be used in the button. e.g., "i.pi.pi-image"
+     * @param {string}   text    - The text content of the button.
+     * @param {string}   tooltip - The title attribute value for the button, representing its tooltip.
+     * @param {function} onClick - Function to be executed when the button is clicked.
+     * @returns {HTMLElement} A button element with the specified icon, text, tooltip and onclick function.
+     */
+    createToolButton(icon, text, tooltip, onClick) {
+        if( icon && icon.includes(' ') ) { icon = icon.replace(' ', '.'); }
+        if( icon && !text ) {
+            return html( "button.p-button-text", { title: tooltip, onclick: onClick }, [ html(`i.${icon}`) ] );
+        }
+        if( !icon && text ) {
+            return html( "button.p-button-text", { title: tooltip, textContent: text, onclick: onClick }, [] );
+        }
+        return html("button.p-button-text", { title: tooltip, onclick: onClick }, [
+            html(`i.${icon}`, { textContent: text})
+        ]);
+    }
+
+
+    /**
+     * Creates an input search bar for searching within the gallery dialog.
      * @returns {HTMLElement} An HTML structure representing a search bar.
      */
-    static get SEARCH_BAR() {
+    createSearchBar() {
         return html("div", {}, [
             html("input.p-inputtext.p-component", { type: "search", placeholder: "Search" }),
-            this.DIVIDER,
-            this.makeToolButton('', "All", "View all styles", () => { console.log('test'); }),
-            this.makeToolButton('', "Photo", "View only photo", () => { console.log('test'); }),
-            this.makeToolButton('', "Illustration", "View ilustration", () => { console.log('test'); }),
-            this.makeToolButton('', "Wild", "View ilustration", () => { console.log('test'); }),
-            this.makeToolButton('', "Custom", "View ilustration", () => { console.log('test'); }),
-            this.DIVIDER,
-            this.makeToolButton('pi pi-image', "", "View image grid", () => { console.log('test'); }),
-            this.makeToolButton('pi pi-list', "", "View list", () => { console.log('test'); }),
-            this.DIVIDER,
+            StyleGalleryDialog.DIVIDER,
+            this.createToolButton('', "All", "View all styles", () => { console.log('test'); }),
+            this.createToolButton('', "Photo", "View only photo", () => { console.log('test'); }),
+            this.createToolButton('', "Illustration", "View ilustration", () => { console.log('test'); }),
+            this.createToolButton('', "Wild", "View ilustration", () => { console.log('test'); }),
+            this.createToolButton('', "Custom", "View ilustration", () => { console.log('test'); }),
+            StyleGalleryDialog.DIVIDER,
+            this.createToolButton('pi pi-image', "", "Grid View", () => { this.update("@grid"); }),
+            this.createToolButton('pi pi-list' , "", "List View", () => { this.update("@list"); }),
+            StyleGalleryDialog.DIVIDER,
         ]);
     }
 
@@ -160,11 +170,11 @@ class StyleGalleryDialog extends ComfyDialog {
         ]);
     }
 
-    static get CONTENT() {
+    createDialogContent() {
         return html("div.zipn-dialog", {}, [
-            this.SEARCH_BAR,
-            this.RESULT_GRID,
-            this.STATUS_BAR
+            this.createSearchBar(),
+            StyleGalleryDialog.RESULT_GRID,
+            StyleGalleryDialog.STATUS_BAR
         ]);
     }
 

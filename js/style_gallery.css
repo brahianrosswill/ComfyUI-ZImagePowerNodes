@@ -1,88 +1,113 @@
 
 .zipn-spacer {
-  width         : 0.5em;
-  height        : 20px;
-  display       : inline-block;   /*< allows that div to be in the same line and accept width/height */
-  vertical-align: middle;         /*< optional alignment to not affect the text line */
+  width          : 0.5em;
+  height         : 20px;
+  display        : inline-block;
+  vertical-align : middle;
 }
 
 .zipn-divider {
-  width        : 1px;
-  height       : 20px;
-  margin-inline: 0.5em;           /*< space on both sides of the vertical line */
-  display: inline-block;          /*< allows that div to be in the same line and accept width/height */
-  background-color: rgb(113, 113, 113); /* < color of the simulated vertical line */
-  vertical-align: middle;         /*< optional alignment to not affect the text line */
+  width          : 1px;
+  height         : 20px;
+  margin-inline  : 0.5em;
+  display        : inline-block;
+  background-color: rgb(113, 113, 113);
+  vertical-align : middle;
 }
 
 .zipn-result-container {
-  flex: 1 1 auto; /* Toma todo el espacio restante */
-  overflow-y: auto; /* Aquí ocurre la magia del scroll vertical */
-  padding: 20px;
-  min-width: 400px;  /* Ajusta según el ancho de tus thumbnails */
-  min-height: 500px; /* Evita que el dialog se vea "aplastado" al buscar */
-  max-height: 500px;
-}
-
-/* Grid optimizado para thumbnails */
-.zipn-style-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 16px;
+  flex           : 1 1 auto;
+  overflow-y     : auto;
+  padding        : 20px;
+  min-width      : 400px;
+  min-height     : 500px;
+  max-height     : 500px;
 }
 
 
 .zipn-status-bar {
-  flex: 0 0 auto;
-  padding: 8px 16px;
-  /* background: #eee; */
-  border-top: 1px solid #ccc;
-  font-size: 0.9rem;
-  color: #555;
+  flex           : 0 0 auto;
+  padding        : 8px 16px;
+  border-top     : 1px solid #ccc;
+  font-size      : 0.9rem;
+  color          : #555;
 }
 
-/* --------------------------------- */
+/*========================== STYLE GALLERY: GRID ==========================*/
 
-/* Estilos Base de la Card */
-.zipn-style-card {
+.zipn-style-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, 132px);
+  gap: 16px;
+}
+
+.zipn-style-grid-card {
+  width          : 128px;
+  display        : flex;
+  flex-direction : column;
+  align-items    : center;
+}
+
+.zipn-style-grid-card img {
+  width          : 128px;
+  height         : 128px;
+  object-fit     : cover;
+  display        : block;
+}
+
+.zipn-style-grid-card p {
+  margin         : 4px 0 0 0;
+  padding        : 0 2px;
+  width          : 100%;
+  font-size      : 0.7rem;
+  line-height    : 1.1;
+  text-align     : center;
+  overflow       : hidden;
+  text-overflow  : ellipsis;
+  white-space    : nowrap;
+  background     : transparent;
+}
+
+/*========================== STYLE GALLERY: LIST ==========================*/
+
+.zipn-style-list {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  overflow: hidden;
+  gap: 0.5rem;
 }
 
-.zipn-style-card img {
-  object-fit: cover;
-  display: block;
+.zipn-style-list-card {
+  width          : 100%;
+  display        : flex;
+  align-items    : center;
+  gap            : 0.75rem;
+  padding        : 0.2rem 0.2rem;
+  background-color: transparent;
+  border-radius  : 4px;
+  cursor         : pointer;
 }
 
-/* Manejo del Texto (Truncado) */
-.zipn-style-card p {
-  margin: 8px 0 0;
-  width: 100%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis; /* Agrega "..." si el texto es largo */
-  text-align: center;
+.zipn-style-list-card img {
+  width          : 32px;
+  height         : 32px;
+  flex-shrink    : 0;
+  object-fit     : cover;
+  display        : block;
 }
 
-/* Variante FULL (256x256) */
-.zipn-style-full-card {
-  width: 256px;
-}
-.zipn-style-full-card img {
-  width: 256px;
-  height: 256px;
+.zipn-style-list-card p {
+  margin         : 0;
+  padding        : 0;
+  font-size      : 1.2rem;
+  line-height    : 1.3;
+  color          : inherit;
+  overflow       : hidden;
+  text-overflow  : ellipsis;
+  white-space    : nowrap;
 }
 
-/* Variante THUMB (64x64) */
-.zipn-style-thumb-card {
-  width: 64px;
+.zipn-style-list-card:hover,
+.zipn-style-list-card:focus-within {
+  background-color: rgba(255, 0, 0, 0.2);
 }
-.zipn-style-thumb-card img {
-  width: 64px;
-  height: 64px;
-}
-.zipn-style-thumb-card p {
-  display: none; /* Oculta el texto en modo miniatura */
-}
+
