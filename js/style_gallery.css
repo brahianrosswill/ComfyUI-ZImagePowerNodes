@@ -33,6 +33,14 @@
   color          : #555;
 }
 
+/*============================ TOOLBAR BUTTONS ============================*/
+
+.zipn-dialog .p-button-text.p-highlight {
+  background-color: var(--primary-color, #1976d2);
+  color:            var(--primary-text , #ffffff);
+  border-radius:    4px;
+}
+
 /*========================== STYLE GALLERY: GRID ==========================*/
 
 .zipn-style-grid {

@@ -29,6 +29,7 @@ class StyleGalleryDialog extends ComfyDialog {
      */
     constructor() {
         super();
+
         // icons can be taken from PrimeIcons or Pictogrammers MDT
         // PrimeIcons       : e.g. "i.pi.pi-image"   (https://primevue.org/icons)
         // Pictogrammers MDI: e.g. "i.mdi.mdi-image" (https://pictogrammers.com/library/mdi)
@@ -40,12 +41,19 @@ class StyleGalleryDialog extends ComfyDialog {
             () => this.close() //< close callback
         );
 
-        this.filterCategory = "";
-        this.viewMode       = "grid"; // "grid" or "list"
-        this.allStyles      = {};
-        this.gridEl         = this.element.querySelector('#zipn-style-grid');
-        this.statusEl       = this.element.querySelector('#zipn-status-text');
-
+        this.viewMode         = "grid"; // "grid" or "list"
+        this.categoryFilter   = "";     // "", "photo", "illustration", "wild", "custom"
+        this.allStyles        = {};
+        this.gridEl           = this.element.querySelector('#zipn-style-grid');
+        this.statusEl         = this.element.querySelector('#zipn-status-text');
+        this.c_allButtonEl    = this.element.querySelector('#zipn-all-btn');
+        this.c_photoButtonEl  = this.element.querySelector('#zipn-photo-btn');
+        this.c_illusButtonEl  = this.element.querySelector('#zipn-illus-btn');
+        this.c_wildButtonEl   = this.element.querySelector('#zipn-wild-btn');
+        this.c_customButtonEl = this.element.querySelector('#zipn-custom-btn');
+        this.gridButtonEl     = this.element.querySelector('#zipn-grid-btn');
+        this.listButtonEl     = this.element.querySelector('#zipn-list-btn');
+        this.updateButtons();
     }
 
     /**
@@ -63,14 +71,22 @@ class StyleGalleryDialog extends ComfyDialog {
 
     update(command) {
 
-        // si comando comienza con "@", modificar el modo de visualizacion
+        // if the command starts with "@", change the view mode
         if( command.startsWith('@') ) {
             const viewMode = command.substring(1);
             if( viewMode == this.viewMode ) { return; }
 
             this.viewMode = viewMode;
-            // activateViewModeButton(viewMode)
-            // this.element.querySelector("#zip-view-{viewmode}-button")..classList.add("active");")
+            this.updateButtons();
+        }
+
+        // if the command starts with "#", change the category filter
+        else if( command.startsWith('#') ) {
+            const categoryFilter = command.substring(1);
+            if( categoryFilter == this.categoryFilter ) { return; }
+
+            this.categoryFilter = categoryFilter;
+            this.updateButtons();
         }
 
         // re-render the gallery
@@ -95,6 +111,16 @@ class StyleGalleryDialog extends ComfyDialog {
         this.statusEl.innerText = `Resultados encontrados: ${styles.length}`;
     }
 
+    updateButtons() {
+        this.listButtonEl.classList.toggle('p-highlight', this.viewMode == "list" );
+        this.gridButtonEl.classList.toggle('p-highlight', this.viewMode == "grid" );
+        this.c_allButtonEl.classList.toggle('p-highlight', this.categoryFilter == "" );
+        this.c_photoButtonEl.classList.toggle('p-highlight', this.categoryFilter == "photo" );
+        this.c_illusButtonEl.classList.toggle('p-highlight', this.categoryFilter == "illustration" );
+        this.c_wildButtonEl.classList.toggle('p-highlight', this.categoryFilter == "wild" );
+        this.c_customButtonEl.classList.toggle('p-highlight', this.categoryFilter == "custom" );
+    }
+
 
     //-- DIALOG COMPONENTS ------------------------------------------------
 
@@ -110,21 +136,35 @@ class StyleGalleryDialog extends ComfyDialog {
 
     /**
      * Creates a button for the toolbar.
-     * @param {string}   icon    - The icon name to be used in the button. e.g., "i.pi.pi-image"
+     * @param {string}   id      - The unique identifier for the button.
+     * @param {string}   icon    - The icon to be used in the button. e.g., "i.pi.pi-image"
      * @param {string}   text    - The text content of the button.
      * @param {string}   tooltip - The title attribute value for the button, representing its tooltip.
      * @param {function} onClick - Function to be executed when the button is clicked.
      * @returns {HTMLElement} A button element with the specified icon, text, tooltip and onclick function.
      */
-    createToolButton(icon, text, tooltip, onClick) {
-        if( icon && icon.includes(' ') ) { icon = icon.replace(' ', '.'); }
+    createToolButton(id, icon, text, tooltip, onClick) {
+        // if no ID is provided, generate a random one
+        if( !id ) {
+            do { id = 'zipn-btn-' + Math.random().toString(36).slice(2, 9); }
+            while( document.getElementById(id) );
+        }
+        // if the icon ID is provided with spaces between words, convert them to dots
+        if( icon ) {
+            icon = icon.replace(' ', '.');
+        }
+
+        // generate the 3 possible types of buttons:
+        //   - button with icon only (no text)
+        //   - button with text only
+        //   - button with icon and text
         if( icon && !text ) {
-            return html( "button.p-button-text", { title: tooltip, onclick: onClick }, [ html(`i.${icon}`) ] );
+            return html( "button.p-button-text", { id: id, title: tooltip, onclick: onClick }, [ html(`i.${icon}`) ] );
         }
         if( !icon && text ) {
-            return html( "button.p-button-text", { title: tooltip, textContent: text, onclick: onClick }, [] );
+            return html( "button.p-button-text", { id: id, title: tooltip, textContent: text, onclick: onClick }, [] );
         }
-        return html("button.p-button-text", { title: tooltip, onclick: onClick }, [
+        return html("button.p-button-text", { id: id, title: tooltip, onclick: onClick }, [
             html(`i.${icon}`, { textContent: text})
         ]);
     }
@@ -138,14 +178,14 @@ class StyleGalleryDialog extends ComfyDialog {
         return html("div", {}, [
             html("input.p-inputtext.p-component", { type: "search", placeholder: "Search" }),
             StyleGalleryDialog.DIVIDER,
-            this.createToolButton('', "All", "View all styles", () => { console.log('test'); }),
-            this.createToolButton('', "Photo", "View only photo", () => { console.log('test'); }),
-            this.createToolButton('', "Illustration", "View ilustration", () => { console.log('test'); }),
-            this.createToolButton('', "Wild", "View ilustration", () => { console.log('test'); }),
-            this.createToolButton('', "Custom", "View ilustration", () => { console.log('test'); }),
+            this.createToolButton("zipn-all-btn"   , '', "All"         , "Search all styles"              , () => { this.update("#"); }),
+            this.createToolButton("zipn-photo-btn" , '', "Photo"       , "Search only photographic styles", () => { this.update("#photo");}),
+            this.createToolButton("zipn-illus-btn" , '', "Illustration", "Search only illustration styles", () => { this.update("#illustration"); }),
+            this.createToolButton("zipn-wild-btn"  , '', "Wild"        , "Search only wild styles"        , () => { this.update("#wild"); }),
+            this.createToolButton("zipn-custom-btn", '', "Custom"      , "Search only custom styles"      , () => { this.update("#custom"); }),
             StyleGalleryDialog.DIVIDER,
-            this.createToolButton('pi pi-image', "", "Grid View", () => { this.update("@grid"); }),
-            this.createToolButton('pi pi-list' , "", "List View", () => { this.update("@list"); }),
+            this.createToolButton("zipn-grid-btn", 'pi pi-image', "", "Grid View", () => { this.update("@grid"); }),
+            this.createToolButton("zipn-list-btn", 'pi pi-list' , "", "List View", () => { this.update("@list"); }),
             StyleGalleryDialog.DIVIDER,
         ]);
     }
