@@ -13,10 +13,11 @@
 import { app }                      from "../../../scripts/app.js";
 import { ComfyDialog, $el as html } from "../../../scripts/ui.js"; //< deprrecated ?
 import { loadCSS }                  from "./common.js";
-import { makeCustomDialog }         from "./common_dialog.js";
+import { makeCustomDialog, setupCardHoverListeners } from "./common_dialog.js";
 import { fetchLastVersionStyles }   from "./common_server.js";
 const ENABLED = true;
-
+const DIALOG_ID = 'zipn-style-gallery-dialog';
+const TITLE_ID  = 'zipn-style-gallery-title';
 loadCSS("style_gallery.css");
 
 
@@ -34,10 +35,11 @@ class StyleGalleryDialog extends ComfyDialog {
         // PrimeIcons       : e.g. "i.pi.pi-image"   (https://primevue.org/icons)
         // Pictogrammers MDI: e.g. "i.mdi.mdi-image" (https://pictogrammers.com/library/mdi)
         this.element = makeCustomDialog(
-            'zipn-style-gallery-dialog'  , //< dialog id
-            'Select Style'               , //< title
-            'i.mdi.mdi-image-multiple'   , //< icon
-            this.createDialogContent()   , //< dialog content
+            DIALOG_ID                 , //< ID of the DOM element where the dialog is located
+            TITLE_ID                  , //< ID of the DOM element where the title is located
+            'Select Style'            , //< title
+            'i.mdi.mdi-image-multiple', //< icon
+            this.createDialogContent(), //< dialog content
             () => this.close() //< close callback
         );
 
@@ -54,6 +56,15 @@ class StyleGalleryDialog extends ComfyDialog {
         this.c_customButtonEl = this.element.querySelector('#zipn-custom-btn');
         this.gridButtonEl     = this.element.querySelector('#zipn-grid-btn');
         this.listButtonEl     = this.element.querySelector('#zipn-list-btn');
+        this.onSelectStyle    = null;
+
+        const CARD_SELECTOR = '.zipn-style-grid-card, .zipn-style-list-card';
+        setupCardHoverListeners( this.gridEl, CARD_SELECTOR,
+            (card) => { this.onCardEnter(card); },
+            (card) => { this.onCardLeave(card); },
+            (card) => { this.onCardClick(card); }
+        );
+
         this.updateButtons();
     }
 
@@ -61,13 +72,18 @@ class StyleGalleryDialog extends ComfyDialog {
     /**
      * Launches the style gallery dialog.
      */
-    static launch() {
+    static launch(title, onSelectStyle) {
         // create the first time and use the same instance the next time
         if( !this._instance ) { this._instance = new StyleGalleryDialog(); }
-        this._instance.show();
+        const dialog  = this._instance;
+        const titleEl = dialog.element.querySelector(`#${TITLE_ID}`);
+
+        if( titleEl ) { titleEl.textContent = title; }
+        dialog.onSelectStyle = onSelectStyle;
+        dialog.show();
         fetchLastVersionStyles( (styles) => {
-            this._instance.allStyles = styles;
-            this._instance.updateSearch("!refresh");
+            dialog.allStyles = styles;
+            dialog.updateSearch("!refresh");
         });
     }
 
@@ -150,11 +166,29 @@ class StyleGalleryDialog extends ComfyDialog {
 
         gridEl.className = `zipn-style-${viewMode}`;
         gridEl.innerHTML = styles.map(item => `
-        <div class="zipn-style-${viewMode}-card">
+        <div class="zipn-style-${viewMode}-card" data-id="${item.id}">
             <img src="${item.thumbnail}" loading="lazy" alt="${item.name}">
             <p>${item.name}</p>
         </div>
         `).join('');
+    }
+
+   //-- EVENTS -----------------------------------------------------------
+
+    onCardEnter(cardEl) {
+        cardEl.classList.add('p-highlight');
+    }
+
+    onCardLeave(cardEl) {
+        cardEl.classList.remove('p-highlight');
+    }
+
+    onCardClick(cardEl) {
+        const styleIdx  = cardEl.dataset.id;
+        const allStyles = this.allStyles || [];
+        const style     = 0<=styleIdx && styleIdx<allStyles.length ? allStyles[styleIdx] : null;
+        if( style ) { this.onSelectStyle?.(style.name); }
+        this.close();
     }
 
 
@@ -270,20 +304,24 @@ class StyleGalleryDialog extends ComfyDialog {
  */
 function createStyleGalleryButton( node, inputName ) {
 
-    // si el anteúltimo caracter de inputName es un '_' entonces el último es un número
-    const parts    = inputName.split('_');
-    let   lastPart = parts.length>1 ? parts[ parts.length - 1 ] : "";
-    if( lastPart.match(/^[0-9]+$/) === null ) {
-        lastPart = "";
-    }
+    // what's after the '_' will be taken as a title variant,
+    // for now only possible to create title variants that are numbers
+    const parts   = inputName.split('_');
+    let   variant = parts.length>1 ? parts[ parts.length - 1 ] : "";
+    if( variant.match(/^[0-9]+$/) === null ) { variant = ""; }
+    const title = `Select Style${variant ? ' ' + variant : ""}`;
 
     const widget = node.addCustomWidget({
             type     : "button",
             name     : inputName,
-            label    : `🖼️  Select Style ${lastPart} ...`,
+            label    : `🖼️  ${title} ...`,
             serialize: true,
     });
-    widget.callback       = () => { StyleGalleryDialog.launch(); };
+    widget.callback = () => {
+        StyleGalleryDialog.launch(title, (style) => {
+            console.log("##>> STYLE:", style);
+        });
+    };
     widget.serializeValue = () => null;
     return { widget: widget };
 }

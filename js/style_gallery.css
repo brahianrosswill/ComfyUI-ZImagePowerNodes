@@ -46,14 +46,20 @@
 .zipn-style-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, 132px);
-  gap: 16px;
+  gap: 8px;
 }
 
 .zipn-style-grid-card {
-  width          : 128px;
+  /* width          : 128px; */
   display        : flex;
   flex-direction : column;
   align-items    : center;
+  border         : 2px solid transparent;
+}
+
+.zipn-style-grid-card.p-highlight {
+    background-color : rgba(255, 0, 0, 1);
+    border-color     : rgba(255, 0, 0, 1);
 }
 
 .zipn-style-grid-card img {
@@ -61,6 +67,7 @@
   height         : 128px;
   object-fit     : cover;
   display        : block;
+  border-radius  : 8px;
 }
 
 .zipn-style-grid-card p {
@@ -75,6 +82,8 @@
   white-space    : nowrap;
   background     : transparent;
 }
+
+
 
 /*========================== STYLE GALLERY: LIST ==========================*/
 
@@ -93,6 +102,11 @@
   background-color: transparent;
   border-radius  : 4px;
   cursor         : pointer;
+}
+
+.zipn-style-list-card.p-highlight {
+    background-color : rgba(255, 0, 0, 1);
+    border-color     : rgba(255, 0, 0, 1);
 }
 
 .zipn-style-list-card img {
@@ -114,8 +128,4 @@
   white-space    : nowrap;
 }
 
-.zipn-style-list-card:hover,
-.zipn-style-list-card:focus-within {
-  background-color: rgba(255, 0, 0, 0.2);
-}
 
