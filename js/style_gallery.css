@@ -15,56 +15,87 @@
   vertical-align : middle;
 }
 
-.zipn-result-container {
-  flex           : 1 1 auto;
-  overflow-y     : auto;
-  padding        : 20px;
-  min-width      : 400px;
-  min-height     : 500px;
-  max-height     : 500px;
-}
-
-
-.zipn-status-bar {
-  flex           : 0 0 auto;
-  padding        : 8px 16px;
-  border-top     : 1px solid #ccc;
-  font-size      : 0.9rem;
-  color          : #555;
-}
-
 /*============================ TOOLBAR BUTTONS ============================*/
 
-.zipn-dialog .p-button-text.p-highlight {
-  background-color: var(--primary-color, #1976d2);
-  color:            var(--primary-text , #ffffff);
+.zipn-dialog .p-button-text {
+  color           : var(--p-button-link-color);
+  background-color: transparent;
+  border-color    : transparent;
   border-radius:    4px;
+}
+
+.zipn-dialog .p-button-text.p-highlight {
+  color           : var(--p-dialog-color);
+  background-color: var(--p-button-primary-background);
+  background-color: color-mix(in srgb,  var(--p-button-primary-background) 40%, var(--p-dialog-background));
+}
+
+/*======================= STYLE GALLERY: CONTAINERS =======================*/
+
+.zipn-two-columns {
+    display       : flex;
+    flex-direction: row;
+    overflow      : hidden;
+    min-width     : 880px;
+    height        : 600px;
+}
+
+.zipn-search-results-pane {
+    flex         : 1 1 0;
+    overflow-y   : auto;
+    padding      : 10px;
+}
+
+.zipn-details-pane {
+    flex         : 0 0 auto;
+    flex-basis   : 384px;
+    min-width    : 384px;
+    overflow-x   : hidden;
+    overflow-y   : auto;
+    padding      : 0px;
+}
+
+.zipn-details-pane h1 {
+  font-size: 1.5rem;
+}
+
+.zipn-details-pane img {
+    width        : 384px;
+    height       : 384px;
+    border-radius: 16px;
+}
+
+.zipn-details-pane p {
+  font-size : 0.9rem;
+  color     : var(--text-secondary);
 }
 
 /*========================== STYLE GALLERY: GRID ==========================*/
 
 .zipn-style-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, 132px);
-  gap: 8px;
+  grid-template-columns: repeat(auto-fit, 110px);
+  gap: 1px;
 }
 
 .zipn-style-grid-card {
-  /* width          : 128px; */
+  width          : 110px;
   display        : flex;
   flex-direction : column;
   align-items    : center;
-  border         : 2px solid transparent;
+  border         : 4px solid transparent;
+  border-radius  : 8px;
 }
 
 .zipn-style-grid-card.p-highlight {
-    background-color : rgba(255, 0, 0, 1);
-    border-color     : rgba(255, 0, 0, 1);
+  background-color: var(--p-button-primary-background);
+  background-color: color-mix(in srgb,  var(--p-button-primary-background) 66%, var(--p-dialog-background));
 }
 
+
 .zipn-style-grid-card img {
-  width          : 128px;
-  height         : 128px;
+  width          : 96px;
+  height         : 96px;
   object-fit     : cover;
   display        : block;
   border-radius  : 8px;
@@ -83,30 +114,27 @@
   background     : transparent;
 }
 
-
-
 /*========================== STYLE GALLERY: LIST ==========================*/
 
 .zipn-style-list {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.1rem;
 }
 
 .zipn-style-list-card {
-  width          : 100%;
-  display        : flex;
-  align-items    : center;
-  gap            : 0.75rem;
-  padding        : 0.2rem 0.2rem;
-  background-color: transparent;
-  border-radius  : 4px;
-  cursor         : pointer;
+  width           : 100%;
+  display         : flex;
+  align-items     : center;
+  gap             : 0.75rem;
+  padding         : 0.2rem 0.2rem;
+  background-color: var(--p-dialog-background);
+  cursor          : pointer;
 }
 
 .zipn-style-list-card.p-highlight {
-    background-color : rgba(255, 0, 0, 1);
-    border-color     : rgba(255, 0, 0, 1);
+  background-color: var(--p-button-primary-background);
+  background-color: color-mix(in srgb,  var(--p-button-primary-background) 66%, var(--p-dialog-background));
 }
 
 .zipn-style-list-card img {
@@ -115,6 +143,7 @@
   flex-shrink    : 0;
   object-fit     : cover;
   display        : block;
+  border-radius  : 4px;
 }
 
 .zipn-style-list-card p {
@@ -126,6 +155,7 @@
   overflow       : hidden;
   text-overflow  : ellipsis;
   white-space    : nowrap;
+  color          : var(--p-dialog-color);
 }
 
 

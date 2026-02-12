@@ -47,8 +47,7 @@ class StyleGalleryDialog extends ComfyDialog {
         this.categoryFilter   = "";     // "", "photo", "illustration", "wild", "custom"
         this.viewMode         = "grid"; // "grid" or "list"
         this.allStyles        = {};
-        this.gridEl           = this.element.querySelector('#zipn-style-grid');
-        this.statusEl         = this.element.querySelector('#zipn-status-text');
+        this.searchResultsEl  = this.element.querySelector('#zipn-search-results');
         this.c_allButtonEl    = this.element.querySelector('#zipn-all-btn');
         this.c_photoButtonEl  = this.element.querySelector('#zipn-photo-btn');
         this.c_illusButtonEl  = this.element.querySelector('#zipn-illus-btn');
@@ -56,10 +55,13 @@ class StyleGalleryDialog extends ComfyDialog {
         this.c_customButtonEl = this.element.querySelector('#zipn-custom-btn');
         this.gridButtonEl     = this.element.querySelector('#zipn-grid-btn');
         this.listButtonEl     = this.element.querySelector('#zipn-list-btn');
+        this.detailsHeaderEl  = this.element.querySelector('.zipn-details-pane h1');
+        this.detailsImageEl   = this.element.querySelector('.zipn-details-pane img');
+        this.detailsTextEl    = this.element.querySelector('.zipn-details-pane p');
         this.onSelectStyle    = null;
 
         const CARD_SELECTOR = '.zipn-style-grid-card, .zipn-style-list-card';
-        setupCardHoverListeners( this.gridEl, CARD_SELECTOR,
+        setupCardHoverListeners( this.searchResultsEl, CARD_SELECTOR,
             (card) => { this.onCardEnter(card); },
             (card) => { this.onCardLeave(card); },
             (card) => { this.onCardClick(card); }
@@ -85,6 +87,18 @@ class StyleGalleryDialog extends ComfyDialog {
             dialog.allStyles = styles;
             dialog.updateSearch("!refresh");
         });
+    }
+
+
+    getStyleByID( id ) {
+        return this.allStyles?.[id];
+    }
+
+    updateDetails(style, imageURL) {
+        if( !imageURL ) { imageURL = style.thumbnail; }
+        this.detailsHeaderEl.textContent = style.name;
+        this.detailsImageEl.src          = imageURL;
+        this.detailsTextEl.textContent   = style.description;
     }
 
 
@@ -145,8 +159,7 @@ class StyleGalleryDialog extends ComfyDialog {
         const filteredStyles = this.allStyles.filter( style => {
             return this.categoryFilter == "" || style.category === categoryFilter;
         });
-        StyleGalleryDialog.renderGrid( this.gridEl, this.viewMode, filteredStyles );
-        this.statusEl.innerText = `${filteredStyles.length} style(s) found ${categoryFilter ? `in category '${categoryFilter}'` : ''}`;
+        StyleGalleryDialog.renderResults( this.searchResultsEl, this.viewMode, filteredStyles );
     }
 
 
@@ -156,16 +169,16 @@ class StyleGalleryDialog extends ComfyDialog {
      * This static method generates HTML content for displaying a
      * list/grid of styles based on the specified view mode.
      *
-     * @param {HTMLElement}   gridEl - The container element where the grid will be rendered.
-     * @param {string}      viewMode - The current view mode ('grid' or 'list') that determines
-     *                                 the layout of each item.
-     * @param {Array<Object>} styles - An array of objects representing the visual styles
-     *                                 to display.
+     * @param {HTMLElement} containerEl - The container element where the grid will be rendered.
+     * @param {string}      viewMode    - The current view mode ('grid' or 'list') that determines
+     *                                    the layout of each item.
+     * @param {Array<Object>} styles    - An array of objects representing the visual styles
+     *                                    to display.
      */
-    static renderGrid(gridEl, viewMode, styles) {
+    static renderResults(containerEl, viewMode, styles) {
 
-        gridEl.className = `zipn-style-${viewMode}`;
-        gridEl.innerHTML = styles.map(item => `
+        containerEl.className = `zipn-style-${viewMode}`;
+        containerEl.innerHTML = styles.map(item => `
         <div class="zipn-style-${viewMode}-card" data-id="${item.id}">
             <img src="${item.thumbnail}" loading="lazy" alt="${item.name}">
             <p>${item.name}</p>
@@ -173,10 +186,13 @@ class StyleGalleryDialog extends ComfyDialog {
         `).join('');
     }
 
+
    //-- EVENTS -----------------------------------------------------------
 
     onCardEnter(cardEl) {
         cardEl.classList.add('p-highlight');
+        const style = this.getStyleByID( cardEl?.dataset?.id );
+        if( style ) { this.updateDetails( style, cardEl?.querySelector('img')?.src ); }
     }
 
     onCardLeave(cardEl) {
@@ -184,9 +200,7 @@ class StyleGalleryDialog extends ComfyDialog {
     }
 
     onCardClick(cardEl) {
-        const styleIdx  = cardEl.dataset.id;
-        const allStyles = this.allStyles || [];
-        const style     = 0<=styleIdx && styleIdx<allStyles.length ? allStyles[styleIdx] : null;
+        const style = this.getStyleByID( cardEl?.dataset?.id );
         if( style ) { this.onSelectStyle?.(style.name); }
         this.close();
     }
@@ -205,25 +219,26 @@ class StyleGalleryDialog extends ComfyDialog {
     }
 
     /**
-     * A container for displaying the gallery results in grid format.
-     * @returns {HTMLElement} An HTML structure representing the grid container.
+     * A container for displaying detailed information about the hovered style.
+     * @returns {HTMLElement} An HTML structure representing the details pane.
      */
-    static get RESULT_GRID() {
-        return html("main.zipn-result-container", { id: "result-container" }, [
-            html("div.zipn-style-grid", { id: "zipn-style-grid" })
+    static get DETAILS_PANE() {
+        return html("div.zipn-details-pane", {}, [
+            html("h1.zipn-details-header", { id: "zipn-details-header" }),
+            html("img", {id: "zipn-details-image"}),
+            html("p.zipn-details-description", {id: "zipn-details-description"}),
         ]);
     }
 
     /**
-     * A status bar to show current status or messages.
-     * @returns {HTMLElement} An HTML structure representing the status bar.
+     * A container for displaying the styles resulting from a search query.
+     * @returns {HTMLElement} An HTML structure representing the search results pane.
      */
-    static get STATUS_BAR() {
-        return html("footer.zipn-status-bar", {}, [
-            html("span", { id: "zipn-status-text", textContent: "Showing 0 elements"})
+    static get SEARCH_RESULTS_PANE() {
+        return html("div.zipn-search-results-pane", {}, [
+            html("div.zipn-style-grid", { id: "zipn-search-results" })
         ]);
     }
-
 
     /**
      * Creates a button for the toolbar.
@@ -285,8 +300,10 @@ class StyleGalleryDialog extends ComfyDialog {
     createDialogContent() {
         return html("div.zipn-dialog", {}, [
             this.createSearchBar(),
-            StyleGalleryDialog.RESULT_GRID,
-            StyleGalleryDialog.STATUS_BAR
+            html("div.zipn-two-columns", {}, [
+                StyleGalleryDialog.DETAILS_PANE,
+                StyleGalleryDialog.SEARCH_RESULTS_PANE,
+            ]),
         ]);
     }
 
