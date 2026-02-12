@@ -304,26 +304,48 @@ class StyleGalleryDialog extends ComfyDialog {
  */
 function createStyleGalleryButton( node, inputName ) {
 
-    // what's after the '_' will be taken as a title variant,
-    // for now only possible to create title variants that are numbers
+    // split the inputName to extract any title variant
+    // (title variant is the part of the input-name after the last underscore)
     const parts   = inputName.split('_');
     let   variant = parts.length>1 ? parts[ parts.length - 1 ] : "";
+
+    // ensure the variant is a number
     if( variant.match(/^[0-9]+$/) === null ) { variant = ""; }
     const title = `Select Style${variant ? ' ' + variant : ""}`;
 
-    const widget = node.addCustomWidget({
+    // find the previous widget,
+    // which should be a combo widget to receive the style selection
+    const prevIndex  = node.widgets.length - 1;
+    const prevWidget = prevIndex>=0 ? node.widgets[prevIndex] : null;
+    if( !prevWidget || prevWidget.type !== "combo" ) {
+        console.error("Style Gallery Button must follow a Combo Widget!");
+        return;
+    }
+
+    // add a custom button widget to the node
+    const button = node.addCustomWidget({
             type     : "button",
             name     : inputName,
             label    : `🖼️  ${title} ...`,
             serialize: true,
     });
-    widget.callback = () => {
-        StyleGalleryDialog.launch(title, (style) => {
-            console.log("##>> STYLE:", style);
+
+    // the serialized value is always null, as it doesn't store a value itself.
+    // (disable serialization may cause problems when saving and retrieving nodes)
+    button.serializeValue = () => null;
+
+    // when the button is pressed, launch the dialog
+    button.callback = () => {
+        StyleGalleryDialog.launch(title, (style) =>
+        {
+            // ensure the style name is properly quoted
+            // before setting the combo widget's value
+            if( !style.startsWith('"') ) { style = `"${style}"`; }
+            prevWidget.value = style;
+            prevWidget.callback(style);
         });
     };
-    widget.serializeValue = () => null;
-    return { widget: widget };
+    return { widget: button };
 }
 
 
