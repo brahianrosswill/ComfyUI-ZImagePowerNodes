@@ -343,6 +343,7 @@ function createStyleGalleryButton( node, inputName ) {
             if( !style.startsWith('"') ) { style = `"${style}"`; }
             prevWidget.value = style;
             prevWidget.callback(style);
+            node?.setDirtyCanvas?.(true);
         });
     };
     return { widget: button };
