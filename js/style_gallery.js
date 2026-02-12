@@ -47,6 +47,7 @@ class StyleGalleryDialog extends ComfyDialog {
         this.categoryFilter  = "";     // "", "photo", "illustration", "wild", "custom"
         this.viewMode        = "grid"; // "grid" or "list"
         this.allStyles       = {};
+        this.searchInputEl   = this.element.querySelector('#zipn-search-input');
         this.searchResultsEl = this.element.querySelector('#zipn-search-results');
         this.detailsHeaderEl = this.element.querySelector('.zipn-details-pane h1');
         this.detailsImageEl  = this.element.querySelector('.zipn-details-pane img');
@@ -60,6 +61,15 @@ class StyleGalleryDialog extends ComfyDialog {
         this.tb_customButtonEl = this.element.querySelector('#zipn-custom-btn');
         this.tb_gridButtonEl   = this.element.querySelector('#zipn-grid-btn');
         this.tb_listButtonEl   = this.element.querySelector('#zipn-list-btn');
+
+        let inputTimeoutId = null;
+        this.searchInputEl.addEventListener('input', (e) => {
+            clearTimeout(inputTimeoutId);
+            inputTimeoutId = setTimeout(() => {
+                this.updateSearch(`>${e.target.value}`);
+                console.log('Buscando en el servidor:', e.target.value);
+            }, 300);
+        });
 
         const CARD_SELECTOR = '.zipn-style-grid-card, .zipn-style-list-card';
         setupCardHoverListeners( this.searchResultsEl, CARD_SELECTOR,
@@ -171,10 +181,7 @@ class StyleGalleryDialog extends ComfyDialog {
         }
 
         // apply filters and re-render gallery
-        const categoryFilter = this.categoryFilter;
-        const filteredStyles = this.allStyles.filter( style => {
-            return this.categoryFilter == "" || style.category === categoryFilter;
-        });
+        const filteredStyles = StyleGalleryDialog.applyFilter( this.allStyles, this.textFilter, this.categoryFilter );
         StyleGalleryDialog.renderResults( this.searchResultsEl, this.viewMode, filteredStyles );
     }
 
@@ -199,6 +206,31 @@ class StyleGalleryDialog extends ComfyDialog {
             <p>${item.name}</p>
         </div>
         `).join('');
+    }
+
+
+    /**
+     * Applies a filter to an array of styles based on text and category criteria.
+     * @param {Object[]} allStyles - An array of style objects, each containing properties
+     *                               such as id, name, description, category, etc.
+     * @param {string}  textFilter - A string that filters styles by matching style names
+     *                               against search terms.
+     * @param {string}    category - The selected category for filtering the styles
+     *                               (e.g., "photo", "illustration", etc.). An empty
+     *                               string indicates no specific category filter.
+     * @returns {Object[]}
+     *   Returns an array of style objects that match the given text and category filters.
+     */
+     static applyFilter(allStyles, textFilter, category) {
+        const terms = textFilter.toLowerCase().split(' ');
+        //const tags  = terms.filter(t => t.startsWith('#'));
+        const words = terms.filter(t => !t.startsWith('#'));
+        return allStyles.filter(style => {
+            const matchesCategory = category === "" || style.category === category;
+            const matchesWords    = words.every(word => style.lowerName.includes(word));
+            const matchesTags     = true; //tags.length === 0 || tags.some(tag => style.tags.includes(tag));
+            return matchesCategory && matchesWords && matchesTags;
+        });
     }
 
 
@@ -296,7 +328,7 @@ class StyleGalleryDialog extends ComfyDialog {
      */
     createSearchBar() {
         return html("div", {}, [
-            html("input.p-inputtext.p-component", { type: "search", placeholder: "Search" }),
+            html("input.p-inputtext.p-component", { id: "zipn-search-input", type: "search", placeholder: "Search" }),
             StyleGalleryDialog.DIVIDER,
             this.createToolButton("zipn-all-btn"   , '', "All"         , "Search all styles"              , () => { this.updateSearch("@"); }),
             this.createToolButton("zipn-photo-btn" , '', "Photo"       , "Search only photographic styles", () => { this.updateSearch("@photo");}),
