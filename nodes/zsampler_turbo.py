@@ -26,7 +26,7 @@ from .lib.progress_bar  import ProgressPreview
 
 
 class ZSamplerTurbo(io.ComfyNode):
-    xTITLE         = "ZSampler Turbo"
+    xTITLE         = "Z-Sampler Turbo (old version)"
     xCATEGORY      = ""
     xCOMFY_NODE_ID = ""
     xDEPRECATED    = False
