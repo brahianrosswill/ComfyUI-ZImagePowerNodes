@@ -49,20 +49,20 @@ class ZSamplerTurbo2(io.ComfyNode):
                 io.Latent.Input      ("latent_input",
                                       tooltip="The initial latent image to be modified; typically an 'Empty Latent' for text-to-image or an encoded image for img2img.",
                                      ),
-                io.Int.Input         ("seed", default=0, min=0, max=0xffffffffffffffff, control_after_generate=True,
+                io.Int.Input         ("seed", default=1, min=1, max=0xffffffffffffffff, control_after_generate=True,
                                       tooltip="The seed used for the random noise generator, ensuring the same result is produced with the same value.",
                                      ),
                 io.Int.Input         ("steps", default=9, min=4, max=9, step=1,
                                       tooltip="The number of iterations to be performed during the sampling process.",
+                                     ),
+                io.Float.Input       ("denoise", default=1.0, min=0.98, max=1.00, step=0.01,
+                                      tooltip="The amount of denoising applied, lower values will maintain the structure of the initial image allowing for image to image sampling.",
                                      ),
                 io.Combo.Input       ("noise_bias_method", default="experimental", options=["experimental", "accurate", "ignore"],
                                       tooltip="Method used to calculate the bias in each channel of the initial noise. "
                                       "`experimental`: Denoises a blank latent image to calculate the bias. "
                                       "`accurate`: Denoises a random latent image to calculate the bias. "
                                       "`ignore`: Use a zero-biased initial noise. (old method)",
-                                     ),
-                io.Float.Input       ("denoise", default=1.0, min=0.98, max=1.00, step=0.01,
-                                      tooltip="The amount of denoising applied, lower values will maintain the structure of the initial image allowing for image to image sampling.",
                                      ),
             ],
             outputs=[
@@ -78,8 +78,8 @@ class ZSamplerTurbo2(io.ComfyNode):
                 latent_input     : dict[str, Any],
                 seed             : int,
                 steps            : int,
-                noise_bias_method: str,
                 denoise          : float,
+                noise_bias_method: str,
                 ) -> io.NodeOutput:
 
         if noise_bias_method == "experimental":
@@ -89,10 +89,10 @@ class ZSamplerTurbo2(io.ComfyNode):
                 latent_input        = latent_input,
                 seed                = seed,
                 steps               = steps,
+                denoise             = denoise,
                 noise_offset_method = "experimental",
                 noise_offset_scale  = 0.11,
-                noise_overdose      = 0.34,
-                denoise             = denoise)
+                noise_overdose      = 0.34)
 
 
         elif noise_bias_method == "accurate":
@@ -102,10 +102,10 @@ class ZSamplerTurbo2(io.ComfyNode):
                 latent_input        = latent_input,
                 seed                = seed,
                 steps               = steps,
+                denoise             = denoise,
                 noise_offset_method = "accurate",
                 noise_offset_scale  = 0.06,
-                noise_overdose      = 0.34,
-                denoise             = denoise)
+                noise_overdose      = 0.34)
 
         elif noise_bias_method == "ignore":
             return ZSamplerTurboAdvanced2.execute(
@@ -114,10 +114,10 @@ class ZSamplerTurbo2(io.ComfyNode):
                 latent_input        = latent_input,
                 seed                = seed,
                 steps               = steps,
-                noise_offset_method = "experimental",
-                noise_offset_scale  = 0.0,
-                noise_overdose      = 0.0,
-                denoise             = denoise)
+                denoise             = denoise,
+                noise_offset_method = "accurate",
+                noise_offset_scale  = 0.00,
+                noise_overdose      = 0.00)
 
         else:
             raise Exception(f"Unknown noise bias method: {noise_bias_method}")

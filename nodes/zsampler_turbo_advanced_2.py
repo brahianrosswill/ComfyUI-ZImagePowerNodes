@@ -61,6 +61,9 @@ class ZSamplerTurboAdvanced2(io.ComfyNode):
                 io.Int.Input         ("steps", default=9, min=5, max=10, step=1,
                                       tooltip="The number of iterations to be performed during the sampling process.",
                                      ),
+                io.Float.Input       ("denoise", default=1.0, min=0.00, max=1.00, step=0.01,
+                                      tooltip="The amount of denoising applied, lower values will maintain the structure of the initial image allowing for image to image sampling.",
+                                     ),
                 io.Combo.Input       ("noise_offset_method", default="accurate", options=["accurate", "experimental"],
                                       tooltip="Method used to calculate the offset of the initial noise. `exact`: Calculates values based on strict theoretical formulas."
                                      ),
@@ -69,9 +72,6 @@ class ZSamplerTurboAdvanced2(io.ComfyNode):
                                      ),
                 io.Float.Input       ("noise_overdose", default=0.30, min=-1.00, max=1.00, step=0.01,
                                       tooltip="The amount of overamplitude in the initial noise generation. (negative values will reduce the amplitude)."
-                                     ),
-                io.Float.Input       ("denoise", default=1.0, min=0.00, max=1.00, step=0.01,
-                                      tooltip="The amount of denoising applied, lower values will maintain the structure of the initial image allowing for image to image sampling.",
                                      ),
             ],
             outputs=[
@@ -87,10 +87,10 @@ class ZSamplerTurboAdvanced2(io.ComfyNode):
                 latent_input       : dict[str, Any],
                 seed               : int,
                 steps              : int,
+                denoise            : float,
                 noise_offset_method: str,
                 noise_offset_scale : float,
                 noise_overdose     : float,
-                denoise            : float,
                 ) -> io.NodeOutput:
 
         # create a progress bar from 0 to 100
