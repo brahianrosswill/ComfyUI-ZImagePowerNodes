@@ -20,6 +20,7 @@ import torch
 import comfy.utils
 import comfy.sample
 import comfy.samplers
+import comfy.sampler_helpers
 from typing             import Any
 from comfy_api.latest   import io
 from .lib.system        import logger
@@ -247,7 +248,13 @@ class ZSamplerTurboAdvanced2(io.ComfyNode):
         prog2 = prog1 + (sigmas2.shape[-1] - 1 if sigmas2 is not None else 0)
         total = prog2 + (sigmas3.shape[-1] - 1 if sigmas3 is not None else 0)
 
-        # the three stages of denoising
+        # store original values in case the user is doing inpainting with a mask
+        original_mask    = latent_image.get("noise_mask")
+        original_samples = latent_image.get("samples") if original_mask is not None else None
+
+
+        #-- THREE-STAGE PROCESS ---------------------------
+
         if sigmas1 is not None:
             add_noise = True
             latent_image = cls.execute_sampler(latent_image,
@@ -259,12 +266,20 @@ class ZSamplerTurboAdvanced2(io.ComfyNode):
                                 progress_preview = ProgressPreview( prog1-prog0,
                                         parent=(progress_preview, 100*prog0//total, 100*prog1//total)),
                                 )
+            # when there's an inpainting mask, it seems like comfyui does not merge
+            # the original image at the end of denoising, so we manually merge it here
+            # (this is extremely necessary to be able to continue the next stage as
+            # if it were a single denoising process)
+            if isinstance(original_mask, torch.Tensor) and isinstance(original_samples, torch.Tensor):
+                mask = comfy.sampler_helpers.prepare_mask( original_mask, original_samples.shape, original_samples.device)
+                latent_image["samples"] = latent_image["samples"] * mask + ( 1.0 - mask ) * original_samples
+
 
         if sigmas2 is not None:
             add_noise = False
-            # normally this stage should NOT add noise (stage1 and stage2 must
-            # behave as a single donoise process) but if no first stage was
-            # executed then this stage is the first and it should add noise
+            # normally this stage should NOT add noise (stage1 and stage2 must behave
+            # as a single donoise process) but if no first stage was executed then
+            # this stage is the first and therefore it must add noise
             if sigmas1 is None: add_noise = True
             latent_image = cls.execute_sampler(latent_image,
                                 model, seed, cfg, positive, negative,
@@ -275,6 +290,8 @@ class ZSamplerTurboAdvanced2(io.ComfyNode):
                                 progress_preview = ProgressPreview( prog2-prog1,
                                         parent=(progress_preview, 100*prog1//total, 100*prog2//total)),
                                 )
+
+
         if sigmas3 is not None:
             add_noise = True
             latent_image = cls.execute_sampler(latent_image,
