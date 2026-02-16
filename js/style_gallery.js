@@ -43,16 +43,19 @@ class StyleGalleryDialog extends ComfyDialog {
             () => this.close() //< close callback
         );
 
-        this.textFilter      = "";
-        this.categoryFilter  = "";     // "", "photo", "illustration", "wild", "custom"
-        this.viewMode        = "grid"; // "grid" or "list"
-        this.allStyles       = {};
-        this.searchInputEl   = this.element.querySelector('#zipn-search-input');
-        this.searchResultsEl = this.element.querySelector('#zipn-search-results');
-        this.detailsHeaderEl = this.element.querySelector('.zipn-details-pane h1');
-        this.detailsImageEl  = this.element.querySelector('.zipn-details-pane img');
-        this.detailsTextEl   = this.element.querySelector('.zipn-details-pane p');
-        this.onSelectStyle   = null;
+        this.isOpen            = false;
+        this.initialStyleName  = ""; //< the initial style name (before applying the selected one)
+        this.activeStyleName   = ""; //< the style name that is currently selected (if any)
+        this.textFilter        = "";
+        this.categoryFilter    = "";     // "", "photo", "illustration", "wild", "custom"
+        this.viewMode          = "grid"; // "grid" or "list"
+        this.allStyles         = {};
+        this.searchInputEl     = this.element.querySelector('#zipn-search-input');
+        this.searchResultsEl   = this.element.querySelector('#zipn-search-results');
+        this.detailsHeaderEl   = this.element.querySelector('.zipn-details-pane h1');
+        this.detailsImageEl    = this.element.querySelector('.zipn-details-pane img');
+        this.detailsTextEl     = this.element.querySelector('.zipn-details-pane p');
+        this.onSelectStyle     = null;
         // toolbar buttons
         this.tb_allButtonEl    = this.element.querySelector('#zipn-all-btn');
         this.tb_photoButtonEl  = this.element.querySelector('#zipn-photo-btn');
@@ -77,6 +80,7 @@ class StyleGalleryDialog extends ComfyDialog {
             (card) => { this.onCardLeave(card); },
             (card) => { this.onCardClick(card); }
         );
+        this.searchInputEl?.addEventListener('blur', () => { this.onInputLostFocus(); } );
         this.updateToolbarButtons();
     }
 
@@ -84,10 +88,17 @@ class StyleGalleryDialog extends ComfyDialog {
     /**
      * Launches the style gallery dialog.
      * @param {string}   title         - The title of the dialog.
+     * @param {string}   styleName     - The name of the selected style.
      * @param {Function} onSelectStyle - A callback function that gets called
      *                                   when a style is selected by the user.
      */
-    static launch(title, onSelectStyle) {
+    static launch(title, styleName, onSelectStyle) {
+
+        // styleName can be wrapped in quotes, remove them
+        if( styleName && styleName.startsWith('"') && styleName.endsWith('"') ) {
+            styleName = styleName.slice(1, -1);
+        }
+
         // create the first time and use the same instance the next time
         if( !this._instance ) { this._instance = new StyleGalleryDialog(); }
         const dialog  = this._instance;
@@ -95,11 +106,17 @@ class StyleGalleryDialog extends ComfyDialog {
 
         if( titleEl ) { titleEl.textContent = title; }
         dialog.onSelectStyle = onSelectStyle;
-        dialog.show();
-        fetchLastVersionStyles( (styles) => {
-            dialog.allStyles = styles;
-            dialog.updateSearch("!refresh");
-        });
+        dialog.initialStyleName = styleName;
+        dialog.onOpen();
+    }
+
+
+    /**
+     * Closes the dialog.
+     */
+    close() {
+        this.onClose();
+        super.close();
     }
 
 
@@ -109,7 +126,38 @@ class StyleGalleryDialog extends ComfyDialog {
      * @returns {Object|null}
      *     Returns the style object if found, or null otherwise.
      */
-    getStyleByID( id ) { return this.allStyles?.[id]; }
+    getStyleByID( id ) {
+        return this.allStyles?.[id];
+    }
+
+    getStyleByName( name ) {
+        const allStyles = this.allStyles || [];
+        if( typeof name !== 'string' ) { return null; }
+
+        // remover comillas de name (si empieza con comillas)
+        if( name.startsWith('"') && name.endsWith('"') ) {
+            name = name.slice(1, -1);
+        }
+        for( let id in allStyles ) {
+            if( allStyles[id].name === name ) { return allStyles[id]; }
+        }
+        return null;
+    }
+
+    /*
+    selectStyleByID( styleID, scrollToTop=false ) {
+
+        // spanish: buscar la tarjeta dentro del contenedor
+        const card = document.getElementById(`zipn-style-${styleID}`);
+        if( card ) {
+            this.onCardEnter( card );
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        console.log("##>> CARD:", card);
+    }
+    */
+
 
 
     /**
@@ -182,7 +230,7 @@ class StyleGalleryDialog extends ComfyDialog {
 
         // apply filters and re-render gallery
         const filteredStyles = StyleGalleryDialog.applyFilter( this.allStyles, this.textFilter, this.categoryFilter );
-        StyleGalleryDialog.renderResults( this.searchResultsEl, this.viewMode, filteredStyles );
+        StyleGalleryDialog.renderResults( this.searchResultsEl, this.viewMode, filteredStyles, this.initialStyleName );
     }
 
 
@@ -198,14 +246,21 @@ class StyleGalleryDialog extends ComfyDialog {
      * @param {Array<Object>} styles    - An array of objects representing the visual styles
      *                                    to display.
      */
-    static renderResults(containerEl, viewMode, styles) {
-        containerEl.className = `zipn-style-${viewMode}`;
-        containerEl.innerHTML = styles.map(item => `
-        <div class="zipn-style-${viewMode}-card" data-id="${item.id}">
-            <img src="${item.thumbnail}" loading="lazy" alt="${item.name}">
-            <p>${item.name}</p>
-        </div>
-        `).join('');
+    static renderResults(containerEl, viewMode, styles, initialStyleName = "") {
+        const baseClass   = `zipn-style-${viewMode}`;
+        const cacheBuster = Math.floor(Date.now() / 3600000);
+
+        containerEl.className = baseClass;
+        containerEl.innerHTML = styles.map( style => {
+            const extraClass = style.name === initialStyleName ? ' initial' : '';
+            const imageSrc    = style.thumbnail + '&cache=' + cacheBuster;
+            console.log("##>> imageSrc:", imageSrc);
+            return `
+                <div class="${baseClass}-card${extraClass}" id="zipn-style-${style.id}" data-id="${style.id}">
+                    <img src="${style.thumbnail}" loading="lazy" alt="${style.name}">
+                    <p>${style.name}</p>
+                </div>`;
+        }).join('');
     }
 
 
@@ -234,16 +289,53 @@ class StyleGalleryDialog extends ComfyDialog {
     }
 
 
-   //-- EVENTS -----------------------------------------------------------
+    //-- EVENTS -----------------------------------------------------------
+
+    onOpen() {
+        this.isOpen = true;
+
+        // make the dialog visible and clear input
+        this.show();
+        this.searchInputEl.value = '';
+
+        // load style data from server
+        fetchLastVersionStyles( (styles) => {
+            this.allStyles = styles;
+            this.updateSearch("!refresh");
+
+            const style = this.getStyleByName( this.initialStyleName );
+            console.log( "Initialstyle: ", style );
+            //if( style ) {
+            //    this.selectStyleByID( style.id );
+            //}
+        });
+
+        // trigger enter animation
+        //requestAnimationFrame(() => {
+        //    this.element.classList.add('fade-in');
+        //});
+        requestAnimationFrame(() => {
+            this.searchInputEl.focus();
+        });
+}
+
+    onClose() {
+        this.isOpen = false;
+    }
+
+    onInputLostFocus() {
+        if( !this.isOpen ) { return; }
+        setTimeout(() => { if (this.isOpen) this.searchInputEl.focus(); }, 0);
+    }
 
     onCardEnter(cardEl) {
-        cardEl.classList.add('p-highlight');
+        cardEl.classList.add('active');
         const style = this.getStyleByID( cardEl?.dataset?.id );
         if( style ) { this.updateDetails( style, cardEl?.querySelector('img')?.src ); }
     }
 
     onCardLeave(cardEl) {
-        cardEl.classList.remove('p-highlight');
+        cardEl.classList.remove('active');
     }
 
     onCardClick(cardEl) {
@@ -403,7 +495,7 @@ function createStyleGalleryButton( node, inputName ) {
 
     // when the button is pressed, launch the dialog
     button.callback = () => {
-        StyleGalleryDialog.launch(title, (style) =>
+        StyleGalleryDialog.launch(title, prevWidget.value, (style) =>
         {
             // ensure the style name is properly quoted
             // before setting the combo widget's value
