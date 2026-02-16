@@ -43,13 +43,23 @@ class StyleGalleryDialog extends ComfyDialog {
             () => this.close() //< close callback
         );
 
-        this.isOpen            = false;
+        this.stylesByID          = [];
+        this.styleIDsByLowerName = {};
+
         this.initialStyleName  = ""; //< the initial style name (before applying the selected one)
-        this.activeStyleName   = ""; //< the style name that is currently selected (if any)
+        this.initialStyleID    = null; //< the initial style ID (before applying the selected one)
+        this.searchStyleID     = null;
+        this.activeStyleID     = null; //< the style name that is currently selected (if any)
+        this.oldSelectionID    = null;
+
+        this.isOpen            = false;
+        this.isPointerLocked   = false;
+        this.inputChangeTimer1 = null; //< timer used by the 'onInputChange' event
+        this.inputChangeTimer2 = null; //< timer used by the 'onInputChange' event
+
         this.textFilter        = "";
         this.categoryFilter    = "";     // "", "photo", "illustration", "wild", "custom"
         this.viewMode          = "grid"; // "grid" or "list"
-        this.allStyles         = {};
         this.searchInputEl     = this.element.querySelector('#zipn-search-input');
         this.searchResultsEl   = this.element.querySelector('#zipn-search-results');
         this.detailsHeaderEl   = this.element.querySelector('.zipn-details-pane h1');
@@ -65,14 +75,8 @@ class StyleGalleryDialog extends ComfyDialog {
         this.tb_gridButtonEl   = this.element.querySelector('#zipn-grid-btn');
         this.tb_listButtonEl   = this.element.querySelector('#zipn-list-btn');
 
-        let inputTimeoutId = null;
-        this.searchInputEl.addEventListener('input', (e) => {
-            clearTimeout(inputTimeoutId);
-            inputTimeoutId = setTimeout(() => {
-                this.updateSearch(`>${e.target.value}`);
-                console.log('Buscando en el servidor:', e.target.value);
-            }, 300);
-        });
+        this.searchInputEl.addEventListener('input'  , (e) => { this.onInputChange(e.target); });
+        this.searchInputEl.addEventListener('keydown', (e) => { this.onInputKeyDown(e.key); });
 
         const CARD_SELECTOR = '.zipn-style-grid-card, .zipn-style-list-card';
         setupCardHoverListeners( this.searchResultsEl, CARD_SELECTOR,
@@ -121,60 +125,6 @@ class StyleGalleryDialog extends ComfyDialog {
 
 
     /**
-     * Gets the details of a style based on its unique identifier.
-     * @param {string} id - The unique identifier of the style to be fetched.
-     * @returns {Object|null}
-     *     Returns the style object if found, or null otherwise.
-     */
-    getStyleByID( id ) {
-        return this.allStyles?.[id];
-    }
-
-    getStyleByName( name ) {
-        const allStyles = this.allStyles || [];
-        if( typeof name !== 'string' ) { return null; }
-
-        // remover comillas de name (si empieza con comillas)
-        if( name.startsWith('"') && name.endsWith('"') ) {
-            name = name.slice(1, -1);
-        }
-        for( let id in allStyles ) {
-            if( allStyles[id].name === name ) { return allStyles[id]; }
-        }
-        return null;
-    }
-
-    /*
-    selectStyleByID( styleID, scrollToTop=false ) {
-
-        // spanish: buscar la tarjeta dentro del contenedor
-        const card = document.getElementById(`zipn-style-${styleID}`);
-        if( card ) {
-            this.onCardEnter( card );
-            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-
-        console.log("##>> CARD:", card);
-    }
-    */
-
-
-
-    /**
-     * Updates the details pane with the provided style's information.
-     * @param {Object} style      - The style object containing the details to be displayed.
-     * @param {string} [imageURL] - Optional URL of the image to be displayed in the details
-     *                              pane. If not provided, the style's thumbnail is used.
-     */
-    updateDetails(style, imageURL) {
-        if( !imageURL ) { imageURL = style.thumbnail; }
-        this.detailsHeaderEl.textContent = style.name;
-        this.detailsImageEl.src          = imageURL;
-        this.detailsTextEl.textContent   = style.description;
-    }
-
-
-    /**
      * Updates toolbar buttons state based on current view mode and category filter.
      */
     updateToolbarButtons() {
@@ -187,6 +137,33 @@ class StyleGalleryDialog extends ComfyDialog {
         this.tb_illusButtonEl.classList.toggle('p-highlight', this.categoryFilter == "illustration" );
         this.tb_wildButtonEl.classList.toggle('p-highlight', this.categoryFilter == "wild" );
         this.tb_customButtonEl.classList.toggle('p-highlight', this.categoryFilter == "custom" );
+    }
+
+    updateSelection(force=false) {
+        const newSelectionID = this.activeStyleID ? this.activeStyleID : this.searchStyleID;
+        const detailsID      = newSelectionID     ? newSelectionID     : this.initialStyleID;
+        if( !force && newSelectionID === this.oldSelectionID ) { return; }
+
+        // deactivate the card with the old style
+        const oldCardEl = this.oldSelectionID != null ? this.element.querySelector(`#zipn-style-${this.oldSelectionID}`) : null;
+        if( oldCardEl ) { oldCardEl.classList.remove('active'); }
+
+        this.oldSelectionID = newSelectionID;
+
+        // activate the card with the new style
+        const newCardEl = newSelectionID != null ? this.element.querySelector(`#zipn-style-${newSelectionID}`) : null;
+        if( newCardEl ) { newCardEl.classList.add('active'); }
+
+        // update details pane
+        const style = detailsID != null ? this.stylesByID[ detailsID ] : null;
+        this.detailsHeaderEl.textContent = style?.name        || "";
+        this.detailsTextEl.textContent   = style?.description || "";
+        if( style?.thumbnail ) {
+            this.detailsImageEl.src              = style.thumbnail;
+            this.detailsImageEl.style.visibility = 'visible';
+        } else {
+            this.detailsImageEl.style.visibility = 'hidden';
+        }
     }
 
 
@@ -203,7 +180,7 @@ class StyleGalleryDialog extends ComfyDialog {
      *     '@' followed by a category name to filter by category (empty string for no filtering)
      *     '>' followed by a text to filter styles by name (empty string for no filtering)
      */
-    updateSearch(command) {
+    updateSearchResults(command) {
 
         // if the command starts with "$", change the view mode
         if( command.startsWith('$') ) {
@@ -229,8 +206,13 @@ class StyleGalleryDialog extends ComfyDialog {
         }
 
         // apply filters and re-render gallery
-        const filteredStyles = StyleGalleryDialog.applyFilter( this.allStyles, this.textFilter, this.categoryFilter );
-        StyleGalleryDialog.renderResults( this.searchResultsEl, this.viewMode, filteredStyles, this.initialStyleName );
+        const filteredStyles = StyleGalleryDialog.applyFilter( this.stylesByID, this.textFilter, this.categoryFilter );
+        StyleGalleryDialog.renderResults( this.searchResultsEl, this.viewMode, filteredStyles, this.initialStyleID );
+
+        if( this.textFilter ) { this.searchStyleID = filteredStyles[0]?.id; }
+        else                  { this.searchStyleID = null; }
+        console.log("##>> searchStyleID: ", this.searchStyleID);
+        this.updateSelection(true);
     }
 
 
@@ -246,18 +228,17 @@ class StyleGalleryDialog extends ComfyDialog {
      * @param {Array<Object>} styles    - An array of objects representing the visual styles
      *                                    to display.
      */
-    static renderResults(containerEl, viewMode, styles, initialStyleName = "") {
+    static renderResults(containerEl, viewMode, styles, initialStyleID = null) {
         const baseClass   = `zipn-style-${viewMode}`;
         const cacheBuster = Math.floor(Date.now() / 3600000);
 
         containerEl.className = baseClass;
         containerEl.innerHTML = styles.map( style => {
-            const extraClass = style.name === initialStyleName ? ' initial' : '';
-            const imageSrc    = style.thumbnail + '&cache=' + cacheBuster;
-            console.log("##>> imageSrc:", imageSrc);
+            const extraClass = style.id === initialStyleID ? ' initial' : '';
+            const imageSrc   = style.thumbnail + '&cache=' + cacheBuster;
             return `
                 <div class="${baseClass}-card${extraClass}" id="zipn-style-${style.id}" data-id="${style.id}">
-                    <img src="${style.thumbnail}" loading="lazy" alt="${style.name}">
+                    <img src="${imageSrc}" loading="lazy" alt="${style.name}">
                     <p>${style.name}</p>
                 </div>`;
         }).join('');
@@ -296,31 +277,33 @@ class StyleGalleryDialog extends ComfyDialog {
 
         // make the dialog visible and clear input
         this.show();
+        this.searchStyleID       = null;
+        this.activeStyleID       = null;
+        this.oldSelectionID      = null;
+        this.textFilter          = '';
         this.searchInputEl.value = '';
 
         // load style data from server
-        fetchLastVersionStyles( (styles) => {
-            this.allStyles = styles;
-            this.updateSearch("!refresh");
-
-            const style = this.getStyleByName( this.initialStyleName );
-            console.log( "Initialstyle: ", style );
-            //if( style ) {
-            //    this.selectStyleByID( style.id );
-            //}
-        });
+        fetchLastVersionStyles( (styles) => { this.onReceivedStyles(styles); });
+        requestAnimationFrame( () => { this.searchInputEl.focus(); });
 
         // trigger enter animation
         //requestAnimationFrame(() => {
         //    this.element.classList.add('fade-in');
         //});
-        requestAnimationFrame(() => {
-            this.searchInputEl.focus();
-        });
-}
+        
+    }
 
     onClose() {
         this.isOpen = false;
+    }
+
+    onReceivedStyles(styles) {
+        this.stylesByID          = styles;
+        this.styleIDsByLowerName = Object.fromEntries(styles.map(style => [style.name.toLowerCase(), style.id]));
+        this.initialStyleID      = this.styleIDsByLowerName[this.initialStyleName.toLowerCase()];
+        this.updateSearchResults("!refresh");
+        this.updateSelection();
     }
 
     onInputLostFocus() {
@@ -328,18 +311,42 @@ class StyleGalleryDialog extends ComfyDialog {
         setTimeout(() => { if (this.isOpen) this.searchInputEl.focus(); }, 0);
     }
 
+    onInputChange(inputEl) {
+        this.activeStyleID   = null;
+        this.isPointerLocked = true;
+        clearTimeout(this.inputChangeTimer1);
+        this.inputChangeTimer1 = setTimeout(() => {
+            this.isPointerLocked = false;
+        }, 1500);
+
+        clearTimeout(this.inputChangeTimer2);
+        this.inputChangeTimer2 = setTimeout(() => {
+            this.updateSearchResults(`>${inputEl.value}`);
+        }, 300);
+
+    }
+
+    onInputKeyDown(key) {
+        if( key == 'Escape' ) { this.close(); }
+    }
+
     onCardEnter(cardEl) {
-        cardEl.classList.add('active');
-        const style = this.getStyleByID( cardEl?.dataset?.id );
-        if( style ) { this.updateDetails( style, cardEl?.querySelector('img')?.src ); }
+        if( this.isPointerLocked ) { return; }
+        this.activeStyleID = cardEl.dataset?.id;
+        this.updateSelection();
     }
 
     onCardLeave(cardEl) {
-        cardEl.classList.remove('active');
+        if( this.isPointerLocked ) { return; }
+        if( this.activeStyleID === cardEl.dataset?.id ) {
+            this.activeStyleID = null;
+            this.updateSelection();
+        }
     }
 
     onCardClick(cardEl) {
-        const style = this.getStyleByID( cardEl?.dataset?.id );
+        const styleID = cardEl?.dataset?.id;
+        const style   = styleID != null ? this.stylesByID[styleID] : null;
         if( style ) { this.onSelectStyle?.(style.name); }
         this.close();
     }
@@ -422,14 +429,14 @@ class StyleGalleryDialog extends ComfyDialog {
         return html("div", {}, [
             html("input.p-inputtext.p-component", { id: "zipn-search-input", type: "search", placeholder: "Search" }),
             StyleGalleryDialog.DIVIDER,
-            this.createToolButton("zipn-all-btn"   , '', "All"         , "Search all styles"              , () => { this.updateSearch("@"); }),
-            this.createToolButton("zipn-photo-btn" , '', "Photo"       , "Search only photographic styles", () => { this.updateSearch("@photo");}),
-            this.createToolButton("zipn-illus-btn" , '', "Illustration", "Search only illustration styles", () => { this.updateSearch("@illustration"); }),
-            this.createToolButton("zipn-wild-btn"  , '', "Wild"        , "Search only wild styles"        , () => { this.updateSearch("@wild"); }),
-            this.createToolButton("zipn-custom-btn", '', "Custom"      , "Search only custom styles"      , () => { this.updateSearch("@custom"); }),
+            this.createToolButton("zipn-all-btn"   , '', "All"         , "Search all styles"              , () => { this.updateSearchResults("@"); }),
+            this.createToolButton("zipn-photo-btn" , '', "Photo"       , "Search only photographic styles", () => { this.updateSearchResults("@photo");}),
+            this.createToolButton("zipn-illus-btn" , '', "Illustration", "Search only illustration styles", () => { this.updateSearchResults("@illustration"); }),
+            this.createToolButton("zipn-wild-btn"  , '', "Wild"        , "Search only wild styles"        , () => { this.updateSearchResults("@wild"); }),
+            this.createToolButton("zipn-custom-btn", '', "Custom"      , "Search only custom styles"      , () => { this.updateSearchResults("@custom"); }),
             StyleGalleryDialog.DIVIDER,
-            this.createToolButton("zipn-grid-btn", 'pi pi-image', "", "Grid View", () => { this.updateSearch("$grid"); }),
-            this.createToolButton("zipn-list-btn", 'pi pi-list' , "", "List View", () => { this.updateSearch("$list"); }),
+            this.createToolButton("zipn-grid-btn", 'pi pi-image', "", "Grid View", () => { this.updateSearchResults("$grid"); }),
+            this.createToolButton("zipn-list-btn", 'pi pi-list' , "", "List View", () => { this.updateSearchResults("$list"); }),
             StyleGalleryDialog.DIVIDER,
         ]);
     }
