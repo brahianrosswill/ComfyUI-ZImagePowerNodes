@@ -501,7 +501,7 @@ class ZSamplerTurboAdvanced2(io.ComfyNode):
                                            sampler          = sampler,
                                            sigmas           = sigmas,
                                            noise_bias       = 0,
-                                           noise_amplitude  = 1.0 if method=="accurate" else 0.0,
+                                           noise_amplitude  = 1.0 if method=="accurate" else 0.1,
                                            progress_preview = ProgressPreview( steps,
                                                     parent=(progress_preview, 0, 100)),
                                            )
