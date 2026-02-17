@@ -117,54 +117,67 @@ class ZSamplerTurboAdvanced2(io.ComfyNode):
         elif isinstance(noise_bias_size, (int,float)):
             forced_size = int(noise_bias_size)
 
+
         # Sigmas are divided into 3 stages:
+        #
         #   Stages 1 and 2 combined function similarly to a standard denoising process,
         #   but with two key conditions:
         #     - stage 1 always has 2 steps and fixed sigmas, regardless of the total number of steps used.
-        #     - there's a jump in sigmas between stage 1 and stage 2, there's no continuity. I'm not sure
-        #       why it works, but after hundreds of tests where the final image consistently had better
+        #     - there's a jump-back in sigmas between stage 1 and stage 2, there's no continuity. I'm not
+        #       sure why it works, but after hundreds of tests where the final image consistently had better
         #       quality, I had to accept that this was a rule and it needed to be this way.
         #
         #   Once stages 1 and 2 are complete (acting as a standard denoising process), stage 3 begins.
         #   This is essentially a refining stage, where we go back with the sigmas, add the corresponding
         #   noise, and then do denoising from there.
         #
+        #   The transition from Stage 2 to Stage 3 can also be thought of as applying an "Euler-ancestral"
+        #   sampling method instead of the standard "Euler", but only for that single step between stages.
+        #
         if steps>=10:
-            sigmas1  = [0.991, 0.980, 0.920]
-            sigmas2  = [0.935, 0.90, 0.875, 0.750, 0.0000]
-            sigmas3  = [0.6582, 0.4556, 0.2000, 0.0000]
+            sigma0  = 1.000 #< used only to calculate the noise bias (optional first step)
+            sigmas1 = [0.991, 0.980, 0.920]                #< +2 steps
+            sigmas2 = [0.935, 0.90, 0.875, 0.750, 0.0000]  #< +4 steps
+            sigmas3 = [0.6582, 0.4556, 0.2000, 0.0000]     #< +3 steps
 
         elif steps==9:
-            sigmas1  = [0.991, 0.980, 0.920]
-            sigmas2  = [0.935, 0.90, 0.875, 0.750, 0.0000]
-            sigmas3  = [0.6582, 0.3019, 0.0000]
+            sigma0  = 1.000
+            sigmas1 = [0.991, 0.980, 0.920]
+            sigmas2 = [0.935, 0.90, 0.875, 0.750, 0.0000]
+            sigmas3 = [0.6582, 0.3019, 0.0000]
 
+        # these parameters configure the initial noise added to the latent space.
         elif steps==8:
-            sigmas1  = [0.991, 0.980, 0.920]
-            sigmas2  = [0.9350, 0.8916, 0.7600, 0.0000]  # [0.9350, 0.8916, 0.7895, 0.0000],
-            sigmas3  = [0.6582, 0.3019, 0.0000]
+            sigma0  = 1.000
+            sigmas1 = [0.991, 0.980, 0.920]
+            sigmas2 = [0.9350, 0.8916, 0.7600, 0.0000]  # alt [0.9350, 0.8916, 0.7895, 0.0000],
+            sigmas3 = [0.6582, 0.3019, 0.0000]
 
         elif steps==7:
+            sigma0  = 1.000
             sigmas1 = [0.991, 0.980, 0.920]
-            sigmas2 = [0.942, 0.780, 0.000]  # [0.935, 0.770, 0.000]
+            sigmas2 = [0.942, 0.780, 0.000]  # alt [0.935, 0.770, 0.000]
             sigmas3 = [0.6582, 0.3019, 0.0000]
 
         elif steps==6:
+            sigma0  = 1.000
             sigmas1 = [0.991, 0.980, 0.920]
             sigmas2 = [0.942, 0.780, 0.000]
             sigmas3 = [0.6200, 0.0000]
 
         elif steps<=5:
-            sigmas1 = [0.991, 0.980, 0.920]
-            sigmas2 = [0.942, 0.000]
-            sigmas3 = [0.790, 0.000]
+            sigma0  = 1.000                   #< optional first step
+            sigmas1 = [0.991, 0.980, 0.920]   #< +2 steps
+            sigmas2 = [0.942, 0.000]          #< +1 steps
+            sigmas3 = [0.790, 0.000]          #< +1 steps
 
-        # these parameters configure the initial noise added to the latent space.
-        # vaguely speaking, these parameters can be thought of as modifiers
+
+        # these parameters tweak the bias and amplitude of the initial noise added
+        # to the latent space. vaguely speaking, they can be thought of as modifiers
         # influencing brightness and contrast/saturation of the final image.
-        # given that the first sigma value is always set to 0.991, these values
-        # play a role in supplementing low-frequency components that might be
-        # lacking in the early stages of image generation.
+        # given that the first sigma value is always set to "0.991", these values
+        # play a role in supplementing the very low-frequency component that might
+        # be lacking in the early stages of image generation.
         initial_noise_bias      = 0
         initial_noise_amplitude = 1+noise_overdose if noise_overdose>=0 else 1/(1-noise_overdose)
 
@@ -173,7 +186,7 @@ class ZSamplerTurboAdvanced2(io.ComfyNode):
         if noise_bias_scale != 0 and noise_bias_method != "none" and denoise >= 0.99:
             bias = cls.calculate_denoise_bias(latent_input, model, seed, positive, positive,
                                               sampler     = sampler,
-                                              sigmas      = [1.000, 0.991],
+                                              sigmas      = [sigma0, sigmas1[0]],
                                               method      = noise_bias_method,
                                               forced_size = forced_size,
                                               progress_preview = ProgressPreview( 100, parent=(progress,0,100//steps) ),
