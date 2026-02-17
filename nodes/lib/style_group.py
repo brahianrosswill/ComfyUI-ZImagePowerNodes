@@ -59,6 +59,7 @@ class Style:
         """Generates a slug from the style's name for use in URLs or file names."""
         name = self.name.strip().lower()
         name = name.replace(" ", "_")           #< spaces to underscores
+        name = name.replace("-", "_")           #< hyphens to underscores
         name = re.sub(r"['\"`]", "", name)      #< remove any quotes
         name = re.sub(r"[^a-z0-9_]", "x", name) #< any strange character will be converted to 'x'
         return name
