@@ -59,13 +59,14 @@ class ZSamplerTurbo2(io.ComfyNode):
                                       tooltip="The amount of denoising applied, lower values will maintain the structure of the initial image allowing for image to image sampling.",
                                      ),
                 io.Custom            ("ZIPN_DIVIDER").Input("divider"),
-                io.Combo.Input       ("noise_bias_method", default="experimental", options=["experimental", "accurate", "none"],
+                io.Combo.Input       ("initial_noise_tweaking", default="accurate", options=["experimental", "accurate", "off"],
                                       tooltip="Method used to calculate the bias in each channel of the initial noise. "
                                       "`experimental`: Denoises a blank latent image to calculate the bias. "
                                       "`accurate`: Denoises a random latent image to calculate the bias. "
-                                      "`none`: Uses a non-biased initial noise. (old method)",
+                                      #"`intensity`: No bias is applied, the noise is scaled. "
+                                      "`off`: Uses a non-biased initial noise. (old method)",
                                      ),
-                io.Boolean.Input     ("noise_bias_boost", default=False, label_on="fast", label_off="off",
+                io.Boolean.Input     ("initial_noise_optimization", default=False, label_on="on", label_off="off",
                                       tooltip="When enabled, it use a smaller latent image to calculate the bias, "
                                               "otherwise the full size of the input image is used. "
                                      ),
@@ -84,12 +85,12 @@ class ZSamplerTurbo2(io.ComfyNode):
                 seed             : int,
                 steps            : int,
                 denoise          : float,
-                noise_bias_method: str,
-                noise_bias_boost : bool,
+                initial_noise_tweaking: str,
+                initial_noise_optimization: bool,
                 **kwargs
                 ) -> io.NodeOutput:
 
-        if noise_bias_method == "experimental":
+        if initial_noise_tweaking == "experimental":
             return ZSamplerTurboAdvanced2.execute(
                 model             = model,
                 positive          = positive,
@@ -98,12 +99,11 @@ class ZSamplerTurbo2(io.ComfyNode):
                 steps             = steps,
                 denoise           = denoise,
                 noise_bias_method = "experimental",
-                noise_bias_size   = 256 if noise_bias_boost else None,
+                noise_bias_size   = 256 if initial_noise_optimization else None,
                 noise_bias_scale  = 0.11,
                 noise_overdose    = 0.34)
 
-
-        elif noise_bias_method == "accurate":
+        elif initial_noise_tweaking == "accurate":
             return ZSamplerTurboAdvanced2.execute(
                 model             = model,
                 positive          = positive,
@@ -112,11 +112,24 @@ class ZSamplerTurbo2(io.ComfyNode):
                 steps             = steps,
                 denoise           = denoise,
                 noise_bias_method = "accurate",
-                noise_bias_size   = 256 if noise_bias_boost else None,
+                noise_bias_size   = 256 if initial_noise_optimization else None,
                 noise_bias_scale  = 0.06,
                 noise_overdose    = 0.34)
 
-        elif noise_bias_method == "none":
+        # elif initial_noise_tweaking == "intensity":
+        #     return ZSamplerTurboAdvanced2.execute(
+        #         model             = model,
+        #         positive          = positive,
+        #         latent_input      = latent_input,
+        #         seed              = seed,
+        #         steps             = steps,
+        #         denoise           = denoise,
+        #         noise_bias_method = "experimental",
+        #         noise_bias_size   = 256 if initial_noise_optimization else None,
+        #         noise_bias_scale  = 0.00,
+        #         noise_overdose    = 0.34)
+
+        elif initial_noise_tweaking == "off":
             return ZSamplerTurboAdvanced2.execute(
                 model             = model,
                 positive          = positive,
@@ -125,10 +138,10 @@ class ZSamplerTurbo2(io.ComfyNode):
                 steps             = steps,
                 denoise           = denoise,
                 noise_bias_method = "none",
-                noise_bias_size   = 256 if noise_bias_boost else None,
+                noise_bias_size   = 256 if initial_noise_optimization else None,
                 noise_bias_scale  = 0.00,
                 noise_overdose    = 0.00)
 
         else:
-            raise Exception(f"Unknown noise bias method: {noise_bias_method}")
+            raise Exception(f"Unknown noise tweaking method: {initial_noise_tweaking}")
 
