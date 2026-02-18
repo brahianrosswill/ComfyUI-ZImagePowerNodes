@@ -66,8 +66,10 @@ class ZSamplerTurboAdvanced(io.ComfyNode):
                                       tooltip="The amount of denoising applied, lower values will maintain the structure of the initial image allowing for image to image sampling.",
                                      ),
                 io.Custom("ZIPN_DIVIDER").Input("divider"),
-                io.Float.Input       ("initial_noise_tweaking", default=0.00, min=0.00, max=1.00, step=0.05,
-                                      tooltip="The level of adjustment of the initial noise. (0 means no adjustment).",
+                io.Float.Input       ("initial_noise_calibration", default=0.00, min=0.00, max=1.00, step=0.05,
+                                      tooltip="The amount of adjustment applied to the initial noise (0 means no adjustment). "
+                                              "This typically enhances image contrast and saturation, "
+                                              "higher values increase these effects more significantly."
                                      ),
                 io.Combo.Input       ("noise_bias_estimation", default="experimental", options=["experimental", "accurate"],
                                       tooltip="Method used to estimate the bias in each channel of the initial noise. "
@@ -76,13 +78,16 @@ class ZSamplerTurboAdvanced(io.ComfyNode):
                                      ),
                 io.Combo.Input       ("noise_bias_sample_size", default="image_size", options=["image_size", "1024px", "512px", "256px"],
                                       tooltip="The size of the latent image used to calculate the bias. "
-                                              "The smaller the image size, the faster the calculation."
+                                              "The smaller the image size, the faster the calculation of the first step. "
                                      ),
                 io.Float.Input       ("noise_bias_scale", default=0.12, min=0.00, max=1.00, step=0.01,
-                                      tooltip="The level of automatic adjustament from the calculated noise bias to apply before the first denoising step. (0 means no automatic adjustment).",
+                                      tooltip="The level of adjustament from the calculated noise bias "
+                                              "to apply before the first denoising step. "
+                                              "(0.0 means no bias adjustment; 1.0 means using the calculated bias).",
                                      ),
                 io.Float.Input       ("noise_overdose", default=0.33, min=-1.00, max=1.00, step=0.01,
-                                      tooltip="The amount of overamplitude in the initial noise generation. (negative values will reduce the amplitude)."
+                                      tooltip="The amount of overamplitude in the initial noise generation. "
+                                              "(negative values will reduce the amplitude)."
                                      ),
             ],
             outputs=[
@@ -94,22 +99,22 @@ class ZSamplerTurboAdvanced(io.ComfyNode):
     @classmethod
     def execute(cls,
                 model,
-                positive              : list,
-                latent_input          : dict[str, Any],
-                seed                  : int,
-                steps                 : int,
-                denoise               : float,
-                initial_noise_tweaking: float,
-                noise_bias_estimation : str,
-                noise_bias_sample_size: str | int | None,
-                noise_bias_scale      : float,
-                noise_overdose        : float,
+                positive                 : list,
+                latent_input             : dict[str, Any],
+                seed                     : int,
+                steps                    : int,
+                denoise                  : float,
+                initial_noise_calibration: float,
+                noise_bias_estimation    : str,
+                noise_bias_sample_size   : str | int | None,
+                noise_bias_scale         : float,
+                noise_overdose           : float,
                 **kwargs
                 ) -> io.NodeOutput:
 
-        # tweaking level determines the amount of adjustment applied
-        noise_bias_scale *= initial_noise_tweaking
-        noise_overdose   *= initial_noise_tweaking
+        # calibration level determines the amount of adjustment applied
+        noise_bias_scale *= initial_noise_calibration
+        noise_overdose   *= initial_noise_calibration
 
         # the "accurate" estimation method has a more sensitive scale
         if noise_bias_estimation == "accurate":
@@ -182,7 +187,7 @@ class ZSamplerTurboAdvanced(io.ComfyNode):
         sigma0 = 1.000
 
 
-        # these parameters tweak the bias and amplitude of the initial noise added
+        # these parameters determine the bias and amplitude of the initial noise added
         # to the latent space. vaguely speaking, they can be thought of as modifiers
         # influencing brightness and contrast/saturation of the final image.
         # given that the first sigma value is always set to "0.991", these values

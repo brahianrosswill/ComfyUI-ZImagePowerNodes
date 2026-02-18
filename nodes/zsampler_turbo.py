@@ -59,12 +59,14 @@ class ZSamplerTurbo(io.ComfyNode):
                                       tooltip="The amount of denoising applied, lower values will maintain the structure of the initial image allowing for image to image sampling.",
                                      ),
                 io.Custom            ("ZIPN_DIVIDER").Input("divider"),
-                io.Combo.Input       ("initial_noise_tweaking", default="off", options=["off", "10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "100%"],
-                                      tooltip="Level of bias applied to the initial noise. ",
+                io.Combo.Input       ("initial_noise_calibration", default="off", options=["off", "10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "100%"],
+                                       tooltip="The amount of adjustment applied to the initial noise. "
+                                               "This typically enhances image contrast and saturation, "
+                                               "higher values increase these effects more significantly. "
                                      ),
-                io.Boolean.Input     ("initial_noise_optimization", default=False, label_on="on", label_off="off",
-                                      tooltip="When enabled, it use a smaller latent image to calculate the bias, "
-                                              "otherwise the full size of the input image is used. "
+                io.Boolean.Input     ("lowres_bias", default=False, label_on="yes", label_off="no",
+                                      tooltip="When enabled, it use a smaller latent image to calculate the initial noise bias, "
+                                              "accelerating the first step. Otherwise the full size of the input image is used. "
                                      ),
             ],
             outputs=[
@@ -81,8 +83,8 @@ class ZSamplerTurbo(io.ComfyNode):
                 seed        : int,
                 steps       : int,
                 denoise     : float,
-                initial_noise_tweaking    : str | float,
-                initial_noise_optimization: bool,
+                initial_noise_calibration: str | float,
+                lowres_bias              : bool,
                 **kwargs
                 ) -> io.NodeOutput:
 
@@ -91,22 +93,22 @@ class ZSamplerTurbo(io.ComfyNode):
         noise_bias_scale      = 0.12
         noise_overdose        = 0.33
 
-        # if the tweaking level is a string with percentage format, it's converted to float
-        if isinstance(initial_noise_tweaking, str):
-            initial_noise_tweaking = initial_noise_tweaking[:-1] if initial_noise_tweaking[-1] == "%" else "0"
-            initial_noise_tweaking = float(initial_noise_tweaking) / 100
+        # if the calibration level is a string with percentage format, it's converted to float
+        if isinstance(initial_noise_calibration, str):
+            initial_noise_calibration = initial_noise_calibration[:-1] if initial_noise_calibration[-1] == "%" else "0"
+            initial_noise_calibration = float(initial_noise_calibration) / 100
 
         # use the advanced node code to run the process
         return ZSamplerTurboAdvanced.execute(
-            model                  = model,
-            positive               = positive,
-            latent_input           = latent_input,
-            seed                   = seed,
-            steps                  = steps,
-            denoise                = denoise,
-            initial_noise_tweaking = initial_noise_tweaking,
-            noise_bias_estimation  = noise_bias_estimation,
-            noise_bias_sample_size = 256 if initial_noise_optimization else "image_size",
-            noise_bias_scale       = noise_bias_scale,
-            noise_overdose         = noise_overdose,
+            model                     = model,
+            positive                  = positive,
+            latent_input              = latent_input,
+            seed                      = seed,
+            steps                     = steps,
+            denoise                   = denoise,
+            initial_noise_calibration = initial_noise_calibration,
+            noise_bias_estimation     = noise_bias_estimation,
+            noise_bias_sample_size    = 256 if lowres_bias else "image_size",
+            noise_bias_scale          = noise_bias_scale,
+            noise_overdose            = noise_overdose,
             )
