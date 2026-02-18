@@ -102,7 +102,7 @@ class ZSamplerTurbo(io.ComfyNode):
             positive               = positive,
             latent_input           = latent_input,
             seed                   = seed,
-            steps                  = steps + 1,
+            steps                  = steps,
             denoise                = denoise,
             initial_noise_tweaking = initial_noise_tweaking,
             noise_bias_estimation  = noise_bias_estimation,

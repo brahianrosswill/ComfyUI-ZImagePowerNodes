@@ -59,7 +59,7 @@ class ZSamplerTurboAdvanced(io.ComfyNode):
                 io.Int.Input         ("seed", default=1, min=1, max=0xffffffffffffffff, control_after_generate=True,
                                       tooltip="The seed used for the random noise generator, ensuring the same result is produced with the same value.",
                                      ),
-                io.Int.Input         ("steps", default=9, min=5, max=10, step=1,
+                io.Int.Input         ("steps", default=8, min=4, max=9, step=1,
                                       tooltip="The number of iterations to be performed during the sampling process.",
                                      ),
                 io.Float.Input       ("denoise", default=1.0, min=0.00, max=1.00, step=0.01,
@@ -146,42 +146,40 @@ class ZSamplerTurboAdvanced(io.ComfyNode):
         #   The transition from Stage 2 to Stage 3 can also be thought of as applying an "Euler-ancestral"
         #   sampling method instead of the standard "Euler", but only for that single step between stages.
         #
-        if steps>=10:
-            sigma0  = 1.000 #< used only to calculate the noise bias (optional first step)
-            sigmas1 = [0.991, 0.980, 0.920]                #< +2 steps
-            sigmas2 = [0.935, 0.90, 0.875, 0.750, 0.0000]  #< +4 steps
-            sigmas3 = [0.6582, 0.4556, 0.2000, 0.0000]     #< +3 steps
+        if steps>=9:
+            sigmas1 = [0.991, 0.980, 0.920]                 #< +2 steps
+            sigmas2 = [0.935, 0.90, 0.875, 0.750, 0.0000]   #< +4 steps
+            sigmas3 = [0.6582, 0.4556, 0.2000, 0.0000]      #< +3 steps
 
-        elif steps==9:
-            sigma0  = 1.000
-            sigmas1 = [0.991, 0.980, 0.920]
-            sigmas2 = [0.935, 0.90, 0.875, 0.750, 0.0000]
-            sigmas3 = [0.6582, 0.3019, 0.0000]
-
-        # these parameters configure the initial noise added to the latent space.
         elif steps==8:
-            sigma0  = 1.000
-            sigmas1 = [0.991, 0.980, 0.920]
-            sigmas2 = [0.9350, 0.8916, 0.7600, 0.0000]  # alt [0.9350, 0.8916, 0.7895, 0.0000],
-            sigmas3 = [0.6582, 0.3019, 0.0000]
+            sigmas1 = [0.991, 0.980, 0.920]                 #< +2 steps
+            sigmas2 = [0.935, 0.90, 0.875, 0.750, 0.0000]   #< +4 steps
+            sigmas3 = [0.6582, 0.3019, 0.0000]              #< +2 steps
 
         elif steps==7:
-            sigma0  = 1.000
-            sigmas1 = [0.991, 0.980, 0.920]
-            sigmas2 = [0.942, 0.780, 0.000]  # alt [0.935, 0.770, 0.000]
-            sigmas3 = [0.6582, 0.3019, 0.0000]
+            sigmas1 = [0.991, 0.980, 0.920]                 #< +2 steps
+            sigmas2 = [0.9350, 0.8916, 0.7600, 0.0000]      #< +3 steps
+            sigmas3 = [0.6582, 0.3019, 0.0000]              #< +2 steps
 
         elif steps==6:
             sigma0  = 1.000
-            sigmas1 = [0.991, 0.980, 0.920]
-            sigmas2 = [0.942, 0.780, 0.000]
-            sigmas3 = [0.6200, 0.0000]
+            sigmas1 = [0.991, 0.980, 0.920]                 #< +2 steps
+            sigmas2 = [0.942, 0.780, 0.000]                 #< +2 steps
+            sigmas3 = [0.6582, 0.3019, 0.0000]              #< +2 steps
 
-        elif steps<=5:
-            sigma0  = 1.000                   #< optional first step
-            sigmas1 = [0.991, 0.980, 0.920]   #< +2 steps
-            sigmas2 = [0.942, 0.000]          #< +1 steps
-            sigmas3 = [0.790, 0.000]          #< +1 steps
+        elif steps==5:
+            sigmas1 = [0.991, 0.980, 0.920]                 #< +2 steps
+            sigmas2 = [0.942, 0.780, 0.000]                 #< +2 steps
+            sigmas3 = [0.6200, 0.0000]                      #< +1 step
+
+        elif steps<=4:
+            sigmas1 = [0.991, 0.980, 0.920]                 #< +2 steps
+            sigmas2 = [0.942, 0.000]                        #< +1 steps
+            sigmas3 = [0.790, 0.000]                        #< +1 steps
+
+        # sigma0 is used only for estimating the initial noise bias (optional first step)
+        # (denoising for that estimation step goes from sigma0 to sigmas1[0])
+        sigma0 = 1.000
 
 
         # these parameters tweak the bias and amplitude of the initial noise added
@@ -219,6 +217,20 @@ class ZSamplerTurboAdvanced(io.ComfyNode):
                                                       )
         return io.NodeOutput(latent_output)
 
+
+    #----------------------------------------------------------------------------
+    # Alternative 8/7-step sigma sequences discarded in the early stages of development
+    # if steps==8:
+    #     sigma0  = 1.000
+    #     sigmas1 = [0.991, 0.980, 0.920]
+    #     sigmas2 = [0.935, 0.8916, 0.7895, 0.000],
+    #     sigmas3 = [0.6582, 0.3019, 0.0000]
+    # if steps==7:
+    #     sigma0  = 1.000
+    #     sigmas1 = [0.991, 0.980, 0.920]
+    #     sigmas2 = [0.935, 0.770, 0.000]
+    #     sigmas3 = [0.6582, 0.3019, 0.0000]
+    #----------------------------------------------------------------------------
 
 
     #__ internal functions ________________________________
