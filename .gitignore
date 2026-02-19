@@ -28,6 +28,10 @@ venv/
 #
 node_modules/
 
+# Style Galery thumbnail generator
+#
+/styles/src
+/styles/samples_wf/*.png
 
 # User-specific files and folders
 #
