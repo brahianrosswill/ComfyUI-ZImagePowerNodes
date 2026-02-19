@@ -159,18 +159,19 @@ build_thumbnails() {
     done
 
     # report non-square images and exit if any are found
-    if (( ${#rectangular_images[@]} > 0 )); then
+    if [[ ${#rectangular_images[@]} -gt 0 ]]; then
         warning -1 "The following images are not squared:"
         for image in "${rectangular_images[@]}"; do
             print_relpath "$image" "${WORKFLOWS_DIR}"  " - @relpath"
         done
-        return 1
     fi
 
-    # at this point, all images are squared, proceed to build thumbnails
-    info "Building thumbnails... (this might take a while)"
-    mogrify -path "${THUMBNAILS_DIR}" -format jpg -resize 384x384 -quality 75% "${squared_images[@]}"
-    info "Done."
+    # build thumbnails of squared images
+    if [[ ${#squared_images[@]} -gt 0 ]]; then
+        info "Building ${#squared_images[@]} thumbnails... (this might take a while)"
+        mogrify -path "${THUMBNAILS_DIR}" -format jpg -resize 384x384 -quality 80% "${squared_images[@]}"
+        info "Done."
+    fi
 }
 
 
