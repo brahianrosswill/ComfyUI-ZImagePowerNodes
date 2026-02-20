@@ -58,12 +58,12 @@ class StyleStringInjector2(io.ComfyNode):
     #__ FUNCTION __________________________________________
     @classmethod
     def execute(cls, style: str, string: str, **kwargs) -> io.NodeOutput:
-        style_template = cls.predefined_style_template(style)
+        template = cls.predefined_style_template(style)
 
         # apply the style template to the prompt
         prompt = string
-        if style_template:
-            prompt = StyleGroup.apply_style_template(prompt, style_template, spicy_impact_booster=False)
+        if template:
+            prompt = StyleGroup.apply_style_template(prompt, template, spicy_impact_booster=False)
 
         return io.NodeOutput( prompt )
 
