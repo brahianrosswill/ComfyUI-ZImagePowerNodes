@@ -10,7 +10,7 @@ License : MIT
          ComfyUI nodes designed specifically for the "Z-Image" model.
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 """
-from ..nodes.lib.style_group  import StyleGroup
+from ..nodes.lib.style_group  import StyleGroup, STYLE_GROUP_NONE
 
 
 #============================== PHOTO STYLES ===============================#
@@ -679,7 +679,8 @@ _CustomStyles = """
 """
 
 
-PREDEFINED_STYLE_GROUPS = [
+PREDEFINED_STYLE_GROUPS : list[StyleGroup] = [
+    STYLE_GROUP_NONE,
     StyleGroup.from_string( _PhotoStyles       , category="photo"       , version="0.9.0" ),
     StyleGroup.from_string( _IllustrationStyles, category="illustration", version="0.9.0" ),
     StyleGroup.from_string( _WildStyles        , category="wild"        , version="0.9.0" ),

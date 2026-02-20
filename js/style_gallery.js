@@ -599,8 +599,9 @@ function createStyleGalleryButton( node, inputName ) {
         StyleGalleryDialog.launch(title, prevWidget.value, (style) =>
         {
             // ensure the style name is properly quoted
-            // before setting the combo widget's value
-            if( !style.startsWith('"') ) { style = `"${style}"`; }
+            if( style!="" && style!="-" && style!="none" ) {
+                if( !style.startsWith('"') ) { style = `"${style}"`; }
+            }
             prevWidget.value = style;
             prevWidget.callback(style);
             node?.setDirtyCanvas?.(true);
