@@ -110,8 +110,6 @@ class StylePromptEncoder2(io.ComfyNode):
     def style_names() -> list[str]:
         """Returns all available style names."""
         names = get_style_names( PREDEFINED_STYLE_GROUPS, quoted = True )
-        number_of_custom_styles=4
-        logger.info(f'"Style & Prompt Encoder" includes support for {len(names)-number_of_custom_styles-1} different styles.')
         return names
 
 
