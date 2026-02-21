@@ -239,10 +239,11 @@ class StyleGalleryDialog extends ComfyDialog {
 
     /**
      * Updates the selected style and displays its details in the dialog.
-     * @param {boolean} keyboard - If true, the selection is updated via keyboard navigation. Defaults to false.
-     * @param {boolean} force    - If true, updates the selection even if no change occurred. Defaults to false.
+     * @param {boolean|Object} shouldScroll - If true, scrolls to the selected style. Defaults to false.
+     *                                        Can also be an object containing the scrollIntoView options.
+     * @param {boolean}        force        - If true, updates the selection even if no change occurred. Defaults to false.
      */
-    updateSelection(keyboard=false, force=false) {
+    updateSelection(shouldScroll=false, force=false) {
         const newSelectionID = this.getSelectionID();
         const detailsID      = newSelectionID != null ? newSelectionID : this.initialCardID;
         if( !force && newSelectionID === this.oldSelectionID ) { return; }
@@ -253,12 +254,12 @@ class StyleGalleryDialog extends ComfyDialog {
 
         this.oldSelectionID = newSelectionID;
 
-        // activate the card with the new style
+        // activate the card with the new style and optionally scroll to it
         const newCardEl = newSelectionID != null ? this.element.querySelector(`#zipn-style-${newSelectionID}`) : null;
         if( newCardEl ) { newCardEl.classList.add('active'); }
-        if( newCardEl && keyboard ) {
-            // if the event that caused the update is a keyboard event, scroll to element
-            newCardEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        if( newCardEl && shouldScroll ) {
+            let options = typeof shouldScroll === "object" ? shouldScroll : { behavior: 'smooth', block: 'nearest' };
+            newCardEl.scrollIntoView(options);
         }
 
         // update details pane
@@ -290,6 +291,7 @@ class StyleGalleryDialog extends ComfyDialog {
      *     '>' followed by a text to filter styles by name (empty string for no filtering)
      */
     updateSearchResults(command) {
+        let shouldScroll = false;
 
         // if the command starts with "$", change the view mode
         if( command.startsWith('$') ) {
@@ -298,6 +300,7 @@ class StyleGalleryDialog extends ComfyDialog {
             this.viewMode = viewMode;
             this.resultColumns = (viewMode=="grid" ? 4 : 1);
             this.updateToolbarButtons();
+            shouldScroll = { behavior: 'instant', block: 'center' };
         }
 
         // if the command starts with "@", change the category filter
@@ -306,6 +309,7 @@ class StyleGalleryDialog extends ComfyDialog {
             if( categoryFilter == this.categoryFilter ) { return; }
             this.categoryFilter = categoryFilter;
             this.updateToolbarButtons();
+            this.resultIndex = null;
         }
 
         // if the command starts with ">", change the text filter
@@ -313,6 +317,8 @@ class StyleGalleryDialog extends ComfyDialog {
             const textFilter = command.substring(1);
             if( textFilter == this.textFilter ) { return; }
             this.textFilter = textFilter;
+            if( this.textFilter  ) { this.resultIndex = 0;    }
+            else                   { this.resultIndex = null; }
         }
 
         // cache buster used to force re-fetching of images from cache each hour
@@ -322,9 +328,11 @@ class StyleGalleryDialog extends ComfyDialog {
         this.resultStyles = StyleGalleryDialog.applyFilter( this.stylesByID, this.textFilter, this.categoryFilter );
         StyleGalleryDialog.renderResults( this.searchResultsEl, this.viewMode, this.resultStyles, this.initialCardID, this.cacheBuster );
 
-        if( this.textFilter ) { this.resultIndex = 0;    }
-        else                  { this.resultIndex = null; }
-        this.updateSelection(false,true);
+        // disable focus if there are no results
+        if( this.resultStyles.length == 0 ) { this.resultIndex = null; }
+
+        // update the visual aspect of the card shown as active
+        this.updateSelection(shouldScroll,true);
     }
 
     /**
