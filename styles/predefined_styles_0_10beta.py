@@ -33,10 +33,49 @@ YOUR PHOTO:
 {$@}
 
 
->>>Vintage Photo
+>>>Family Album Photo
 YOUR CONTEXT:
-You are an 80s photographer who enjoys informal shots.
-Your worn vintage photographs exhibit {$spicy-content-with} a minimalist, amateurish composition, warm desaturated tones and a soft focus that creates a cozy atmosphere.
+You are documenting life with a simple point-and-shoot camera. The photos are unpretentious and focus on capturing the moment.
+Your photographs exhibit {$spicy-content-with} a slightly washed-out color palette, a hint of grain, and a casual, unposed aesthetic.  The composition is straightforward, prioritizing clarity over artistic flair.  People are dressed in everyday clothes, and their expressions are natural and unforced.  The image feels like a quick snapshot taken to preserve a memory.  There's a subtle sense of time passing, as if the photo could have been taken any year in the last few decades.
+YOUR PHOTO:
+{$@}
+
+
+>>>Low Quality Photo
+YOUR CONTEXT:
+You are a disposable camera enthusiast, documenting everyday life with a deliberately lo-fi aesthetic.
+Your photographs are characterized by the limitations of cheap camera technology, exaggerated for effect: very soft focus, strong color inaccuracies, and heavy grain. The lighting is often harsh and uneven, resulting in significant blown-out highlights and crushed shadows. 
+Colors are vibrantly saturated, but inaccurate - think overly bright, clashing hues and unnatural skin tones. The image is often noticeably blurry or out of focus, and frequently exhibits light leaks, dust spots, and other imperfections.
+The composition is casual and often poorly framed, capturing fleeting moments with a sense of raw, unpolished immediacy. Expect imperfections and a generally cheap, amateur look.
+YOUR PHOTO:
+{$@}
+
+
+>>>High Quality Photo
+YOUR CONTEXT:
+You are a portrait photographer known for your direct and uncompromising style.
+Your photographs are characterized by the unique lighting of an intense flash that creates a sharp and distinctive reflection, with clean and even illumination. The colors are vibrant, with pronounced reds, greens, and blues, as the image is highly saturated.
+The focus is on capturing the subject as they are. The shadows are sharp but not harsh, and the overall contrast is balanced.
+YOUR PHOTO:
+{$@}
+
+
+>>>Landscape Photo
+YOUR CONTEXT:
+A stunning wide-angle photograph of a vast landscape. The scene was captured from a low vantage point, emphasizing the scale and grandeur of the surroundings. The composition uses leading lines to draw the viewer's eye into the distance. The lighting is dramatic, with intense shadows and highlights.
+THE LANDSCAPE:
+A panoramic view of distant landscapes dominating the horizon. Details are visible, but the atmospheric perspective softens them, creating a sense of depth and scale.
+LANDSCAPE DETAILS:
+{$@}
+THE ATMOSPHERE:
+A clear and crisp atmosphere with a subtle haze in the distance.
+
+
+>>>Vivid Daylight Photo
+YOUR CONTEXT:
+You are a travel photographer documenting remote and evocative landscapes with the rich, saturated look of slide film.
+Your images capture the energy and beauty of the moment, but also hint at a deeper history and a sense of mystery. The lighting is bright daylight, emphasizing the vivid hues of the environment, but with subtle atmospheric effects.
+The foreground is sharply focused, revealing intricate details, while the background dissolves into a gentle, atmospheric haze, suggesting vast distances and hidden depths. Subtle rays of light or atmospheric effects hint at a hidden energy or ancient power. Skin tones are realistic and warm, reflecting the natural light. A subtle film grain and gentle halation add a touch of authenticity and nostalgia.
 YOUR PHOTO:
 {$@}
 
@@ -46,6 +85,23 @@ YOUR CONTEXT:
 You are a photographer who appreciates the classic aesthetic of Kodak Portra film.
 Your photograph emulates that look, known for its soft colors, fine grain, and natural skin tones. The image features {$spicy-content-with} a subtle warmth, with a focus on accurate color rendition and a gentle, diffused glow. Highlights are smooth and creamy, while shadows retain detail. Minimal post-processing is applied to preserve the organic, film-like quality.
 YOUR PHOTOGRAPH:
+{$@}
+
+
+>>>Vibrant Analog Photo
+YOUR CONTEXT:
+You are a travel photographer documenting vibrant cultures and landscapes with the rich, saturated look of slide film.
+Your images are bursting with color, capturing the energy and excitement of the moment. The lighting is bright daylight, emphasizing the vivid hues of the environment.
+A subtle film grain and gentle halation add a touch of authenticity and nostalgia. Skin tones are realistic and warm, reflecting the natural light.
+YOUR PHOTO:
+{$@}
+
+
+>>>Vintage Photo
+YOUR CONTEXT:
+You are an 80s photographer who enjoys informal shots.
+Your worn vintage photographs exhibit {$spicy-content-with} a minimalist, amateurish composition, warm desaturated tones and a soft focus that creates a cozy atmosphere.
+YOUR PHOTO:
 {$@}
 
 
@@ -85,6 +141,43 @@ YOUR PHOTO:
 {$@}
 
 
+>>>High Key Cinematic Portrait
+YOUR CONTEXT:
+You are a film still photographer, capturing intimate portraits with a cinematic quality.
+Your images evoke a sense of narrative and emotional depth with a vibrant color palette. The lighting is a soft, diffused, and expansive light source, enveloping the face in a gentle glow and minimizing harsh shadows.
+The background is a bright, clean, and uncluttered white or very light neutral tone, creating a sense of spaciousness and serenity. The focus is razor-sharp on the eyes, drawing the viewer into the subject's inner world, while the rest of the face and background are softly blurred. Skin texture is rendered with a high degree of realism, showcasing pores and subtle details, with a focus on a healthy, radiant complexion and richly colored undertones. The overall mood is serene and contemplative.
+YOUR PHOTO:
+{$@}
+
+
+>>>Low Key Cinematic Portrait
+YOUR CONTEXT:
+You are a film still photographer, capturing intimate portraits with a cinematic quality.
+Your images evoke a sense of narrative and emotional depth, leaning towards a darker, more mysterious tone. The lighting is a dramatic, single-source side light, sculpting the face with deep, enveloping shadows and carefully placed highlights.
+The background is almost entirely dark, a void that isolates the subject and amplifies the sense of intimacy. The focus is razor-sharp on the eyes, drawing the viewer into the subject's inner world, while the rest of the face and background are softly blurred. Skin texture is rendered with a high degree of realism, showcasing pores and subtle details, but without excessive brightness. The overall mood is melancholic, introspective, and subtly haunting.
+YOUR PHOTO:
+{$@}
+
+
+>>>Sun-Kissed 35mm
+YOUR CONTEXT:
+You are a portrait photographer who loves the warmth and softness of golden hour light, emulating the look of classic 35mm film.
+Your photographs are bathed in a gentle, diffused light source from the viewer's left, creating soft shadows and a warm glow. The image has a subtle film grain and a delicate halation around highlights, adding to the dreamy atmosphere.
+Skin tones are natural and radiant, with a focus on capturing the subject's natural beauty. The composition is simple and uncluttered, allowing the subject to shine.
+YOUR PHOTO:
+{$@}
+
+
+>>>Dramatic Dark Lighting
+YOUR CONTEXT:
+You are a photographer creating images with a cinematic and atmospheric feel, specializing in silhouettes and dramatic lighting.
+Your photographs utilize a powerful rim light from directly behind the subject, creating a bright, almost ethereal halo effect and emphasizing their outline. The subject is intentionally underexposed, appearing as a dark, mysterious form against a deeply shadowed background - almost a shadow puppet.
+The background is deeply shadowed, almost black, enhancing the sense of depth and isolation. A very soft, diffused key light gently illuminates just enough of the face to hint at features and reveal natural skin texture, but without brightening the subject significantly.
+The eyes are sharply in focus, drawing the viewer in, and are often the brightest part of the subject, creating a compelling focal point. The background is softly blurred to create a sense of depth and separation. The overall mood is mysterious, evocative, and slightly melancholic, with a strong emphasis on form and silhouette. Think film noir.
+YOUR PHOTO:
+{$@}
+
+
 >>>Noir Photo
 YOUR CONTEXT:
 You are a cinematographer who works in dark movies.
@@ -106,6 +199,15 @@ YOUR PHOTOGRAPHY:
 YOUR CONTEXT:
 You are an adventurous experimental photographer exploring the world through a lomographic lens.
 Your photographs exhibit {$spicy-content-with} film grain, colorful lens flares, soft focus with motion blur, and analog filter effects, trying to capture emotions.
+YOUR PHOTO:
+{$@}
+
+
+>>>Underwater Photo
+YOUR CONTEXT:
+You are a documentary photographer capturing authentic moments beneath the surface.
+Your images prioritize realism and believability, focusing on natural light filtering through the water and the subtle movement of marine life. The water is clear, but not sterile, with visible particulate matter creating a sense of depth and atmosphere.
+Light beams and caustics dance across the scene, illuminating details and adding a dynamic quality. Colors are natural and muted, reflecting the underwater environment. The overall mood is grounded and immersive, inviting the viewer to experience the underwater world as it truly is.
 YOUR PHOTO:
 {$@}
 
@@ -163,12 +265,30 @@ YOUR PHOTO:
 {$@}
 
 
+>>>Grayscale with Red Accent
+YOUR CONTEXT:
+You are a photographer documenting evocative subjects with a striking, unconventional aesthetic. You capture the energy and beauty of the moment, but infuse it with a sense of mystery and dramatic tension.
+Your images exhibit a predominantly grayscale palette, emphasizing the textures and forms of the subject. Deep, saturated reds are used selectively to highlight key elements, e.g: a focal point, a detail, a fleeting moment of light. Creating focal points of intense emotion and visual contrast. The lighting is bright, but filtered through a dramatic atmosphere, casting long shadows and emphasizing the starkness of the scene.
+The foreground is sharply focused, revealing intricate details, while the background dissolves into a gentle, atmospheric haze, suggesting depth and hidden layers. Subtle rays of light or atmospheric effects hint at a hidden energy or underlying narrative. A subtle film grain and gentle halation add a touch of authenticity and nostalgia. Subjects, if present, are rendered in grayscale, with the exception of a single, striking red element.
+YOUR PHOTO:
+{$@}
+
+
+>>>Top-Tier Magazine Photo
+YOUR CONTEXT:
+You are a prominent fashion photographer and have worked for top-tier magazines. Your work is characterized by impeccable detail, striking lighting, and a sophisticated aesthetic. Your images showcase intricate textures in clothing, realistic and detailed skin, and captivating eye contact. The lighting combines hard and soft sources to create depth and drama. The colors are rich and vibrant, aiming to enhance the atmosphere and reflect the designer's vision. The composition is dynamic and visually impactful, often employing unconventional angles and framing. The overall feel is ambitious, glamorous, and undeniably chic.
+YOUR PHOTOGRAPH:
+<!--
+{$@}
+-->
+
+
 >>>High-Key Fashion Photo
 YOUR CONTEXT:
 You are a fashion photographer who creates ultra-bright photos for luxury productions.
 Your photograph showcases {$spicy-content-with} a high-key composition shot flooded with soft studio lighting. The exposure is over-lit with white background, eliminating shadows and delivering a crisp, polished look. Colors are saturated yet controlled (vivid reds, cobalt blues, and crisp whites) while the photo has immaculate details thanks to high-resolution capture and minimal post-processing to maintain the airy, glamorous aesthetic.
 YOUR PHOTOGRAPH:
-{$@} 
+{$@}
 
 
 >>>Light and Airy Photo
@@ -179,10 +299,30 @@ YOUR PHOTOGRAPH:
 {$@}
 
 
+>>>Nostalgic Warm Photo
+YOUR CONTEXT:
+You are a seasoned photographer creating images with a soft, vintage aesthetic reminiscent of 1970-80 film photography.
+The photos display warm, slightly amber tones, gentle buttery highlights, and muted shadows, giving the scene a nostalgic, timeless feel.
+Lighting is natural and diffused-golden-hour sunlight, overcast daylight, or window light filtered through sheer curtains-producing smooth, even illumination without harsh edges.
+Exposure is balanced to preserve detail in both highlights and shadows, resulting in a moderate contrast curve that feels "film-like".
+A subtle haze or soft-focus effect adds a dreamy, painterly quality, while fine grain (similar to 400 ISO film) provides texture without distracting from the subject.
+Overall, the image looks intimate, elegant, and evocative, as if lifted from a cherished family album or a vintage lifestyle magazine.
+YOUR PHOTO:
+{$@}
+
+
 >>>Teal and Orange Photo
 YOUR CONTEXT:
 You are a color specialist photographer.
 Your photograph showcases {$spicy-content-with} a satured teal and orange colors. The image features cool teal tones in the shadows and highlights, balanced by warm orange tones in the midtones and skin tones, creating a vibrant photography with high contrast and vivid colors.
+YOUR PHOTOGRAPH:
+{$@}
+
+
+>>>Ochre & Shadows Photo
+YOUR CONTEXT:
+You are a photographer specializing in dramatic portraits with a vintage feel. Your signature style features strong contrasts and the interplay of light and shadow.
+Your photographs exhibit {$spicy-content-with} a single, strong light source illuminating one side of the subject's face, while the other side remains in deep shadow. The background is a warm ochre tone, dramatically overlaid with stark, high-contrast shadows resembling those cast by closed Venetian blinds. These shadows create a pattern of dark stripes across the background, adding a sense of mystery and confinement. The overall effect is nostalgic and evocative, emphasizing the subject's expression and inner world.
 YOUR PHOTOGRAPH:
 {$@}
 
@@ -209,6 +349,26 @@ YOUR CONTEXT:
 You are an editorial fashion photographer specializing in the Old Money aesthetic. 
 Your photograph showcases {$spicy-content-with} a sophisticated, clean composition using natural, soft morning light. The color palette is muted and neutral, focusing on beige, cream, navy blue, and forest green. The scene feels expensive and timeless, set in a luxury location. 
 YOUR PHOTOGRAPH:
+{$@}
+
+
+>>>Daylight Paparazzi
+YOUR CONTEXT:
+You are a photojournalist specializing in candid street photography, often working from a distance with a telephoto lens.
+Your photographs are characterized by a compressed perspective, a shallow depth of field, and a sense of voyeurism. The subject is often unaware of being photographed, caught in a natural moment.
+The composition frequently includes foreground elements - trees, cars, people - that partially obscure the view, creating a sense of being hidden or observing from afar. Expect a focus on capturing authentic expressions and interactions, even if slightly blurry due to the distance. The overall feeling is one of observation and discreet documentation.
+YOUR PHOTO:
+<!--
+{$@}
+-->
+
+
+>>>Nightlife Paparazzi
+YOUR CONTEXT:
+You are a paparazzi photographer specializing in nighttime shots of celebrities.
+Your photographs are characterized by the harsh, direct flash, combined with a grainy, high-ISO aesthetic. The background is often blurred and indistinct, emphasizing the subject.
+The composition is often chaotic and dynamic, reflecting the frenetic energy of the scene. Expect red-eye, blown-out highlights, and a sense of intrusion.
+YOUR PHOTO:
 {$@}
 
 
@@ -250,6 +410,23 @@ Composition follows the "rule of thirds" or centered framing, with plenty of neg
 Overall, the photograph feels fresh, stylish, and emotionally uplifting, ready to capture attention at a glance.
 YOUR PHOTO:
 {$@}
+
+
+>>>Theatrical Illusion
+YOUR CONTEXT:
+You are a set designer creating a theatrical scene to visual impact.
+Your photographs exhibit {$spicy-content-with} an aesthetically pleasing artificial environment. The lighting is dramatic and carefully orchestrated, with strong contrasts and a focus on creating mood.  Elements are deliberately exaggerated. There's a sense of constructed beauty, as if the scene exists solely for the viewer's gaze. Subtle effects like mist or smoke enhance the dreamlike quality. The overall impression is one of a meticulously crafted illusion, a stage set brought to life.
+YOUR PHOTO:
+{$@}
+
+
+>>>Exposed Film Set
+YOUR CONTEXT:
+You are a photographer documenting a film set in the midst of production. Your work embraces a deliberately unfinished and revealing aesthetic. Painted backgrounds are visible, with intentionally rough or incomplete areas. Lighting rigs and studio equipment are partially in frame. Props are clearly artificial, revealing their construction and imperfections. Along the right edge, the set boundary opens up to reveal the film crew and equipment against a black backdrop. The scene feels exposed, as if the audience has wandered onto the set during a take. The overall effect is a playful deconstruction of the filmmaking illusion, revealing the process behind the magic.
+YOUR PHOTO:
+<!--
+{$@}
+-->
 
 
 >>>Street Documentary Photo
