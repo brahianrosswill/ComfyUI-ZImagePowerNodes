@@ -33,6 +33,14 @@ YOUR PHOTO:
 {$@}
 
 
+>>>Selfie
+YOUR CONTEXT:
+The subject takes a selfie with their limb outstretched. The selfie has android phone cam-quality.
+The selfie features a slightly tilted, close-up composition, sharp and complex backgrounds, and a spontaneous moment that feels immediate and authentic. Subtle film grain and a soft halo add a touch of authenticity and nostalgia. Skin tones are realistic and warm, reflecting natural light.
+THE SELFIE:
+{$@}
+
+
 >>>Family Album Photo
 YOUR CONTEXT:
 You are documenting life with a simple point-and-shoot camera. The photos are unpretentious and focus on capturing the moment.
@@ -209,6 +217,18 @@ YOUR PHOTOGRAPHY:
 {$@}
 
 
+>>>Nostalgic Golden Hour
+YOUR CONTEXT:
+You are a cinematographer and photographer who recreates the visual language of Steven Spielberg's dramatic adventure films from the 1980s.
+The image has a cinematic feel. The lighting is natural sunset, creating a warm, honey-toned glow that gently envelops the subjects in a rim of light.
+Lens flares are present: circular glows that follow the direction of the light source, adding a sense of wonder and depth.
+The colors are rich but slightly muted; the primary tones (red, blue, green) retain their saturation, while the midtones have a warm, slightly desaturated hue reminiscent of films from that era. The contrast is high, preserving detail in the shadows and allowing the highlights to stand out with characteristic cinematic shading.
+Finally, the organic grain adds texture, reinforcing the analog feel. The composition follows classic Spielberg motifs: the foreground interest (a character, an object, or a landscape element) draws the eye to a dynamic medium shot, with a deep, expansive background that hints at adventure or mystery.
+The overall atmosphere is heroic, and slightly nostalgic, as if the viewer were watching a still from an iconic 80s adventure saga.
+YOUR PHOTO:
+{$@}
+
+
 >>>Lomography
 YOUR CONTEXT:
 You are an adventurous experimental photographer exploring the world through a lomographic lens.
@@ -295,6 +315,17 @@ A faint pattern of horizontal scan lines is visible.
 The lighting is flat and uniform, typical of fluorescent or ambient streetlights, with minimal shadows.
 The image is taken from a high angle with fisheye distortion; the image is out of focus, and the main subjects appear small and distant, completely unsuspecting.
 A big timestamp appears in the upper right corner, using a simple monospaced numeric font. Overall, the image conveys an impersonal, clinical observation.
+YOUR PHOTO:
+{$@}
+
+
+>>>Modern Pin-Up photo
+YOUR CONTEXT:
+You are a photographer specializing in pin-up aesthetics.
+Your photo is modern, cutting-edge, but with a subtle style that evokes the sexy and glamorous look of pin-up.
+Your photo was taken in a studio, but it still captures a spontaneous moment that feels immediate and authentic. Subtle film grain and a soft halo add a touch of authenticity and nostalgia. Skin tones are realistic and warm, reflecting natural light.
+The colors are vibrant yet warm (intense reds, greenish blues, pastel pinks, and buttery yellows). The background, on the other hand, is desaturated to keep the focus on the subject.
+The composition has slightly off-center poses, daring angles, and suggestive postures.
 YOUR PHOTO:
 {$@}
 
@@ -1255,14 +1286,6 @@ INSIDE ARTWORK ON THE FRONT OF THE POSTCARD:
 -->
 OUTSIDE ARTWORK:
 A flat, highly detailed photograph of the postcard on a textured linen surface. The postcard's border is embossed, and a handwritten address line (blurred for privacy) is visible. Soft natural light from a nearby window creates gentle shadows that accentuate the nostalgic feel.
-
-
->>>Kawaii Pop Photo
-YOUR CONTEXT:
-You are a fashion photographer specializing in the bright, playful aesthetic of Kawaii Pop.
-Your photograph showcases {$spicy-content-with} a high-key composition flooded with vibrant, saturated colors. The exposure is bright and cheerful, with a focus on pastel pinks, electric blues, and sunny yellows. Scene is styled in over-the-top Kawaii fashion with playful poses. The background is simple and colorful, with elements like balloons, confetti, or cartoonish graphics. 
-YOUR PHOTOGRAPHY:
-{$@}
 
 """
 
