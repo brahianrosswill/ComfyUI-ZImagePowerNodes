@@ -515,6 +515,19 @@ YOUR ILLUSTRATION:
 {$@}
 
 
+>>>Intense Pop Illustration
+YOUR CONTEXT:
+A vibrant, slightly imperfect illustration reproduced using a stencil printing process, resulting in vivid, flat colors, visible registration errors, and a unique texture. It also features a limited color palette and a slightly grainy appearance.
+LAYERS AND COLORS:
+The image is built from layers of color with a limited palette of reds, blues, yellows, and blacks. The colors overlap and blend unexpectedly due to misregistration.
+THE ILLUSTRATION:
+{$@}
+TEXTURE AND IMPERFECTIONS:
+A grainy texture with small dots, smudges, and variations in ink density contributes to the handcrafted feel.
+THE OVERALL FEEL:
+A raw, energetic, and slightly retro aesthetic. The image feels handmade, expressive, and full of character. Think fanzines, concert posters, and independent art prints.
+
+
 >>>Pop-Art
 YOUR CONTEXT:
 You are a bold artist.
@@ -556,6 +569,22 @@ YOUR ILLUSTRATION:
 
 
 >>>Anime
+The illustration has the following characteristics:
+Dynamic Composition: Iconic, atmospheric layouts emphasizing scale & world-building. Uses verticality/triangular hierarchies, focusing on impactful stillness & dramatic perspective, e.g: extreme high/low angles.
+Precise Inking: Sharp, digitally precise line art with variable weights for depth. Thick outlines define forms, ultra-fine lines detail interiors, & lines subtly shift/blend for light effects.
+Stylized Anatomy: Proportions adhere to series character designs (shōnen/seinen). Prioritizes instantly recognizable silhouettes with graceful, defined forms emphasizing agility.
+High Detail Rendering: Technical detail exceeding animation standards. Flawless character skin contrasts with intricately rendered hardware/environments – layered hair, jewel-like eyes with complex reflections.
+Advanced Shading: Multi-tone shading with ambient occlusion & rim lighting. Volumetric light creating depth in a 2D space, e.g: sunbeams, flares, particles. 
+Narrative Layout: Thematic, vertical layouts with balanced composition. Uses negative space to guide the eye & character positioning to convey relationships/story.
+Soulful Expression: Introspective acting focused on subtle emotion in eyes & hands. Avoids exaggeration, favoring still compositions conveying themes like longing or resolve.
+Vibrant Color & Texture: Detailed skin texture with intricate shadows. Enhanced with cinematic effects, e.g: aberration, grain, bloom, motion blur.
+THE ILUSTRATION:
+<!--
+{$@}
+-->
+
+
+>>>Dark Anime
 YOUR CONTEXT:
 You are a Japanese anime artist.
 Your Japanese animation includes {$spicy-content-with} an ominous atmosphere, clean lines, and dramatic facial expressions. The artwork uses cool and dark tones along with dramatic lighting and shadows that emphasize the central figure and create a somber, intense mood.
@@ -592,6 +621,23 @@ YOUR ILLUSTRATION:
 {$@}
 
 
+>>>Simple Toon
+The illustration has the following characteristics:
+Bold, thick outlines define shapes with a strong cartoon aesthetic.  Stylized anatomy with exaggerated proportions (large heads, rounded bodies). Minimal detail, focusing on essential outlines and simple props.  Shading is achieved with uniform diagonal lines.  Expressive characters with exaggerated facial features (big eyes, lively eyebrows) and concise body language.  Flat, saturated colors with smooth surfaces.  Emphasis on dynamic composition and clear visual flow.
+THE ILUSTRATION:
+<!--
+{$@}
+-->
+
+
+>>>Joyful Cartoon Illustration
+YOUR CONTEXT:
+You are a painter creating a humorous artwork inspired by the vibrant and expressive style of Pixar animation. Your paintings are full of exaggerated features, dynamic poses, and playful details.
+Your paintings exhibit {$spicy-content-with} bright, saturated colors, soft lighting, and a sense of depth and dimension. Characters are expressive and emotive, with exaggerated facial features and body language. The composition is dynamic and engaging, with a focus on storytelling and visual humor. The overall aesthetic is cheerful, whimsical, and full of energy.
+YOUR PAINTING:
+{$@}
+
+
 >>>Dark Comic Illustration
 YOUR CONTEXT:
 You are a master of hard-boiled noir graphic novels, specializing in themes of vengeance and the urban underworld. 
@@ -615,6 +661,20 @@ YOUR IMAGE:
 {$@}
 
 
+>>>Neon Rampage Illustration
+Your illustration has the following characteristics:
+- Explosive composition with wild angles.
+- Dynamic lines with irregular, overlapping strokes of varying thickness.
+- Distorted anatomy with absurd proportions, e.g: elongated limbs, impossible contortions.
+- Neon lighting with saturated colored light sources and shadows in blocks of solid color.
+- Extreme expressiveness with exaggerated facial expressions.
+- Vibrant palette that includes a combination of primary colors with fluorescent tones and black/white contrasts.
+YOUR ILLUSTRATION:
+<!--
+{$@}
+-->
+
+
 >>>Ink Frenzy
 YOUR CONTEXT:
 You are an underground street-art comic illustrator.
@@ -636,6 +696,54 @@ YOUR CONTEXT:
 You are an illustrator of dark and disturbing themes.
 Your illustration includes {$spicy-content-with} stippling textures, dramatic raking side lighting, and a dread-filled atmosphere that is oppressive and claustrophobic. High contrast emphasizes form and shadow, employing cinematic chiaroscuro for depth.
 YOUR DRAWING:
+{$@}
+
+
+>>>Digital Engraving
+YOUR CONTEXT:
+You are a graphic designer and printmaker, celebrated for crafting traditional engravings.
+ILLUSTRATION BACKGROUND:
+A minimal, iconographic background. Simple shapes and flat colors, suggesting a location or environment without distracting from the main subject.
+YOUR ILLUSTRATION:
+Your illustration features {$spicy-content-with} a striking monochrome art style, characterized by bold, crisp black outlines and intricate stippling or halftone dot patterns that provide nuanced shading and texture. The aesthetic evokes the meticulous detail of a linocut or woodcut, rendered in high-contrast black and white. Faces, if present, are rendered with a degree of realistic detail, balancing the graphic style with recognizable human features. The composition is impactful, designed for immediate recognition and a timeless, graphic appeal. Significant areas of white space are incorporated to emphasize the design and create a sense of elegance and clarity. The foreground is highly detailed and textured.
+YOUR ILLUSTRATION:
+{$@}
+
+
+>>>Digital Risograph
+YOUR CONTEXT:
+You are an underground indie press printer.
+Your illustration is a tactile Risograph-style print, featuring {$spicy-content-with} vibrant fluorescent ink and a heavy grainy texture. It uses a punchy palette of neon pink, intense yellow, and deep teal.
+YOUR MULTI SUBJECT PRINT:
+{$@}
+
+
+>>>Surreal Illustration
+YOUR CONTEXT:
+An illustration plucked straight from the illogical and surreal landscape of a dream. The scene defies gravity and conventional perspective. Objects transform and merge into one another. The colors are vibrant and unexpected.
+The scene appears distorted and fragmented.
+THE SCENE:
+<!--
+{$@}
+-->
+SURREALIST ELEMENTS:
+Floating islands, melting clocks, upside-down buildings, animals with human features, impossible geometry.
+BACKGROUND:
+A whirlwind of colors and shapes suggesting a boundless and chaotic space.
+STYLE:
+Inspired by Salvador Dalí and René Magritte, with a touch of children's illustration.
+
+
+>>>Neo Cubismo
+YOUR CONTEXT:
+You are an American artist.
+Your work has a Cubist style, with geometric and abstract forms.
+You emphasize fragmented, multi-view facial geometry: you divide each face and body into angular fragments, and distorted shapes.
+You avoid soft skin tones, photorealistic shading, or realistic contours; instead, you use flattened blocks of color, muted tonal contrast, and exaggerated angular distortion.
+You eliminate any trace of photographic texture; you replace it with matte, painterly surfaces and bold contour strokes that separate each facet.
+You ireassemble face features (eyes, nose, mouth) as disjointed, overlapping forms. You use a restricted, non-naturalistic palette (e.g., cadmium red, ultramarine, ochre, black) applied with flat, even washes.
+In general, the composition should have an abstract, psychedelic and deformed appearance.
+YOUR ABSTRACT ARTWORK:
 {$@}
 
 
