@@ -186,6 +186,20 @@ YOUR PHOTO:
 {$@}
 
 
+>>>Unease Shadow Photo
+YOUR CONTEXT:
+You are a photographer who deliberately captures a chaotic, disjointed visual language that feels raw, aggressive and unsettling.
+The imagery is marked by extreme off-center compositions, tilted horizons, and fragmented framing that break conventional balance.
+Lighting is harsh and directional, often from a single, low-angle source that creates deep, crushing shadows and stark, over-exposed highlights, giving every face a chiaroscuro, predatory look.
+Colors are desaturated except for sudden spikes of saturated blood-red, electric-blue or neon-green, which appear as visual "flashes" that heighten tension.
+A gritty, high-ISO grain texture covers the whole frame, while occasional motion blur and streaks suggest rapid, unpredictable movement.
+Lens artifacts such as strong flare, double-exposure overlays and smudged spots are embraced, reinforcing the sense of visual distortion.
+Each subject is lit and posed to appear as a potential threat: eyes catch the light in a glint, posture is angular, and the surrounding environment is cracked, fragmented or littered with debris.
+Overall the photograph feels volatile, misaligned, and confrontational, like a frozen moment in a hostile, unpredictable world.
+YOUR PHOTO:
+{$@}
+
+
 >>>80s Dark Fantasy Photo
 YOUR CONTEXT:
 You are a still photographer on the set of a 1980s dark fantasy epic (think *Excalibur*, *Legend*, *Conan the Barbarian*, or *Hawk the Slayer*). The aesthetic is deliberately *not* pristine; it's a world built with practical effects, visible matte paintings, and a sense of tangible grit.
@@ -270,6 +284,17 @@ YOUR CONTEXT:
 You are a photographer documenting evocative subjects with a striking, unconventional aesthetic. You capture the energy and beauty of the moment, but infuse it with a sense of mystery and dramatic tension.
 Your images exhibit a predominantly grayscale palette, emphasizing the textures and forms of the subject. Deep, saturated reds are used selectively to highlight key elements, e.g: a focal point, a detail, a fleeting moment of light. Creating focal points of intense emotion and visual contrast. The lighting is bright, but filtered through a dramatic atmosphere, casting long shadows and emphasizing the starkness of the scene.
 The foreground is sharply focused, revealing intricate details, while the background dissolves into a gentle, atmospheric haze, suggesting depth and hidden layers. Subtle rays of light or atmospheric effects hint at a hidden energy or underlying narrative. A subtle film grain and gentle halation add a touch of authenticity and nostalgia. Subjects, if present, are rendered in grayscale, with the exception of a single, striking red element.
+YOUR PHOTO:
+{$@}
+
+
+>>>Security Camera
+You are a security camera operator.
+The image is rendered in stark black and white with high contrast: bright whites and deep blacks, mimicking the limited dynamic range of low-resolution surveillance sensors.
+A faint pattern of horizontal scan lines is visible.
+The lighting is flat and uniform, typical of fluorescent or ambient streetlights, with minimal shadows.
+The image is taken from a high angle with fisheye distortion; the image is out of focus, and the main subjects appear small and distant, completely unsuspecting.
+A big timestamp appears in the upper right corner, using a simple monospaced numeric font. Overall, the image conveys an impersonal, clinical observation.
 YOUR PHOTO:
 {$@}
 
@@ -435,7 +460,7 @@ A cinematic photograph that captures the ethereal beauty and radical expression 
 THE PLAYA:
 The playa is an expanse of blindingly white alkaline dust. The horizon is sharp and clear, stretching to infinity. A distant, slightly blurred line of mountains is visible. A weathered vintage pickup truck sits parked in the distance, partially obscured by the haze. Other distant vehicles are subtly discernible, suggesting a bustling community.
 THE LIGHTING:
-The warm light of golden hour dominates the scene, casting long, dramatic shadows. Subtle gradients of color – peach, rose, and lavender – paint the sky.  Flashes of neon light emanate from the art installations, creating bursts of vibrant color.
+The warm light of golden hour dominates the scene, casting long, dramatic shadows. Subtle gradients of color - peach, rose, and lavender - paint the sky.  Flashes of neon light emanate from the art installations, creating bursts of vibrant color.
 THE ART AND THE PARTICIPANTS:
 Impressive art installations accentuate the landscape, showcasing innovative design and interactive elements. A crowd of participants stand out as silhouettes in unique, futuristic attire. The focus is on the interaction between art and the environment with hundreds of people on the horizon.
 THE PHOTO:
@@ -573,7 +598,7 @@ The illustration has the following characteristics:
 Dynamic Composition: Iconic, atmospheric layouts emphasizing scale & world-building. Uses verticality/triangular hierarchies, focusing on impactful stillness & dramatic perspective, e.g: extreme high/low angles.
 Precise Inking: Sharp, digitally precise line art with variable weights for depth. Thick outlines define forms, ultra-fine lines detail interiors, & lines subtly shift/blend for light effects.
 Stylized Anatomy: Proportions adhere to series character designs (shōnen/seinen). Prioritizes instantly recognizable silhouettes with graceful, defined forms emphasizing agility.
-High Detail Rendering: Technical detail exceeding animation standards. Flawless character skin contrasts with intricately rendered hardware/environments – layered hair, jewel-like eyes with complex reflections.
+High Detail Rendering: Technical detail exceeding animation standards. Flawless character skin contrasts with intricately rendered hardware/environments - layered hair, jewel-like eyes with complex reflections.
 Advanced Shading: Multi-tone shading with ambient occlusion & rim lighting. Volumetric light creating depth in a 2D space, e.g: sunbeams, flares, particles. 
 Narrative Layout: Thematic, vertical layouts with balanced composition. Uses negative space to guide the eye & character positioning to convey relationships/story.
 Soulful Expression: Introspective acting focused on subtle emotion in eyes & hands. Avoids exaggeration, favoring still compositions conveying themes like longing or resolve.
@@ -1115,7 +1140,7 @@ Soft, diffused lighting illuminates the diorama and creates a sense of intimacy.
 
 >>>Paper Cut Diorama
 YOUR CONTEXT:
-A photo of a diorama constructed entirely from layers of intricately cut paper. The scene is viewed through a frame—the simple and elegant frame surrounding the diorama. The lighting is soft and diffused, highlighting the delicate details of the paper cutouts.
+A photo of a diorama constructed entirely from layers of intricately cut paper. The scene is viewed through a frame, the simple and elegant frame surrounding the diorama. The lighting is soft and diffused, highlighting the delicate details of the paper cutouts.
 THE PAPER SCENE:
 A detailed, layered representation rendered in a paper-cut style. Multiple layers of paper create depth and dimension.
 INSIDE YOUR FLAT PAPER SCENE:
