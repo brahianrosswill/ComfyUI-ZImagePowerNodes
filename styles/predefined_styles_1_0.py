@@ -970,14 +970,6 @@ THE PHOTO:
 A close-up, slightly tilted, of a classic 1980s pinball machine. The focus is on the illuminated back panel. The machine is in a dimly lit arcade, with other machines and neon lights out of focus in the background. The cabinet is worn, showing signs of use and age.
 
 
->>>City Light Poster
-YOUR PHOTO:
-An eye-level, realistic photo of a glass-encased advertising poster (mupi) located on a clean city sidewalk. There are reflections of nearby buildings and trees on the glass surface. The lighting is natural overcast daylight. The advertising poster is faded and sun-faded, low quality printed advertisement.
-POSTER DETAILS:
-While the street and buildings are visible in the background, the inside of the poster contains the following:
-{$@}
-
-
 >>>Urban Wall Mural
 SCENE:
 A huge mural on a rough brick wall. The scene is captured from a slightly low angle, highlighting the brick texture and spray paint drips. Ambient city light (neon signs, streetlights) blends with natural light, giving the wall a vibrant, kinetic feel.
@@ -986,6 +978,14 @@ An intense, modern spray-painted illustration.
 INSIDE THE ILLUSTRATION:
 {$@}
 OUTSIDE THE MURAL: The brick wall, a window high up, paint cans on the ground, and a weathered patina. The surrounding alley and someone admiring the artwork are visible to the side.
+
+
+>>>City Light Poster
+YOUR PHOTO:
+An eye-level, realistic photo of a glass-encased advertising poster (mupi) located on a clean city sidewalk. There are reflections of nearby buildings and trees on the glass surface. The lighting is natural overcast daylight. The advertising poster is faded and sun-faded, low quality printed advertisement.
+POSTER DETAILS:
+While the street and buildings are visible in the background, the inside of the poster contains the following:
+{$@}
 
 
 >>>Neon Billboard
