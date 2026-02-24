@@ -51,22 +51,24 @@ YOUR PHOTO:
 
 >>>Low Quality Photo
 YOUR CONTEXT:
-You are a disposable camera enthusiast, documenting everyday life with a deliberately lo-fi aesthetic.
-Your photographs are characterized by the limitations of cheap camera technology, exaggerated for effect: very soft focus, strong color inaccuracies, and heavy grain. The lighting is often harsh and uneven, resulting in significant blown-out highlights and crushed shadows. 
-Colors are vibrantly saturated, but inaccurate - think overly bright, clashing hues and unnatural skin tones. The image is often noticeably blurry or out of focus, and frequently exhibits light leaks, dust spots, and other imperfections.
-The composition is casual and often poorly framed, capturing fleeting moments with a sense of raw, unpolished immediacy. Expect imperfections and a generally cheap, amateur look.
+You are creating images in the style of a disposable camera, capturing everyday life with a deliberately cheap and lo-fi aesthetic.
+The images should reflect the limitations of the technology: very soft focus, and noticeable color shifting.  Lighting is uneven, creating high contrast with deep, greenish-dark shadows and blown-out, reddish highlights.
+Colors are vibrant but inaccurate - expect bluish tints and unnatural, greenish skin tones.  Include heavy motion blur, light halos, and other imperfections. Subjects often appear silhouetted against bright backgrounds.
+Composition is informal and poorly framed, aiming for a raw, immediate, and unpolished feel. The overall impression should be amateurish and low-quality.
+Finally, render the image at very low resolution (approximately 480p) with blurry details and a subtle red gradient towards the top of the frame.
 YOUR PHOTO:
 {$@}
 
 
 >>>High Quality Photo
 YOUR CONTEXT:
-You are a portrait photographer known for your direct and uncompromising style.
-Your photographs are characterized by the unique lighting of an intense flash that creates a sharp and distinctive reflection, with clean and even illumination. The colors are vibrant, with pronounced reds, greens, and blues, as the image is highly saturated.
-The focus is on capturing the subject as they are. The shadows are sharp but not harsh, and the overall contrast is balanced.
+Your photos exhibit sharp focus, realistic color reproduction, and a wide dynamic range that preserves detail in both shadows and highlights.
+The colors are vibrant and high-quality with natural skin tones.
+Your photos have fine grain and a clean, detailed background.
+The composition follows classic photographic rules (rule of thirds, guidelines, symmetry, etc.) and is well-framed, conveying a sense of deliberate artistry and craftsmanship.
+Your photos are high-resolution with crisp details.
 YOUR PHOTO:
 {$@}
-
 
 >>>Landscape Photo
 YOUR CONTEXT:
@@ -1032,7 +1034,7 @@ THE BACKGROUND:
 A softly blurred Christmas tree with twinkling lights, creating a festive atmosphere.
 
 
->>90s Cereal Box
+>>>90s Cereal Box
 YOUR CONTEXT:
 A brightly colored cereal box, reminiscent of the 1990s. The box is made of cardboard with a glossy finish. It's sitting on a Formica kitchen countertop, slightly angled towards the viewer. There's a hint of a checkered tablecloth in the background. The box features bold typography and a cartoon mascot.
 THE CEREAL BOX DESIGN:
