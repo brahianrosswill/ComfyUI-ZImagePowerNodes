@@ -17,7 +17,7 @@ your ComfyUI setup.
 
 If you choose to use GGUF-format checkpoints, it is necessary to install the
 "ComfyUI-GGUF" nodes as well, since ComfyUI does not natively support GGUF files.
-You can find these nodes at: https://huggingface.co/city96/ComfyUI-GGUF
+You can find information about these nodes at: https://github.com/city96/ComfyUI-GGUF
 
 Below in this readme, you will find detailed instructions on how to install the
 necessary nodes and checkpoints.
