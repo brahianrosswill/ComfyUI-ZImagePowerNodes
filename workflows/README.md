@@ -2,13 +2,13 @@
 # Z-Image Power Nodes: Example Workflows
 
  * `/safetensors_workflows`: Folder containing these same workflows but pre-configured for use with .safetensors checkpoints.
- * `advanced__develop_and_test_new_styles.json`: Advanced workflow for testing and refining new styles through multiple prompts.
+ * `advanced__test_new_style_16.json`: Advanced workflow for testing new styles through 16 prompts.
  * `advanced__zsampler_turbo_advanced.json`: Example using the "Z-Sampler Turbo (Advanced)" node to configue extra parameters.
  * `custom_styles.json`: Illustrates how to define personalized styles.
  * `inject_style_into_string.json`: Shows how to dynamically insert style text into a prompt string.
- * `inpainting.json`: Demonstrates inpainting techniques utilizing the "Z-Sampler Turbo" node.
- * `my_top_10_styles.json`: Example of building a custom list of favorite styles (easily expandable beyond 10).
- * `z-image_turbo_text2image_workflow.json`: Main reference workflow for text-to-image generation using the "Z-Image Power Nodes".
+ * `my_top_10_styles.json`: Building a custom list of favorite styles (easily expandable beyond 10).
+ * `z-image-turbo_inpainting_workflow.json`: Main reference workflow for inpainting utilizing the power nodes.
+ * `z-image-turbo_text2image_workflow.json`: Main reference workflow for text-to-image generation using the power nodes.
 
 
 ## Requirements
