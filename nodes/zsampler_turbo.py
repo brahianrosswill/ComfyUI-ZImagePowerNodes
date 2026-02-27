@@ -59,7 +59,7 @@ class ZSamplerTurbo(io.ComfyNode):
                                       tooltip="The amount of denoising applied, lower values will maintain the structure of the initial image allowing for image to image sampling.",
                                      ),
                 io.Custom            ("ZIPN_DIVIDER").Input("divider"),
-                io.Combo.Input       ("initial_noise_calibration", default="off", options=["off", "10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "100%"],
+                io.Combo.Input       ("initial_noise_calibration", default="off", options=["100%", "75%", "50%", "25%", "off"],
                                        tooltip="The amount of adjustment applied to the initial noise. "
                                                "This typically enhances image contrast and saturation, "
                                                "higher values increase these effects more significantly. "
