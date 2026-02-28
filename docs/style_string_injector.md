@@ -2,24 +2,26 @@
 ![text](/docs/style_string_injector.jpg)
 
 Injects a selected style into your prompt. This node takes an input string containing
-the raw prompt (composition, characters, etc.) and modifies it with the chosen style.
+the raw prompt (composition, characters, etc.) and modifies it by adding the chosen style.
+
 
 ## Inputs
 
 ### string
-Through this connection, provide the plain text of your prompt, including composition,
-characters, or other details, without specifying any particular style.
+Through this connection, provide the plain text of your prompt, including composition
+details or character descriptions, without specifying any particular style.
 
 ### style
-Selects the desired style to inject or "none" if you prefer the output to be identical to
-the input prompt without any modifications
+Displays the currently active style, or "none" if no style will be applied.
 
-### "Select Style ..."
-....
+### \<Select Style button\>
+Opens the styles gallery where you can easily choose from all available styles.  
+This includes search functionality, filtering options, and a sample image showing
+how each style would look.
+
 
 ## Outputs
 
 ### string
 A string with the text of your original prompt with the selected style seamlessly
 integrated into it.
-
