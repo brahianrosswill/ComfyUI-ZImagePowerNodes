@@ -118,9 +118,6 @@ class ZImagePowerNodesExtension(ComfyExtension):
         from .nodes.empty_zimage_latent_image import EmptyZImageLatentImage
         _register_node( EmptyZImageLatentImage, nodes, subcategory )
 
-        from .nodes.save_image import SaveImage
-        _register_node( SaveImage, nodes, subcategory )
-
         from .nodes.style_prompt_encoder_2 import StylePromptEncoder2
         _register_node( StylePromptEncoder2, nodes, subcategory )
 
@@ -133,14 +130,17 @@ class ZImagePowerNodesExtension(ComfyExtension):
         from .nodes.zsampler_turbo_advanced import ZSamplerTurboAdvanced
         _register_node( ZSamplerTurboAdvanced, nodes, subcategory )
 
-        from .nodes.my_top_10_styles_editor import MyTop10StylesEditor
-        _register_node( MyTop10StylesEditor, nodes, subcategory )
-
         from .nodes.my_top_10_styles import MyTop10Styles
         _register_node( MyTop10Styles, nodes, subcategory )
 
+        from .nodes.my_top_10_styles_editor import MyTop10StylesEditor
+        _register_node( MyTop10StylesEditor, nodes, subcategory )
+
         from .nodes.vae_encode_soft_inpainting import VAEEncodeSoftInpainting
         _register_node( VAEEncodeSoftInpainting, nodes, subcategory )
+
+        from .nodes.save_image import SaveImage
+        _register_node( SaveImage, nodes, subcategory )
 
 
         #--[ __deprecated ]----------------------

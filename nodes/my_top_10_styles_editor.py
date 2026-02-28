@@ -22,7 +22,7 @@ from ..styles.predefined_styles  import PREDEFINED_STYLE_GROUPS
 
 
 class MyTop10StylesEditor(io.ComfyNode):
-    xTITLE         = "My Top-10 Style Editor"
+    xTITLE         = "My Top-10 Styles (Editor)"
     xCATEGORY      = ""
     xCOMFY_NODE_ID = ""
     xDEPRECATED    = False
