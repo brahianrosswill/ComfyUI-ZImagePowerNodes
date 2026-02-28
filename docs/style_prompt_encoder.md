@@ -36,10 +36,12 @@ YOUR PHOTO:
 ```
 
 ### style
-Displays the currently active style or "none" if no style is applied.
+Displays the currently active style, or "none" if no style will be applied.
 
-### \<"Select Style..." button\>
-Opens the styles gallery where you can easily choose from all available styles. It includes search, filtering, and a sample image showing how the final output may look with each style.
+### \<Select Style button\>
+Opens the style gallery to browse and choose from available styles easily.  
+This includes search functionality, filtering options, and a sample image
+showing what each style would look like.
 
 ### text
 This is where you input your prompt. For better style application, avoid including messages in the prompt that might interfere with the selected style.
