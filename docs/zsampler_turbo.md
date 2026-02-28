@@ -1,6 +1,6 @@
 # Z-Sampler Turbo
 
-![text](/docs/zsampler_turbo.jpg)
+![z-sampler turbo node](/docs/zsampler_turbo.jpg)
 
 The distinctive feature of this sampler is that it divides the number of steps into three stages: composition, details, and refinement. The sigmas are calculated to keep the image stable from 4 to 9 steps. Naturally, with fewer steps, the final quality decreases, but the resulting images remain quite similar.
 
@@ -46,4 +46,36 @@ A hack to accelerate initial noise calibration by calculating it on a 256x256 im
 
 ### latent_output
 The resulting denoised latent image, ready for VAE decoding or further processing in another sampler node.
+
+
+## Initial Noise Calibration (INC)
+
+For various reasons, the sampler starts at a point where the model expects the noise to contain a small bias. In earlier versions of the sampler, this bias was not taken into account. However, now the sampler performs an estimation of this bias during the denoising process initialization. This 'calibration' is done by taking one step of pure noise denoising and then measuring the resulting latent image's bias.
+
+In addition to adjusting for this bias, a slight over-amplification of the input noise is also performed. All of these adjustments are encapsulated within the "Initial Noise Calibration" (INC), which ranges from "off" (0%) to 100%, representing the percentage of this calibration applied.
+
+The end result is that when activating the calibration, the generated image has more contrast and saturation. It can even produce nearly pure black (or pure white) images. However, the optimal INC percentage depends on the type of image and personal preference. Below are some guidelines based on my own personal preferences.
+
+
+### Illustrations
+
+For illustrations that are pure line art without realistic elements, a calibration level of 100% often works well, resulting in vivid colors with smooth gradients or solid hues (without 'textures'), as demonstrated in the example.
+
+If the illustration includes texture or softer color edges (e.g., weathered or vintage-looking drawings, or semi-realistic illustrations with textures), a lower value might be preferable to preserve those characteristics.
+
+![illustration example](/docs/calibration_examples/illustration.jpg)
+
+### Photographs
+
+For photographs, a higher INC percentage (e.g., 100%) can make them appear slightly more artificial, while disabling it may result in less vibrant colors or washed-out images that don't reach pure black or white. This is very subjective, but as a starting point, try 50% and adjust according to your desired outcome.
+
+For photos requiring an overall very dark or light tone, activating the calibration with a high percentage is usually necessary, as without it such images tend towards an average gray tone.
+
+![photo example](/docs/calibration_examples/photo.jpg)
+
+### Other Styles
+
+The need for calibration varies greatly depending on the image style and prompt. Images requiring fine texture details rather than intense colors may perform better with INC disabled, as demonstrated in this "Stamp" style example.
+
+![stamp example](/docs/calibration_examples/stamp.jpg)
 
