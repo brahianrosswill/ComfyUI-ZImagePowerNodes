@@ -56,7 +56,6 @@ In addition to adjusting for this bias, a slight over-amplification of the input
 
 The end result is that when activating the calibration, the generated image has more contrast and saturation. It can even produce nearly pure black (or pure white) images. However, the optimal INC percentage depends on the type of image and personal preference. Below are some guidelines based on my own personal preferences.
 
-
 ### Illustrations
 
 For illustrations that are pure line art without realistic elements, a calibration level of 100% often works well, resulting in vivid colors with smooth gradients or solid hues (without 'textures'), as demonstrated in the example.
@@ -64,18 +63,21 @@ For illustrations that are pure line art without realistic elements, a calibrati
 If the illustration includes texture or softer color edges (e.g., weathered or vintage-looking drawings, or semi-realistic illustrations with textures), a lower value might be preferable to preserve those characteristics.
 
 ![illustration example](/docs/calibration_examples/illustration.jpg)
+[Example Workflow](/docs/calibration_examples/illustration.json)
 
 ### Photographs
 
 For photographs, a higher INC percentage (e.g., 100%) can make them appear slightly more artificial, while disabling it may result in less vibrant colors or washed-out images that don't reach pure black or white. This is very subjective, but as a starting point, try 50% and adjust according to your desired outcome.
 
-For photos requiring an overall very dark or light tone, activating the calibration with a high percentage is usually necessary, as without it such images tend towards an average gray tone.
+For photos requiring an overall very dark or light tone, activating the calibration with a high percentage is usually necessary, as without it such images tend towards an average gray tone.  (This example uses the "Noir Photo" style, which might better suit the darker illumination of the left image).
 
 ![photo example](/docs/calibration_examples/photo.jpg)
+[Example Workflow](/docs/calibration_examples/photo.json)
 
 ### Other Styles
 
-The need for calibration varies greatly depending on the image style and prompt. Images requiring fine texture details rather than intense colors may perform better with INC disabled, as demonstrated in this "Stamp" style example.
+The need for calibration varies greatly depending on the image style and prompt. Images requiring fine texture details rather than intense colors or high contrast may perform better with INC disabled, as demonstrated in this "Stamp" style example.
 
 ![stamp example](/docs/calibration_examples/stamp.jpg)
+[Example Workflow](/docs/calibration_examples/stamp.json)
 
