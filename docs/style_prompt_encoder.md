@@ -32,15 +32,11 @@ YOUR PHOTO:
 {$@}
 ```
 
-### category
-The category of the style you want to apply. Changing this option updates the list of available styles in style_to_apply to show only those that match the selected category. Currently, there are 4 categories:
-  * __photo__: Contains photographic and realistic styles
-  * __illustration__: Includes illustration, drawing, comic, anime, etc.
-  * __other__: Styles that don't fit into the previous groups
-  * __custom__: Free-form styles for user configuration
-
 ### style
 Selects the desired style to apply or "none" if you prefer not to use any predefined style.
+
+### "Select Style..."
+....
 
 ### text
 This is where you input your prompt. For better style application, avoid including messages in the prompt that might interfere with the selected style.
