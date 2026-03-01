@@ -23,42 +23,35 @@
 
 ## Nodes
 
-### ⚡ ZSampler Turbo
- * A specialized sampler designed to divide the denoising process into three stages: composition, details, and refinement. It maintains image stability between 4 and 9 steps and achieves sufficient quality and detail starting from step 7, eliminating the need for further refining or post-processing. \
-   **["ZSampler Turbo" node documentation](docs/zsampler_turbo.md)**.
+__[⚡Z-Sampler Turbo](docs/zsampler_turbo.md)__  
+A specialized sampler designed to divide the denoising process into three stages: composition, details, and refinement. It maintains image stability between 4 and 9 steps and achieves sufficient quality and detail starting from step 7, eliminating the need for further refining or post-processing.
 
-### ⚡ Style & Prompt Encoder
- * Applies a selected visual styles to the prompt and encodes them using a text-encoder model (clip). Enables generating images that follow the desired aesthetic while guiding the diffusion process. \
-   **["Style Prompt Encoder" node documentation](docs/style_prompt_encoder.md)**
+__[⚡Style Prompt Encoder](docs/style_prompt_encoder.md)__  
+Applies a selected visual styles to the prompt and encodes them using a text-encoder model (clip). Enables generating images that follow the desired aesthetic while guiding the diffusion process.
 
-### ⚡ Style String Injector
- * Seamlessly integrates a chosen style into your prompt text. It accepts a string as input and modifies it based on the selected style. \
-   **["Style String Injector" node documentation](docs/style_string_injector.md)**
+__[⚡Style String Injector](docs/style_string_injector.md)__  
+Seamlessly integrates a chosen style into your prompt text. It accepts a string as input and modifies it based on the selected style.
 
-### ⚡ My Top-10 Styles
- * Allows you to create a list of favorite styles for quick selection of your most used ones.  \
-   **["My Top-10 Styles" node documentation](docs/my_top_10_styles.md)**.
+__[⚡My Top-10 Styles](docs/my_top_10_styles.md)__  
+Allows you to create a list of favorite styles for quick selection of your most used ones.
 
-### ⚡ VAE Encode (for Soft Inpainting)
- * Encodes images into a latent representation, embedding the mask that indicates where inpainting will be applied.  \
-   **["VAE Encode (for Soft Inpainting)](docs/vae_encode_for_soft_inpainting.md)**.
+__[⚡VAE Encode (for Soft Inpainting)](docs/vae_encode_for_soft_inpainting.md)__  
+Encodes images into a latent representation, embedding the mask that indicates where inpainting will be applied.
 
-### ⚡ Save Image
- * Saves generated images with the option to embed CivitAI-compatible metadata, making it easy to share generation parameters through that platform. \
-   **["Save Image" node documentation](docs/save_image.md)**.
+__[⚡Save Image](docs/save_image.md)__  
+Saves generated images with the option to embed CivitAI-compatible metadata, making it easy to share generation parameters through that platform.
 
-### ⚡ Empty Z-Image Latent Image
- * Creates an empty latent image of the appropriate size for Z-Image, selecting aspect ratio, scale, and orientation.  \
-   **["Empty Z-Image Latent Image" node documentation](docs/empty_zimage_latent_image.md)**.
+__[⚡Empty Z-Image Latent Image](docs/empty_zimage_latent_image.md)__  
+Creates an empty latent image of the appropriate size for Z-Image, selecting aspect ratio, scale, and orientation.
 
 
 ## Examples
 
- - [__"/workflows" directory__](/workflows)  
+ - [__/workflows__](/workflows)  
    This folder contains reference workflows demonstrating the use of the Power Nodes across various tasks.
    These are simple yet powerful examples that serve as an excellent resource for understanding how to utilize
    each node.
- - [__"/styles/samples_wf" directory__](/styles/samples_wf)  
+ - [__/styles/samples_wf__](/styles/samples_wf)  
    This folder includes all the workflows used to generate the thumbnail images in the styles gallery.
  - [__Z-Image Power Nodes on CivitAI__](https://civitai.com/models/2322533)  
    Explore hundreds of images generated using the Z-Image model and the Power Nodes. Images posted by me
