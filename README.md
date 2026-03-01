@@ -10,7 +10,15 @@
 
 </div>
 
-**ComfyUI-ZImagePowerNodes** is a collection of custom nodes designed and refined specifically for the [Z-Image model](https://github.com/Tongyi-MAI/Z-Image). They are based on some ideas and discoveries I made while developing the [Amazing Z-Image Workflow](https://github.com/martin-rizzo/AmazingZImageWorkflow).
+**Z-Image Power Nodes** is a collection of custom nodes designed specifically for the [Z-Image / Z-Image Turbo model](https://github.com/Tongyi-MAI/Z-Image). They are based on some ideas and discoveries I made while developing the [Amazing Z-Image Workflow](https://github.com/martin-rizzo/AmazingZImageWorkflow).
+
+❤️ If you find these nodes useful or they’ve helped you in your projects, please consider supporting my work.  
+Your support allows me to continue researching and creating new developments within the open source community.  
+There are several ways to do so:
+  - **Give the repository a star:** if we reach 500 stars, big things could happen!
+  - **Ko-fi:** [https://ko-fi.com/martinrizzo](https://ko-fi.com/martinrizzo)
+
+*Every contribution, no matter how small, is greatly appreciated!*
 
 
 ## Table of Contents
@@ -18,8 +26,7 @@
 2. [Examples](#examples)
 3. [Installation](#installation)
 4. [Recommended Checkpoints](#recommended-checkpoints)
-5. [❤️ Support my work](#%EF%B8%8F-support-my-work)
-6. [License](#license)
+5. [License](#license)
 
 ## Nodes
 
@@ -127,18 +134,6 @@ Note: ComfyUI does not natively support GGUF format, so you need to install the 
    Local Directory: __`ComfyUI/models/text_encoders/`__
  - __[ae.safetensors](https://huggingface.co/Comfy-Org/z_image_turbo/blob/main/split_files/vae/ae.safetensors)__ <sub>(335 MB)</sub>\
    Local Directory: __`ComfyUI/models/vae/`__
-
-
-## ❤️ Support my work
-If you find these nodes useful or they’ve helped you in your projects, please consider supporting my work.  
-Your support allows me to keep my tools free and accessible for everyone.
-
-There are several ways to do so:
-
-- **Ko-fi:** [https://ko-fi.com/martinrizzo](https://ko-fi.com/martinrizzo)
--  **Give the repository a star:** if we reach 500 stars, big things could happen!
-
-*Every contribution, no matter how small, is greatly appreciated!*
 
 
 ## License
