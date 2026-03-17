@@ -73,6 +73,9 @@ class ZSamplerTurboExperimental(io.ComfyNode):
                                               "accelerating the first step. Otherwise the full size of the input image is used. "
                                      ),
                 io_Divider           ("divider2"),
+                io.Float.Input       ("sigma0_off", default=0.000, min=-1.000, max=1.000, step=0.001,
+                                      #tooltip="",
+                                     ),
                 io.Float.Input       ("sigma1_off", default=0.000, min=-1.000, max=1.000, step=0.001,
                                       #tooltip="",
                                      ),
@@ -119,17 +122,18 @@ class ZSamplerTurboExperimental(io.ComfyNode):
                 steps       : int,
                 denoise     : float,
                 initial_noise_calibration: str | float,
-                lowres_bias              : bool,
-                sigma1_off : float,
-                sigma2_off : float,
-                sigma3_off : float,
-                sigma4_off : float,
-                sigma5_off : float,
-                sigma6_off : float,
-                sigma7_off : float,
-                sigma8_off : float,
-                sigma9_off : float,
-                sigma10_off: float,
+                lowres_bias : bool,
+                sigma0_off  : float,
+                sigma1_off  : float,
+                sigma2_off  : float,
+                sigma3_off  : float,
+                sigma4_off  : float,
+                sigma5_off  : float,
+                sigma6_off  : float,
+                sigma7_off  : float,
+                sigma8_off  : float,
+                sigma9_off  : float,
+                sigma10_off : float,
                 **kwargs
                 ) -> io.NodeOutput:
 
@@ -142,7 +146,7 @@ class ZSamplerTurboExperimental(io.ComfyNode):
         noise_overdose        = 0.33
 
         # creates a list of sigma offsets
-        sigma_offsets = [sigma1_off, sigma2_off, sigma3_off, sigma4_off, sigma5_off, sigma6_off, sigma7_off, sigma8_off, sigma9_off, sigma10_off]
+        sigma_offsets = [sigma0_off, sigma1_off, sigma2_off, sigma3_off, sigma4_off, sigma5_off, sigma6_off, sigma7_off, sigma8_off, sigma9_off, sigma10_off]
 
         # if the calibration level is a string with percentage format, it's converted to float
         if isinstance(initial_noise_calibration, str):

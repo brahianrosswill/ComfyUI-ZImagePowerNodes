@@ -19,6 +19,7 @@ from typing         import Any
 from .progress_bar  import ProgressPreview
 
 
+
 def zsampler_turbo(latent_input             : dict[str, Any],
                    model                    : Any,
                    positive                 : list,
@@ -34,7 +35,34 @@ def zsampler_turbo(latent_input             : dict[str, Any],
                    sigma_limits             : list[float] | tuple[float,float] | None = None,
                    progress_preview         : ProgressPreview
                    ) -> dict[str, Any]:
+    """
+    Perform the three-stage denoising process on a latent input.
 
+    Args:
+        latent_input              : A dict with the initial latent input to be denoised.
+        model                     : The comfyui model to be used for denoising.
+        positive                  : Positive conditioning for the denoising process.
+        seed                      : The seed used for random number generation.
+        steps                     : The total number of denoising steps. This value will
+                                    be used internally to determine the sigmas values.
+        initial_noise_calibration : The level of calibration for noise bias and overdose (1,0 = total, 0.0 = none)
+        noise_bias_estimation     : The name of method used for estimating noise bias ("accurate" or "experimental").
+        noise_bias_sample_size    : Size of the sample for noise bias estimation.
+        noise_bias_scale          : The level of adjustament from the calculated noise bias to
+                                    apply before the first denoising step.
+                                    0.0 = no noise bias adjustment;
+                                    1.0 = using the 100% calculated bias
+        noise_overdose            : The level of overamplitude in the initial noise generation.
+                                    0.0 = standard noise level;
+                                    positive values will increase the amplitude, e.g: 0.1 = 10% increment;
+                                    negative values will reduce the amplitude, e.g: -0.1 = 10% decrement.
+        sigma_offsets             : Optional list of offsets to be applied to the calculated sigma values.
+        sigma_limits              : Optional tuple with minimum and maximum limits for sigma values.
+        progress_preview          : A `ProgressPreview` object for displaying progress during the denoising process.
+
+    Returns:
+        A dict with the denoised latent output.
+    """
     if sigma_limits is not None and len(sigma_limits)<2:
         raise ValueError("sigma_limits must be a tuple or list with at least two elements")
 
@@ -114,9 +142,14 @@ def zsampler_turbo(latent_input             : dict[str, Any],
         sigmas2  = [0.929, 0.000]                       #< 1 step  (=3 generation steps)
         sigmas3  = None                                 #< (no refiner)
 
+    # sigma0 is used only for estimating the initial noise bias (optional first step)
+    # (denoising for that estimation step goes from sigma0 to sigmas1[0])
+    sigma0 = 1.000
+
     # add the values of sigmas_offset to each sigma in the 3 lists
     if sigma_offsets:
         offset_iter = iter(sigma_offsets)
+        sigma0 = min(1.000, sigma0 + next(offset_iter, 0.0))
         if isinstance(sigmas1, list):
             for i in range( len(sigmas1) ):
                 sigmas1[i] += next(offset_iter, 0.0)
@@ -126,10 +159,6 @@ def zsampler_turbo(latent_input             : dict[str, Any],
         if isinstance(sigmas3, list):
             for i in range(len(sigmas3) - 1):
                 sigmas3[i] += next(offset_iter, 0.0)
-
-    # sigma0 is used only for estimating the initial noise bias (optional first step)
-    # (denoising for that estimation step goes from sigma0 to sigmas1[0])
-    sigma0 = 1.000
 
 
     # if the first step was truncated (or discarded) by a forced limit
