@@ -41,29 +41,32 @@ def zsampler_turbo(latent_input             : dict[str, Any],
     Perform the three-stage denoising process on a latent input.
 
     Args:
-        latent_input            : A dict with the initial latent input to be denoised.
-        model                   : The comfyui model to be used for denoising.
-        positive                : Positive conditioning for the denoising process.
-        seed                    : The seed used for random number generation.
-        steps                   : The total number of denoising steps. This value will
-                                  be used internally to determine the sigmas values.
-        noise_estimation_method : The name of method used for estimating initial noise ("accurate", "experimental" or "none").
-        noise_estimation_size   : Size of the sample for noise bias/amplitude estimation.
-        noise_bias_scale        : The level of adjustament from the calculated noise bias to
-                                  apply before the first denoising step.
-                                  0.0 = no noise bias adjustment;
-                                  1.0 = using the 100% calculated bias
-        noise_amplitude_scale   : The level of adjustament from the calculated noise amplitude to
-                                  apply before the first denoising step.
-                                  0.0 = no noise amplitude adjustment;
-                                  1.0 = using the 100% calculated amplitude.
-        noise_overdose          : The level of overamplitude in the initial noise generation.
-                                  0.0 = standard noise level;
-                                  positive values will increase the amplitude, e.g: 0.1 = 10% increment;
-                                  negative values will reduce the amplitude, e.g: -0.1 = 10% decrement.
-        sigma_offsets           : Optional list of offsets to be applied to the calculated sigma values.
-        sigma_limits            : Optional tuple with minimum and maximum limits for sigma values.
-        progress_preview        : A `ProgressPreview` object for displaying progress during the denoising process.
+        latent_input             : A dict with the initial latent input to be denoised.
+        model                    : The comfyui model to be used for denoising.
+        positive                 : Positive conditioning for the denoising process.
+        seed                     : The seed used for random number generation.
+        steps                    : The total number of denoising steps. This value will
+                                   be used internally to determine the sigmas values.
+        noise_est_sample_size    : Size in pixels of the sample for initial noise estimation.
+                                   A string can be used to specify the size in pixels, e.g: "512px".
+                                   If `None`, the size of the latent input will be used.
+        noise_est_sample_bias    : The bias of the pure noise used in the initial noise estimation,
+        noise_est_sample_scale   : The scale of the pure noise used in the initial noise estimation.,
+        initial_noise_bias_level : The level of adjustament from the calculated noise bias to
+                                   apply before the first denoising step.
+                                   0.0 = no noise bias adjustment;
+                                   1.0 = using the 100% calculated noise bias
+        initial_noise_scale_level: The level of adjustament from the calculated noise scale to
+                                   apply before the first denoising step.
+                                   0.0 = no noise scale adjustment;
+                                   1.0 = using the 100% calculated noise scale.
+        noise_overdose           : The level of over-amplitude in the initial noise scale.
+                                   0.0 = default noise scale;
+                                   positive values will increase the noise scale, e.g: 0.1 = 10% increment;
+                                   negative values will reduce the noise scale, e.g: -0.1 = 10% decrement.
+        sigma_offsets            : Optional list of offsets to be added to the calculated sigma values.
+        sigma_limits             : Optional tuple with minimum and maximum limits for sigma values.
+        progress_preview         : A `ProgressPreview` object for displaying progress during the denoising process.
 
     Returns:
         A dict with the denoised latent output.
@@ -226,7 +229,7 @@ def zsampler_turbo(latent_input             : dict[str, Any],
                                               sigmas3                 = sigmas3,
                                               sigma_limits            = sigma_limits,
                                               initial_noise_bias      = initial_noise_bias,
-                                              initial_noise_amplitude = initial_noise_scale,
+                                              initial_noise_scale = initial_noise_scale,
                                               progress_preview = ProgressPreview( 100, parent=(progress_preview,100//steps,100) ),
                                               )
     return latent_output
@@ -254,14 +257,14 @@ def execute_3_stage_denoising(latent_image,
                                 positive : list,
                                 negative : list,
                                 *,
-                                sampler      : comfy.samplers.KSAMPLER,
-                                sigmas1      : torch.Tensor | list | None,
-                                sigmas2      : torch.Tensor | list | None,
-                                sigmas3      : torch.Tensor | list | None,
-                                sigma_limits : list[float] | tuple[float,float] | None,
-                                initial_noise_bias     : torch.Tensor | float | int | None = None,
-                                initial_noise_amplitude: torch.Tensor | float | int | None = 1.0,
-                                progress_preview       : ProgressPreview,
+                                sampler            : comfy.samplers.KSAMPLER,
+                                sigmas1            : torch.Tensor | list | None,
+                                sigmas2            : torch.Tensor | list | None,
+                                sigmas3            : torch.Tensor | list | None,
+                                sigma_limits       : list[float] | tuple[float,float] | None,
+                                initial_noise_bias : torch.Tensor | float | int | None = None,
+                                initial_noise_scale: torch.Tensor | float | int | None = 1.0,
+                                progress_preview   : ProgressPreview,
                                 ):
     """
     Executes a three-stage denoising process on the provided latent image.
@@ -279,15 +282,14 @@ def execute_3_stage_denoising(latent_image,
         sigmas1     : Sigma values for the first stage of denoising. Can be a tensor, list, or None.
         sigmas2     : Sigma values for the second stage of denoising. Can be a tensor, list, or None.
         sigmas3     : Sigma values for the third stage of denoising. Can be a tensor, list, or None.
-        initial_noise_bias: An optional constant bias applied to the initial noise.
-                            Can be a tensor, scalar, or None.
-                            If tensor, it must have shape [batch_size, channels, 1, 1].
-                            (0.0 or None = no bias)
-        initial_noise_amplitude: An optional amplitude factor applied to the initial noise.
-                                    Can be a tensor, scalar, or None.
-                                    If tensor, it must have shape [batch_size, channels, 1, 1].
-                                    (0.0 = nothing ; 1.0 = standard deviation)
-
+        initial_noise_bias : An optional constant bias applied to the initial noise.
+                             (where 0.0 = no bias; None = no bias)
+                             Can be a tensor, scalar, or None.
+                             If tensor, it must have shape [batch_size, channels, 1, 1].
+        initial_noise_scale: An optional scale factor applied to the initial noise.
+                             (where 0.0 = no-noise; 1.0 = standard deviation; None = standard deviation)
+                             Can be a tensor, scalar, or None.
+                             If tensor, it must have shape [batch_size, channels, 1, 1].
     Returns:
         A dictionary with the updated latent image data after all three denoising stages.
     """
@@ -321,7 +323,7 @@ def execute_3_stage_denoising(latent_image,
                             sampler          = sampler,
                             sigmas           = sigmas1,
                             noise_bias       = initial_noise_bias,
-                            noise_amplitude  = initial_noise_amplitude if add_noise else 0.0,
+                            noise_scale      = initial_noise_scale if add_noise else 0.0,
                             keep_masked_area = True,
                             progress_preview = ProgressPreview( prog1-prog0,
                                     parent=(progress_preview, 100*prog0//total, 100*prog1//total)),
@@ -338,7 +340,7 @@ def execute_3_stage_denoising(latent_image,
                         sampler          = sampler,
                         sigmas           = sigmas2,
                         noise_bias       = 0,
-                        noise_amplitude  = 1.0 if add_noise else 0.0,
+                        noise_scale      = 1.0 if add_noise else 0.0,
                         keep_masked_area = True,
                         progress_preview = ProgressPreview( prog2-prog1,
                                    parent=(progress_preview, 100*prog1//total, 100*prog2//total)),
@@ -351,7 +353,7 @@ def execute_3_stage_denoising(latent_image,
                         sampler          = sampler,
                         sigmas           = sigmas3,
                         noise_bias       = 0,
-                        noise_amplitude  = 1.0 if add_noise else 0.0,
+                        noise_scale      = 1.0 if add_noise else 0.0,
                         keep_masked_area = True,
                         progress_preview = ProgressPreview( total-prog2,
                                 parent=(progress_preview, 100*prog2//total, 100*total//total)),
@@ -369,7 +371,7 @@ def execute_sampler(latent_image    : dict[str, Any],
                     sampler         : comfy.samplers.KSAMPLER,
                     sigmas          : list | torch.Tensor,
                     noise_bias      : torch.Tensor | float | int | None,
-                    noise_amplitude : torch.Tensor | float | int | None,
+                    noise_scale     : torch.Tensor | float | int | None,
                     keep_masked_area: bool = False,
                     fix_empty_latent: bool = True,
                     progress_preview: ProgressPreview | None = None,
@@ -387,14 +389,17 @@ def execute_sampler(latent_image    : dict[str, Any],
         negative    : Negative prompts or conditioning applied to the model during denoising.
         sampler     : ComfyUI object representing the sampler used for each denoising step.
         sigmas      : Sigma values for each diffusion process step (can be list or torch.Tensor).
-        noise_bias  : A constant bias applied to the initial noise.
-                        If it is a tensor, it must have shape [batch_size, channels, 1, 1].
-                        Can also be a scalar value or None.
+        noise_bias  : The constant bias applied to the initial noise.
+                      (where 0.0 = no bias; None = no bias)
+                      Can be a tensor, scalar, or None.
+                      If tensor, it must have shape [batch_size, channels, 1, 1].
+        noise_scale : The scale factor applied to the initial noise.
+                      (where 0.0 = no-noise; 1.0 = standard deviation; None = standard deviation)
+                      Can be a tensor, scalar, or None.
+                      If tensor, it must have shape [batch_size, channels, 1, 1].
         keep_masked_area: If True, the masked area of the latent image will be kept unchanged.
-                            Comfyui tries to keep masked area unchanged when there's a mask active
-                            but activating this flag we're sure that no change will happen at all.
-        noise_amplitude : The amplitude of noise added to the latent image before denoising.
-                            (0.0 = no noise ; 1.0 = standard deviation)
+                          Comfyui tries to keep masked area unchanged when there's a mask active
+                          but activating this flag we're sure that no change will happen at all.
         progress_preview: Optional callback for tracking progress. Defaults to None.
 
     Returns:
@@ -403,8 +408,7 @@ def execute_sampler(latent_image    : dict[str, Any],
 
     Notes:
         - If `sigmas` is provided as a list, it will be converted to a torch.Tensor.
-        - The function automatically handles cases where `noise_bias` or `noise_amplitude` are zero scalars.
-        - The initial noise is scaled using `noise_amplitude`, and then the bias from `noise_bias` is applied.
+        - The initial noise is scaled using `noise_scale`, and then the bias from `noise_bias` is applied.
     """
 
     # if sigmas is a list then convert it to tensor
@@ -418,18 +422,18 @@ def execute_sampler(latent_image    : dict[str, Any],
             raise ValueError(f"Invalid `noise_bias` shape: expected [batch_size, channels, 1, 1], "
                                 f"but got {list(noise_bias.shape)}")
 
-    # if `noise_amplitude` is a torch.Tensor
+    # if `noise_scale` is a torch.Tensor
     # then it should have shape [batch_size, channels, 1, 1]
-    if isinstance(noise_amplitude, torch.Tensor):
-        if noise_amplitude.ndim != 4 or noise_amplitude.shape[2:] != (1, 1):
-            raise ValueError(f"Invalid `noise_amplitude` shape: expected [batch_size, channels, 1, 1], "
-                                f"but got {list(noise_amplitude.shape)}")
+    if isinstance(noise_scale, torch.Tensor):
+        if noise_scale.ndim != 4 or noise_scale.shape[2:] != (1, 1):
+            raise ValueError(f"Invalid `noise_scale` shape: expected [batch_size, channels, 1, 1], "
+                                f"but got {list(noise_scale.shape)}")
 
-    # if `noise_bias` or `noise_amplitude` is zero scalar then ignore it
+    # if `noise_bias` or `noise_scale` is zero scalar then ignore it
     if isinstance(noise_bias, (float,int)) and noise_bias == 0:
         noise_bias = None
-    if isinstance(noise_amplitude, (float,int)) and noise_amplitude == 0:
-        noise_amplitude = None
+    if isinstance(noise_scale, (float,int)) and noise_scale == 1:
+        noise_scale = None
 
 
     # extract all info that comes packaged in the `latent_image` dictionary
@@ -445,28 +449,23 @@ def execute_sampler(latent_image    : dict[str, Any],
     original_samples : torch.Tensor | None = samples
     original_mask    : torch.Tensor | None = noise_mask
 
-    # scale initial noise using `noise_amplitude`.
+    # scale initial noise using `noise_scale`.
     # (0.0 results in no noise; 1.0 represents standard unit variance)
-    if noise_amplitude is None:
+    if isinstance(noise_scale, (float,int)) and noise_scale == 0:
         noise = torch.zeros(samples.shape,
                             dtype   = samples.dtype,
                             layout  = samples.layout,
                             device  = "cpu")
     else:
-        noise = generate_noise(noise_seed,
-                               samples.shape,
-                               dtype   = samples.dtype,
-                               layout  = samples.layout,
-                               device  = "cpu",
-                               noise_bias      = noise_bias,
-                               noise_amplitude = noise_amplitude,
-                               batch_subseeds  = batch_index,
+       #noise = comfy.sample.prepare_noise(samples, noise_seed, batch_index) * noise_scale + noise_bias
+        noise = generate_noise(noise_seed, samples.shape,
+                               noise_bias     = noise_bias,
+                               noise_scale    = noise_scale,
+                               batch_subseeds = batch_index,
+                               dtype          = samples.dtype,
+                               layout         = samples.layout,
+                               device         = "cpu",
                                )
-        #noise = comfy.sample.prepare_noise(samples, noise_seed, batch_index) * noise_amplitude
-
-    ## apply a constant bias using `noise_bias`
-    #if noise_bias is not None:
-    #    noise = noise + noise_bias
 
     # this wrapper increments by 1 the steps count reported by comfyui.
     # comfyui reports the end of the first denoising step as 0 (0% completion)
@@ -495,18 +494,19 @@ def execute_sampler(latent_image    : dict[str, Any],
 
 def generate_noise(seed           : int,
                    shape          : tuple[int, ...],
+                   *,
+                   noise_bias     : torch.Tensor | float | int | None = None,
+                   noise_scale    : torch.Tensor | float | int | None = None,
+                   batch_subseeds : list[int] | None                  = None,
                    dtype          : torch.dtype,
                    layout         : torch.layout,
-                   noise_bias     : torch.Tensor | float | int | None = None,
-                   noise_amplitude: torch.Tensor | float | int | None = None,
-                   batch_subseeds : list[int] | None                  = None,
                    device         : str | torch.device                = "cpu"
                    ):
     """
     Generate batched noise with optional per-sample 'virtual' sub-seeds.
     """
     generator = torch.manual_seed(seed)
-    return generate_noise_(generator, shape, dtype, layout, noise_bias, noise_amplitude, batch_subseeds, device)
+    return generate_noise_(generator, shape, dtype, layout, noise_bias, noise_scale, batch_subseeds, device)
 
 
 def generate_noise_(generator      : torch.Generator,
@@ -514,7 +514,7 @@ def generate_noise_(generator      : torch.Generator,
                     dtype          : torch.dtype,
                     layout         : torch.layout,
                     noise_bias     : torch.Tensor | float | int | None = None,
-                    noise_amplitude: torch.Tensor | float | int | None = None,
+                    noise_scale    : torch.Tensor | float | int | None = None,
                     batch_subseeds : list[int] | None                  = None,
                     device         : str | torch.device                = "cpu"
                     ):
@@ -527,7 +527,7 @@ def generate_noise_(generator      : torch.Generator,
         dtype          : The floating-point dtype of the generated tensor.
         layout         : torch.strided or torch.sparse_coo, etc.
         noise_bias     : Optional constant offset added to the noise.
-        noise_amplitude: Optional scale factor applied to the raw normal noise.
+        noise_scale    : Optional scale factor applied to the raw normal noise.
         batch_subseeds : Optional list of small integers (0, 1, 2, …) that act as virtual seeds
                          for every sample in the batch. Repetitions are allowed; repeated indices
                          yield identical noise for those samples. If `None` or empty, every sample
@@ -555,9 +555,9 @@ def generate_noise_(generator      : torch.Generator,
         # the entire batch with fully random values.
         noise = torch.randn(shape, dtype=dtype, layout=layout, generator=generator, device=device)
 
-     # apply noise bias and amplitude if provided
-    if noise_amplitude is not None: noise *= noise_amplitude
-    if noise_bias      is not None: noise += noise_bias
+     # apply noise bias and scale if provided
+    if noise_scale is not None: noise *= noise_scale
+    if noise_bias  is not None: noise += noise_bias
     return noise
 
 
@@ -628,7 +628,7 @@ def estimate_initial_noise_features(latent_image,
                                    sampler          = sampler,
                                    sigmas           = sigmas,
                                    noise_bias       = sample_bias,
-                                   noise_amplitude  = sample_scale,
+                                   noise_scale      = sample_scale,
                                    progress_preview = ProgressPreview( steps,
                                         parent=(progress_preview, 0, 100)),
                                    )
