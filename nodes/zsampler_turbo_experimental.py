@@ -62,32 +62,36 @@ class ZSamplerTurboExperimental(io.ComfyNode):
                 io.Float.Input       ("denoise", default=1.0, min=0.00, max=1.00, step=0.01,
                                       tooltip="The amount of denoising applied, lower values will maintain the structure of the initial image allowing for image to image sampling.",
                                      ),
-                io_Divider           ("divider1"),
-                io.Combo.Input       ("noise_estimation_method", default="experimental", options=["experimental", "accurate","none"],
-                                      tooltip="Method used to estimate the bias in each channel of the initial noise. "
-                                              "`experimental`: Calculate the bias by denoising a latent image with minimal noise. "
-                                              "`accurate`: Calculate the bias by denoising a fully noisy latent image. "
-                                     ),
-                io.Combo.Input       ("noise_estimation_size", default="image_size", options=["image_size", "1024px", "512px", "256px"],
-                                      tooltip="The size of the latent image used to calculate the bias. "
-                                              "The smaller the image size, the faster the calculation of the first step. "
-                                     ),
-                io.Float.Input       ("noise_bias_scale", default=0.010, min=0.000, max=1.000, step=0.001,
+
+                io_Divider("divider1"),#=====================================
+
+                io.Float.Input       ("initial_noise_bias_level", default=0.010, min=0.000, max=1.000, step=0.001,
                                       tooltip="The level of adjustament from the calculated noise bias "
                                               "to apply before the first denoising step. "
-                                              "(0.0 means no bias adjustment; 1.0 means using the calculated bias).",
+                                              "(0.0 means no noise bias adjustment; 1.0 means using the calculated noise bias).",
                                      ),
-                io.Float.Input       ("noise_amplitude_scale", default=0.022, min=0.000, max=1.000, step=0.001,
-                                      tooltip="The level of adjustament from the calculated noise amplitud "
+                io.Float.Input       ("initial_noise_scale_level", default=0.022, min=0.000, max=1.000, step=0.001,
+                                      tooltip="The level of adjustament from the calculated noise scale "
                                               "to apply before the first denoising step. "
-                                              "(0.0 means no amplitudadjustment; 1.0 means using the calculated amplitud).",
+                                              "(0.0 means no noise scale adjustment; 1.0 means using the calculated noise scale).",
                                      ),
-                io.Float.Input       ("noise_overdose", default=0.0, min=-1.0, max=1.0, step=0.1,
+                io.Float.Input       ("initial_noise_overdose", default=0.0, min=-1.0, max=1.0, step=0.1,
                                       tooltip="The amount of over-amplitude in the initial noise generation. "
                                               "(negative values ​​will reduce any excessive amplitude)."
                                      ),
+                io.Combo.Input       ("noise_est_sample_size", default="image_size", options=["image_size", "1024px", "512px", "256px"],
+                                      tooltip="The size of the latent image used to calculate the initial noise. "
+                                              "The smaller the image size, the faster the calculation of the first step. "
+                                     ),
+                io.Float.Input       ("noise_est_sample_bias", default=0.00, min=0.00, max=1.00, step=0.01,
+                                      tooltip="The bias of the latent image used to calculate the initial noise. "
+                                     ),
+                io.Float.Input       ("noise_est_sample_scale", default=0.10, min=0.00, max=1.00, step=0.01,
+                                      tooltip="The scale of the latent image used to calculate the initial noise. "
+                                     ),
 
-                io_Divider           ("divider2"),
+                io_Divider("divider2"),#=====================================
+
                 io.Float.Input       ("sigma0_off", default=0.000, min=-1.000, max=1.000, step=0.001,
                                       #tooltip="",
                                      ),
@@ -136,22 +140,23 @@ class ZSamplerTurboExperimental(io.ComfyNode):
                 seed        : int,
                 steps       : int,
                 denoise     : float,
-                noise_estimation_method: str,
-                noise_estimation_size  : str | int | None,
-                noise_bias_scale       : float,
-                noise_amplitude_scale  : float,
-                noise_overdose         : float,
-                sigma0_off             : float,
-                sigma1_off             : float,
-                sigma2_off             : float,
-                sigma3_off             : float,
-                sigma4_off             : float,
-                sigma5_off             : float,
-                sigma6_off             : float,
-                sigma7_off             : float,
-                sigma8_off             : float,
-                sigma9_off             : float,
-                sigma10_off            : float,
+                noise_est_sample_size    : str | int | None,
+                noise_est_sample_bias    : float,
+                noise_est_sample_scale   : float,
+                initial_noise_bias_level : float,
+                initial_noise_scale_level: float,
+                initial_noise_overdose   : float,
+                sigma0_off               : float,
+                sigma1_off               : float,
+                sigma2_off               : float,
+                sigma3_off               : float,
+                sigma4_off               : float,
+                sigma5_off               : float,
+                sigma6_off               : float,
+                sigma7_off               : float,
+                sigma8_off               : float,
+                sigma9_off               : float,
+                sigma10_off              : float,
                 **kwargs
                 ) -> io.NodeOutput:
 
@@ -163,15 +168,16 @@ class ZSamplerTurboExperimental(io.ComfyNode):
 
         # run the legacy Z-Sampler Turbo process on the latent image
         latent_output = zsampler_turbo(latent_input, model, positive,
-                                       seed                    = seed,
-                                       steps                   = steps,
-                                       noise_estimation_method = noise_estimation_method,
-                                       noise_estimation_size   = noise_estimation_size,
-                                       noise_bias_scale        = noise_bias_scale,
-                                       noise_amplitude_scale   = noise_amplitude_scale,
-                                       noise_overdose          = noise_overdose,
-                                       sigma_offsets           = sigma_offsets,
-                                       sigma_limits            = sigma_limits,
+                                       seed                      = seed,
+                                       steps                     = steps,
+                                       noise_est_sample_size     = noise_est_sample_size,
+                                       noise_est_sample_bias     = noise_est_sample_bias,
+                                       noise_est_sample_scale    = noise_est_sample_scale,
+                                       initial_noise_bias_level  = initial_noise_bias_level,
+                                       initial_noise_scale_level = initial_noise_scale_level,
+                                       initial_noise_overdose    = initial_noise_overdose,
+                                       sigma_offsets             = sigma_offsets,
+                                       sigma_limits              = sigma_limits,
                                        progress_preview = ProgressPreview.from_model( model ),
                                        )
 
