@@ -56,7 +56,7 @@ class ZSamplerTurboExperimental(io.ComfyNode):
                 io.Int.Input         ("seed", default=1, min=0, max=0xffffffffffffffff, control_after_generate=True,
                                       tooltip="The seed used for the random noise generator, ensuring the same result is produced with the same value.",
                                      ),
-                io.Int.Input         ("steps", default=9, min=3, max=9, step=1,
+                io.Int.Input         ("steps", default=9, min=3, max=20, step=1,
                                       tooltip="The number of iterations to be performed during the sampling process.",
                                      ),
                 io.Float.Input       ("denoise", default=1.0, min=0.00, max=1.00, step=0.01,
@@ -82,9 +82,9 @@ class ZSamplerTurboExperimental(io.ComfyNode):
                                               "to apply before the first denoising step. "
                                               "(0.0 means no amplitudadjustment; 1.0 means using the calculated amplitud).",
                                      ),
-                io.Float.Input       ("noise_overdose", default=0.33, min=-1.00, max=1.00, step=0.01,
-                                      tooltip="The amount of overamplitude in the initial noise generation. "
-                                              "(negative values will reduce the amplitude)."
+                io.Float.Input       ("noise_overdose", default=0.0, min=-1.0, max=1.0, step=0.1,
+                                      tooltip="The amount of over-amplitude in the initial noise generation. "
+                                              "(negative values ​​will reduce any excessive amplitude)."
                                      ),
 
                 io_Divider           ("divider2"),
