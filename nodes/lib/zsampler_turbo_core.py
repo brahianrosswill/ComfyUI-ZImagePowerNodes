@@ -237,18 +237,27 @@ def zsampler_turbo_core(latent_input             : dict[str, Any],
         sigmas2 = None
 
 
-    # these parameters determine the bias and scale of the initial noise used
-    # as latent space. vaguely speaking, they can be thought of as modifiers
-    # influencing brightness and contrast/saturation of the final image.
-    # given that the first sigma value is always set to "0.991", these values
-    # play a role in supplementing the very low-frequency component that might
-    # be lacking in the early stages of image generation.
+    # this parameter controls whether the estimated initial noise
+    # features (bias and scale) are automatically normalized:
+    # - if `True`, the noise bias is adjusted based on the scale,
+    #   and the scale is set to 1.0, which is the preferred method.
+    # - if `False`, both the bias and scale are manually adjusted
+    #   by dividing them by 100, which is an older and ugly approach.
+    normalize_noise_features = True
+
+    # estimate the initial noise features (bias & scale):
+    # these parameters can be thought of as modifying the brightness and contrast
+    # of the final image, though the actual impact is more nuanced; since the sigma
+    # sequence starts with values below 1.0, using this modified initial noise
+    # introduces low-frequency components that may be missing in the early stages
+    # of the denoising process.
+    # the initial noise bias represents a shift in the mean noise value, while
+    # the initial noise scale controls the amplitude of the noise.
+    # (they are only calculated if the generation starts from pure noise and
+    #  if the user has specified a non-zero level for either parameter)
     initial_noise_bias  = 0
     initial_noise_scale = 1
-
-    # `initial_noise_bias/initial_noise_scale` are calculated ONLY if the user
-    # set a non-zero level (because this calculation adds an extra step to the process)
-    if initial_noise_bias_level != 0 and initial_noise_scale_level != 0 and start_from_pure_noise:
+    if start_from_pure_noise and (initial_noise_bias_level != 0 or initial_noise_scale_level != 0):
         bias, scale = estimate_initial_noise_features(
                                 latent_input, model, seed, positive, positive,
                                 sampler      = sampler,
@@ -258,8 +267,13 @@ def zsampler_turbo_core(latent_input             : dict[str, Any],
                                 sample_scale = noise_est_sample_scale,
                                 progress_preview = ProgressPreview( 100, parent=(progress_preview,0,100//steps) ),
                                 )
-        initial_noise_bias  = (bias  * initial_noise_bias_level)
-        initial_noise_scale = (scale * initial_noise_scale_level) + (1-initial_noise_scale_level)
+        if normalize_noise_features:
+            initial_noise_bias  = (bias / scale * initial_noise_bias_level)
+            initial_noise_scale = 1.0 * initial_noise_scale_level
+        else:
+            initial_noise_bias  = (bias  / 100 * initial_noise_bias_level)
+            initial_noise_scale = (scale / 100 * initial_noise_scale_level) + (1-initial_noise_scale_level)
+
 
     # applies the noise overdose if it was required
     if initial_noise_overdose:
@@ -682,6 +696,9 @@ def estimate_initial_noise_features(latent_image,
     samples = latent_image["samples"]
     bias  = samples.mean(dim=[2, 3], keepdim=True)
     scale = samples.std (dim=[2, 3], keepdim=True)
+
+    # TODO: check clamp range
+    bias.clamp_(min=-1.0, max=1.0)
     return bias, scale
 
 

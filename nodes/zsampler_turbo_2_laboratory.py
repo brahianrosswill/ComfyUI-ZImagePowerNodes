@@ -65,12 +65,12 @@ class ZSamplerTurbo2Laboratory(io.ComfyNode):
 
                 io_Divider("divider1"),#=====================================
 
-                io.Float.Input       ("initial_noise_bias_level", default=0.010, min=0.000, max=1.000, step=0.001,
+                io.Float.Input       ("initial_noise_bias_level", default=0.02, min=0.00, max=3.00, step=0.01,
                                       tooltip="The level of adjustament from the calculated noise bias "
                                               "to apply before the first denoising step. "
                                               "(0.0 means no noise bias adjustment; 1.0 means using the calculated noise bias).",
                                      ),
-                io.Float.Input       ("initial_noise_scale_level", default=0.022, min=0.000, max=1.000, step=0.001,
+                io.Float.Input       ("initial_noise_scale_level", default=0.03, min=0.00, max=3.00, step=0.01,
                                       tooltip="The level of adjustament from the calculated noise scale "
                                               "to apply before the first denoising step. "
                                               "(0.0 means no noise scale adjustment; 1.0 means using the calculated noise scale).",
