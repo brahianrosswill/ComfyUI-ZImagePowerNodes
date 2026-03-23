@@ -19,13 +19,12 @@ from typing            import Any
 from comfy_api.latest  import io
 from .lib.progress_bar        import ProgressPreview
 from .lib.zsampler_turbo_core import zsampler_turbo_core
-
 def io_Divider(id: str):
     return io.Custom("ZIPN_DIVIDER").Input(id = id)
 
 
 class ZSamplerTurbo2Laboratory(io.ComfyNode):
-    xTITLE         = "Z-Sampler Turbo Gen2 (Laboratory)"
+    xTITLE         = "Z-Sampler Turbo :geN2 (Laboratory)"
     xCATEGORY      = ""
     xCOMFY_NODE_ID = ""
     xDEPRECATED    = False
@@ -53,7 +52,7 @@ class ZSamplerTurbo2Laboratory(io.ComfyNode):
                 io.Latent.Input      ("latent_input",
                                       tooltip="The initial latent image to be modified; typically an 'Empty Latent' for text-to-image or an encoded image for img2img.",
                                      ),
-                io.Int.Input         ("seed", default=1, min=0, max=0xffffffffffffffff, control_after_generate=True,
+                io.Int.Input         ("seed", default=1, min=1, max=0xffffffffffffffff, control_after_generate=True,
                                       tooltip="The seed used for the random noise generator, ensuring the same result is produced with the same value.",
                                      ),
                 io.Int.Input         ("steps", default=9, min=3, max=20, step=1,
@@ -65,15 +64,10 @@ class ZSamplerTurbo2Laboratory(io.ComfyNode):
 
                 io_Divider("divider1"),#=====================================
 
-                io.Float.Input       ("initial_noise_bias_level", default=0.02, min=0.00, max=3.00, step=0.01,
+                io.Float.Input       ("initial_noise_bias_level", default=1.0, min=0.0, max=10.0, step=0.5,
                                       tooltip="The level of adjustament from the calculated noise bias "
                                               "to apply before the first denoising step. "
                                               "(0.0 means no noise bias adjustment; 1.0 means using the calculated noise bias).",
-                                     ),
-                io.Float.Input       ("initial_noise_scale_level", default=0.03, min=0.00, max=3.00, step=0.01,
-                                      tooltip="The level of adjustament from the calculated noise scale "
-                                              "to apply before the first denoising step. "
-                                              "(0.0 means no noise scale adjustment; 1.0 means using the calculated noise scale).",
                                      ),
                 io.Float.Input       ("initial_noise_overdose", default=0.0, min=-1.0, max=1.0, step=0.1,
                                       tooltip="The amount of over-amplitude in the initial noise generation. "
@@ -147,7 +141,6 @@ class ZSamplerTurbo2Laboratory(io.ComfyNode):
                 noise_est_sample_bias    : float,
                 noise_est_sample_scale   : float,
                 initial_noise_bias_level : float,
-                initial_noise_scale_level: float,
                 initial_noise_overdose   : float,
                 sigma_preset_name        : str,
                 sigma0_off               : float,
@@ -174,12 +167,11 @@ class ZSamplerTurbo2Laboratory(io.ComfyNode):
         latent_output = zsampler_turbo_core(latent_input, model, positive,
                                             seed                      = seed,
                                             steps                     = steps,
+                                            initial_noise_bias_level  = initial_noise_bias_level,
+                                            initial_noise_overdose    = initial_noise_overdose,
                                             noise_est_sample_size     = noise_est_sample_size,
                                             noise_est_sample_bias     = noise_est_sample_bias,
                                             noise_est_sample_scale    = noise_est_sample_scale,
-                                            initial_noise_bias_level  = initial_noise_bias_level,
-                                            initial_noise_scale_level = initial_noise_scale_level,
-                                            initial_noise_overdose    = initial_noise_overdose,
                                             sigma_preset_name         = sigma_preset_name,
                                             sigma_offsets             = sigma_offsets,
                                             sigma_limits              = sigma_limits,
