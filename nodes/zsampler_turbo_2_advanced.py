@@ -26,7 +26,7 @@ def Divider(id: str):
 
 
 class ZSamplerTurbo2Advanced(io.ComfyNode):
-    xTITLE         = "Z-Sampler Turbo ^2 (Advanced)"
+    xTITLE         = "Z-Sampler Turbo ^G2 (Advanced)"
     xCATEGORY      = ""
     xCOMFY_NODE_ID = ""
     xDEPRECATED    = False
@@ -94,12 +94,18 @@ class ZSamplerTurbo2Advanced(io.ComfyNode):
 
                 Divider("divider"),#=========================================
 
-                io.Float.Input       ("z_vibrance", default=0.0, min=-1.0, max=1.0, step=0.1,
+                io.Float.Input       ("turbo_vibrance", default=0.0, min=-1.0, max=1.0, step=0.1,
                                       tooltip="The amount of over-amplitude in the initial noise to generate images with "
                                               "more pronounced contrasts and colors. 0.0 means no correction is applied. "
                                               "Negative values result in more washed-out images, while positive values "
                                               "enhance intensity and saturation. This parameter only affects the image "
                                               "when 'start_at_step' is set to 0 and 'add_noise' is enabled. ",
+                                     ),
+                io.Boolean.Input     ("turbo_creativity", default=False, label_on="yes", label_off="no",
+                                      tooltip="When enabled, this option increases the model's creativity, resulting "
+                                              "in more diverse and imaginative outputs. This solves the problem that "
+                                              "Z-Image Turbo has with low image variability. However, it may increase "
+                                              "the model's hallucinations and is not recommended for in-painting. ",
                                      ),
                 io.Float.Input       ("initial_bias_level", default=1.5, min=0.0, max=2.0, step=0.1,
                                       tooltip="The level of adjustament from the estimated noise bias to apply before "
@@ -108,7 +114,8 @@ class ZSamplerTurbo2Advanced(io.ComfyNode):
                                               "This parameter works only when 'start_at_step' is set to 0 "
                                               "and 'add_noise' is enabled. ",
                                      ),
-                io.Combo.Input       ("initial_sample_size", default="image_size", options=["128px", "256px", "512px", "1024px", "image_size"],
+                io.Combo.Input       ("initial_sample_size", default="image_size",
+                                      options=["128px", "256px", "512px", "1024px", "image_size"],
                                       tooltip="The size of the latent image used to calculate the initial bias. "
                                               "The smaller the image size, the faster the calculation of the first step. "
                                      ),
@@ -134,7 +141,8 @@ class ZSamplerTurbo2Advanced(io.ComfyNode):
                 start_at_step         : int,
                 end_at_step           : int,
                 force_final_denoising : bool,
-                z_vibrance            : float,
+                turbo_vibrance        : float,
+                turbo_creativity      : bool,
                 initial_bias_level    : float,
                 initial_sample_size   : str,
                 positive_stg2         : list | None = None,
@@ -142,8 +150,8 @@ class ZSamplerTurbo2Advanced(io.ComfyNode):
                 **kwargs
                 ) -> io.NodeOutput:
 
-        # calculate the amount of noise overdose based on `z_vibrance`
-        initial_noise_overdose = (0.2 * ((z_vibrance+1)**2) + 0.8) - 1
+        # calculate the amount of noise overdose based on `turbo_vibrance`
+        initial_noise_overdose = (0.2 * ((turbo_vibrance+1)**2) + 0.8) - 1
 
         # if the start/stop values restrict the number of steps,
         # apply that start/stop range using the `sigma_step_range` parameter
@@ -164,6 +172,7 @@ class ZSamplerTurbo2Advanced(io.ComfyNode):
                                             noise_est_sample_scale    = 1.0,
                                             sigma_preset_name         = "bravo",
                                             sigma_step_range          = sigma_step_range,
+                                            shuffle_seed              = seed if turbo_creativity else 0,
                                             start_with_noise          = add_noise,
                                             end_with_denoise          = force_final_denoising,
                                             progress_preview = ProgressPreview.from_model( model ),
