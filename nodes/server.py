@@ -21,8 +21,8 @@ from functools                   import cache
 from server                      import PromptServer
 from aiohttp                     import web
 from ..styles.predefined_styles  import PREDEFINED_STYLE_GROUPS, STYLE_GROUPS_BY_VERSION
-from .lib.helpers                import get_project_root
-from .lib.style_group            import StyleGroup
+from .core.helpers               import get_project_root
+from .core.style_group           import StyleGroup
 routes = PromptServer.instance.routes
 
 

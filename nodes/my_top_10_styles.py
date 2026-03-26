@@ -15,7 +15,7 @@ The V3 schema documentation can be found here:
 
 """
 from comfy_api.latest            import io
-from .lib.style_helpers          import get_style_template, append_style_to_text, remove_style_from_text
+from .core.style_helpers         import get_style_template, append_style_to_text, remove_style_from_text
 from ..styles.predefined_styles  import PREDEFINED_STYLE_GROUPS
 
 

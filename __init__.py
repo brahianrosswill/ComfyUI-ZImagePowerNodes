@@ -34,7 +34,7 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 import os
 from comfy_api.latest          import ComfyExtension, io
 from .nodes.server             import *
-from .nodes.lib.helpers        import get_project_version
+from .nodes.core.helpers       import get_project_version
 from .styles.predefined_styles import number_of_predefined_styles
 __PROJECT_EMOJI = "⚡"                 #< emoji that identifies the project
 __PROJECT_MENU  = "Z-Image"            #< name of the menu where all the nodes will be
@@ -44,15 +44,15 @@ __PROJECT_ID    = "//ZImagePowerNodes" #< used to identify the project in the Co
 #================================= LOGGER ==================================#
 
 # initialize the project logger
-from comfy.cli_args     import args
-from .nodes.lib.system  import setup_logger
+from comfy.cli_args      import args
+from .nodes.core.system  import setup_logger
 if os.getenv('ZIMAGE_NODES_DEBUG'):
     setup_logger(log_level="DEBUG", emoji=__PROJECT_EMOJI, name="ZI_POWER", use_stdout=args.log_stdout)
 else:
     setup_logger(log_level=args.verbose, emoji=__PROJECT_EMOJI, name="ZI_POWER", use_stdout=args.log_stdout)
 
 # import the newly initialized project logger
-from .nodes.lib.system  import logger
+from .nodes.core.system  import logger
 
 
 #============================ HELPER FUNCTIONS =============================#

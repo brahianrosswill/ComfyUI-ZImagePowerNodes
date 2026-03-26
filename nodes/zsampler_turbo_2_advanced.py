@@ -16,17 +16,17 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 """
-from typing            import Any
-from comfy_api.latest  import io
-from .lib.progress_bar        import ProgressPreview
-from .lib.zsampler_turbo_core import zsampler_turbo_core
+from typing                     import Any
+from comfy_api.latest           import io
+from .core.progress_bar         import ProgressPreview
+from .core.zsampler_turbo_core  import zsampler_turbo_core
 def Divider(id: str):
     return io.Custom("ZIPN_DIVIDER").Input(id = id)
 
 
 
 class ZSamplerTurbo2Advanced(io.ComfyNode):
-    xTITLE         = "Z-Sampler Turbo ^G2 (Advanced)"
+    xTITLE         = "Z-Sampler Turbo ^g2 (Advanced)"
     xCATEGORY      = ""
     xCOMFY_NODE_ID = ""
     xDEPRECATED    = False

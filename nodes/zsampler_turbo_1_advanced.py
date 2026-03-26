@@ -16,10 +16,10 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 """
-from typing            import Any
-from comfy_api.latest  import io
-from .lib.progress_bar               import ProgressPreview
-from .lib.zsampler_turbo_legacy_core import zsampler_turbo_legacy_core
+from typing                            import Any
+from comfy_api.latest                  import io
+from .core.progress_bar                import ProgressPreview
+from .core.zsampler_turbo_legacy_core  import zsampler_turbo_legacy_core
 
 
 
