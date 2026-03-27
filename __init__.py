@@ -115,8 +115,11 @@ class ZImagePowerNodesExtension(ComfyExtension):
         #-- ROOT --------------------------------
         subcategory = ""
 
-        from .nodes.empty_zimage_latent_image import EmptyZImageLatentImage
-        _register_node( EmptyZImageLatentImage, nodes, subcategory )
+        from .nodes.zsampler_turbo_2 import ZSamplerTurbo2
+        _register_node( ZSamplerTurbo2, nodes, subcategory )
+
+        from .nodes.zsampler_turbo_2_advanced import ZSamplerTurbo2Advanced
+        _register_node( ZSamplerTurbo2Advanced, nodes, subcategory )
 
         from .nodes.style_prompt_encoder_2 import StylePromptEncoder2
         _register_node( StylePromptEncoder2, nodes, subcategory )
@@ -124,32 +127,27 @@ class ZImagePowerNodesExtension(ComfyExtension):
         from .nodes.style_string_injector_2 import StyleStringInjector2
         _register_node( StyleStringInjector2, nodes, subcategory )
 
-        from .nodes.zsampler_turbo_1 import ZSamplerTurbo
-        _register_node( ZSamplerTurbo, nodes, subcategory )
-
-        from .nodes.zsampler_turbo_1_advanced import ZSamplerTurboAdvanced
-        _register_node( ZSamplerTurboAdvanced, nodes, subcategory )
-
-        from .nodes.zsampler_turbo_2 import ZSamplerTurbo2
-        _register_node( ZSamplerTurbo2, nodes, subcategory )
-
-        from .nodes.zsampler_turbo_2_advanced import ZSamplerTurbo2Advanced
-        _register_node( ZSamplerTurbo2Advanced, nodes, subcategory )
-
-        from .nodes.zsampler_turbo_2_laboratory import ZSamplerTurbo2Laboratory
-        _register_node( ZSamplerTurbo2Laboratory, nodes, subcategory )
-
         from .nodes.my_top_10_styles import MyTop10Styles
         _register_node( MyTop10Styles, nodes, subcategory )
 
         from .nodes.my_top_10_styles_editor import MyTop10StylesEditor
         _register_node( MyTop10StylesEditor, nodes, subcategory )
 
+        from .nodes.save_image import SaveImage
+        _register_node( SaveImage, nodes, subcategory )
+
+        from .nodes.empty_zimage_latent_image import EmptyZImageLatentImage
+        _register_node( EmptyZImageLatentImage, nodes, subcategory )
+
         from .nodes.vae_encode_soft_inpainting import VAEEncodeSoftInpainting
         _register_node( VAEEncodeSoftInpainting, nodes, subcategory )
 
-        from .nodes.save_image import SaveImage
-        _register_node( SaveImage, nodes, subcategory )
+
+        #--[ __dev ]----------------------
+        subcategory = "__dev"
+
+        from .nodes.zsampler_turbo_2_laboratory import ZSamplerTurbo2Laboratory
+        _register_node( ZSamplerTurbo2Laboratory, nodes, subcategory )
 
 
         #--[ __deprecated ]----------------------
@@ -169,6 +167,13 @@ class ZImagePowerNodesExtension(ComfyExtension):
 
         from .nodes.deprecated_nodes.style_string_injector import StyleStringInjector
         _register_node( StyleStringInjector, nodes, subcategory )
+
+        from .nodes.deprecated_nodes.zsampler_turbo_1 import ZSamplerTurbo
+        _register_node( ZSamplerTurbo, nodes, subcategory )
+
+        from .nodes.deprecated_nodes.zsampler_turbo_1_advanced import ZSamplerTurboAdvanced
+        _register_node( ZSamplerTurboAdvanced, nodes, subcategory )
+
 
         # report version and the number of nodes added by this extension
         version           = get_project_version()
