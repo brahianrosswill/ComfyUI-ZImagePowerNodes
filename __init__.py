@@ -143,7 +143,13 @@ class ZImagePowerNodesExtension(ComfyExtension):
         _register_node( VAEEncodeSoftInpainting, nodes, subcategory )
 
 
-        #--[ __dev ]----------------------
+        #--[ utils ]-----------------------------
+        subcategory = "utils"
+        from .nodes.image_labeler import ImageLabeler
+        _register_node( ImageLabeler, nodes, subcategory )
+
+
+        #--[ __dev ]-----------------------------
         subcategory = "__dev"
 
         from .nodes.zsampler_turbo_2_laboratory import ZSamplerTurbo2Laboratory
