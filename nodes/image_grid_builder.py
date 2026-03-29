@@ -17,9 +17,11 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 """
 import torch
 import numpy as np
-from comfy_api.latest    import io
 from PIL                 import Image, ImageDraw
+from comfy_api.latest    import io
 from .core.helpers_text  import TextBox, load_font, write_text_in_box
+if hasattr(Image, 'Resampling'):  LANCZOS = Image.Resampling.LANCZOS
+else:                             LANCZOS = Image.LANCZOS # type: ignore
 
 
 class ImageGridBuilder(io.ComfyNode):
@@ -211,7 +213,7 @@ def draw_grid(output_image     : Image.Image,
             array = (tensor[i].cpu().numpy() * 255).clip(0, 255).astype(np.uint8)
 
             # resize to exact cell size and paste
-            cell_image = Image.fromarray(array).resize(cell_size, Image.LANCZOS)
+            cell_image = Image.fromarray(array).resize(cell_size, LANCZOS)
             x = offset[0] + column * step[0]
             y = offset[1] + row    * step[1]
             output_image.paste(cell_image, (x, y))
