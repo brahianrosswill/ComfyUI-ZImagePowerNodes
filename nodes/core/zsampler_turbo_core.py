@@ -122,6 +122,16 @@ def zsampler_turbo_core(latent_input             : dict[str, Any],
     negative = positive
 
 
+    # set the `is_shuffle_enabled` flag if shuffle_counts different from zero,
+    # at the same time check the parameter has a valid type and length
+    if shuffle_counts is None:
+        is_shuffle_enabled = False
+    else:
+        if not isinstance(shuffle_counts, tuple) or len(shuffle_counts) != 4:
+            raise ValueError("`shuffle_counts` must be None or a tuple of 4 integers")
+        is_shuffle_enabled = shuffle_counts != (0,0,0,0)
+
+
     # validate sigma_limits & sigma_step_range
     if sigma_limits is not None:
         if not isinstance(sigma_limits, (tuple,list)) or len(sigma_limits)<2:
@@ -251,8 +261,7 @@ def zsampler_turbo_core(latent_input             : dict[str, Any],
                                               initial_noise_scale  = initial_noise_scale,
                                               start_with_noise     = start_with_noise,
                                               end_with_denoise     = end_with_denoise,
-                                              shuffle_seed         = seed,
-                                              shuffle_counts       = shuffle_counts,
+                                              shuffle_counts       = shuffle_counts if is_shuffle_enabled else None,
                                               inject_noise_scales  = inject_noise_scales,
                                               inject_noise_freqs   = inject_noise_freqs,
                                               progress_preview = ProgressPreview( 100, parent=(progress_preview,100//steps,100) ),
@@ -336,8 +345,6 @@ def execute_3_stage_denoising(latent_image,
                               Set to `False` to preserve noise from a previous process (chaining samplers).
         end_with_denoise   : If `True` (default), ends the denoising process by zeroing out residual noise.
                               Set to `False` to preserve noise for a next process (chaining samplers).
-        shuffle_seed       : Optional seed for shuffling the latent image between the stage1 and stage2.
-                              If zero or None, no shuffling will be performed.
 
     Returns:
         A dictionary with the updated latent image data after all three denoising stages.
@@ -356,6 +363,9 @@ def execute_3_stage_denoising(latent_image,
         sigmas2 = torch.tensor(sigmas2, device='cpu')
     if isinstance(sigmas3, list):
         sigmas3 = torch.tensor(sigmas3, device='cpu')
+
+    # enable shuffling only when valid, non-empty shuffle counts are provided
+    is_shuffle_enabled = (shuffle_counts is not None) and (shuffle_counts != (0, 0, 0, 0))
 
     # store the stage3 sigmas to later evaluate if it was truncated
     original_sigmas3 = sigmas3
@@ -393,7 +403,7 @@ def execute_3_stage_denoising(latent_image,
         is_first_stage = True
         is_last_stage  = (sigmas2 is None and sigmas3 is None)
         add_noise     = (is_first_stage and start_with_noise)
-        force_denoise = (is_last_stage  and end_with_denoise) or bool(shuffle_seed)
+        force_denoise = (is_last_stage  and end_with_denoise) or is_shuffle_enabled
 
         latent_image = execute_sampler(latent_image,
                         model, seed, cfg, positive, negative,
@@ -415,7 +425,7 @@ def execute_3_stage_denoising(latent_image,
         # this stage is the first and therefore it must add noise
         is_first_stage = (sigmas1 is None)
         is_last_stage  = (sigmas3 is None)
-        add_noise     = (is_first_stage and start_with_noise) or bool(shuffle_seed)
+        add_noise     = (is_first_stage and start_with_noise) or is_shuffle_enabled
         force_denoise = (is_last_stage  and end_with_denoise)
 
         latent_image = execute_sampler(latent_image,
@@ -427,7 +437,7 @@ def execute_3_stage_denoising(latent_image,
                         force_final_denoise = force_denoise,
                         keep_masked_area    = True,
                         shuffle_seed        = shuffle_seed,
-                        shuffle_counts      = shuffle_counts,
+                        shuffle_counts      = shuffle_counts if is_shuffle_enabled else None,
                         inject_noise_scale  = inject_noise_scales[1] if inject_noise_scales else 0,
                         inject_noise_freq   = inject_noise_freqs[1]  if inject_noise_freqs  else 0,
                         progress_preview    = ProgressPreview( prog2-prog1,
@@ -541,6 +551,9 @@ def execute_sampler(latent_image    : dict[str, Any],
     if isinstance(noise_scale, (float,int)) and noise_scale == 1:
         noise_scale = None
 
+    # by default, the `shuffle_seed` is the same as the `noise_seed`
+    if shuffle_seed is None:
+        shuffle_seed = noise_seed
 
     # extract all info that comes packaged in the `latent_image` dictionary
     latent     : dict                = latent_image.copy()
@@ -559,7 +572,7 @@ def execute_sampler(latent_image    : dict[str, Any],
     # shuffle the image if it was required
     if shuffle_counts:
         samples = shuffle_tensor(samples,
-                                 shuffle_seed if shuffle_seed is not None else noise_seed,
+                                 shuffle_seed,
                                  shuffle_counts)
 
     # apply extra noise injection if it was required
