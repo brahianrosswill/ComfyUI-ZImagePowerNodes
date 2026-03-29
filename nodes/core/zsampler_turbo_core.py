@@ -40,7 +40,7 @@ def zsampler_turbo_core(latent_input             : dict[str, Any],
                         end_with_denoise         : bool                                    = True,
                         positive_stg2            : list[ tuple[torch.Tensor,dict] ] | None = None,
                         positive_stg3            : list[ tuple[torch.Tensor,dict] ] | None = None,
-                        shuffle_seed             : int | None                              = None,
+                        shuffle_counts           : tuple[int,int,int,int] | None           = None,
                         inject_noise_scales      : tuple[float,float,float] | None         = None,
                         inject_noise_freqs       : tuple[int  ,int  ,int  ] | None         = None,
                         progress_preview         : ProgressPreview
@@ -79,10 +79,12 @@ def zsampler_turbo_core(latent_input             : dict[str, Any],
                                     If `None` (default), the main positive conditioning will be used.
         positive_stg3            : Optional positive conditioning to be used in the third stage.
                                     If `None` (default), the main positive conditioning will be used.
-        shuffle_seed             : Optional seed for shuffling the latent image between the stage1 and stage2.
-                                    This results in a significant increase in the model's creativity,
-                                    generating much more diverse images.
-                                    If zero or None, no shuffling will be performed.
+        shuffle_counts           : Optional tuple of four signed integers (left, top, right, bottom) for shuffling
+                                    the latent image between the stage1 and stage2. This results in a significant
+                                    increase in the model's creativity, generating much more diverse images.
+                                    A zero value means “skip that side”, a positive value adds normal fragments, a
+                                    negative value adds fragments that are also randomly flipped (hori. and vert.).
+                                    If this parameter is (0,0,0,0) or `None` (default), no shuffling will be performed.
         inject_noise_scales      : Optional scales of the extra noise injected into the latent image in each stage.
                                     If `None` (default), no extra noise will be injected.
         inject_noise_freqs       : Optional frequencies at which additional noise is injected into the latent image
@@ -249,7 +251,8 @@ def zsampler_turbo_core(latent_input             : dict[str, Any],
                                               initial_noise_scale  = initial_noise_scale,
                                               start_with_noise     = start_with_noise,
                                               end_with_denoise     = end_with_denoise,
-                                              shuffle_seed         = shuffle_seed,
+                                              shuffle_seed         = seed,
+                                              shuffle_counts       = shuffle_counts,
                                               inject_noise_scales  = inject_noise_scales,
                                               inject_noise_freqs   = inject_noise_freqs,
                                               progress_preview = ProgressPreview( 100, parent=(progress_preview,100//steps,100) ),
@@ -294,6 +297,7 @@ def execute_3_stage_denoising(latent_image,
                               end_with_denoise    : bool                                    = True,
                               positive_stg2       : list | None                             = None,
                               positive_stg3       : list | None                             = None,
+                              shuffle_counts      : tuple[int,int,int,int] | None           = None,
                               shuffle_seed        : int  | None                             = None,
                               inject_noise_scales : tuple[float,float,float] | None         = None,
                               inject_noise_freqs  : tuple[int  ,int  ,int  ] | None         = None,
@@ -423,6 +427,7 @@ def execute_3_stage_denoising(latent_image,
                         force_final_denoise = force_denoise,
                         keep_masked_area    = True,
                         shuffle_seed        = shuffle_seed,
+                        shuffle_counts      = shuffle_counts,
                         inject_noise_scale  = inject_noise_scales[1] if inject_noise_scales else 0,
                         inject_noise_freq   = inject_noise_freqs[1]  if inject_noise_freqs  else 0,
                         progress_preview    = ProgressPreview( prog2-prog1,
@@ -465,9 +470,10 @@ def execute_sampler(latent_image    : dict[str, Any],
                     force_final_denoise : bool  = False,
                     keep_masked_area    : bool  = False,
                     fix_empty_latent    : bool  = True,
-                    shuffle_seed        : int | None = 0,
-                    inject_noise_scale  : float      = 0,
-                    inject_noise_freq   : int        = 0,
+                    shuffle_counts      : tuple[int,int,int,int] | None = None,
+                    shuffle_seed        : int | None                    = None,
+                    inject_noise_scale  : float                         = 0,
+                    inject_noise_freq   : int                           = 0,
                     progress_preview    : ProgressPreview | None = None,
                     ) -> dict[str, Any]:
     """
@@ -497,8 +503,9 @@ def execute_sampler(latent_image    : dict[str, Any],
         keep_masked_area   : If True, the masked area of the latent image will be kept unchanged.
                               Comfyui tries to keep masked area unchanged when there's a mask active
                               but activating this flag we're sure that no change will happen at all.
-        shuffle_seed       : Optional seed for shuffling the latent image.
-                              If zero or None, no shuffling will be performed.
+        shuffle_count      : Optional number of times to shuffle the latent image.
+        shuffle_seed       : Optional seed used for shuffling the latent image.
+                              If `None` (default), the same `noise_seed` will be used for shuffling.
         progress_preview   : Optional callback for tracking progress. Defaults to None.
 
     Returns:
@@ -550,8 +557,10 @@ def execute_sampler(latent_image    : dict[str, Any],
 
 
     # shuffle the image if it was required
-    if shuffle_seed:
-        samples = shuffle_tensor(samples, shuffle_seed)
+    if shuffle_counts:
+        samples = shuffle_tensor(samples,
+                                 shuffle_seed if shuffle_seed is not None else noise_seed,
+                                 shuffle_counts)
 
     # apply extra noise injection if it was required
     if inject_noise_scale and inject_noise_freq:
@@ -607,10 +616,12 @@ def execute_sampler(latent_image    : dict[str, Any],
 
 #============================= IMAGE SHUFFLING =============================#
 
-def random_tensor_fragment(x        : torch.Tensor,
-                           generator: torch.Generator,
-                           size     : tuple[float, float] = (0.50, 0.75),
-                           anchor   : str = 'left'
+def random_tensor_fragment(x                      : torch.Tensor,
+                           generator              : torch.Generator,
+                           size                   : tuple[float, float] = (0.50, 0.75),
+                           anchor                 : str = 'left',
+                           random_horizontal_flip : bool = True,
+                           random_vertical_flip   : bool = True,
                            ) -> torch.Tensor:
     """
     Extracts a random rectangular fragment from a 4-dimensional tensor.
@@ -630,7 +641,7 @@ def random_tensor_fragment(x        : torch.Tensor,
     """
     if x.dim() != 4:
         raise ValueError("Input tensor must be 4-D (B, C, H, W).")
-    if anchor not in {"left", "right"}:
+    if anchor not in {"left", "top", "right", "bottom"}:
         raise ValueError("anchor must be either 'left' or 'right'.")
 
     B, C, H, W = x.shape
@@ -642,16 +653,32 @@ def random_tensor_fragment(x        : torch.Tensor,
     frag_height = int(H * ratio)
 
     # place the rectangle in a random position inside the tensor
-    top  = torch.randint(0, H - frag_height + 1, (1,), generator=generator, device="cpu").item()
-    left = 0 if anchor == "left" else W - frag_width
+    if anchor == "left" or anchor == "right":
+        top  = torch.randint(0, H - frag_height + 1, (1,), generator=generator, device="cpu").item()
+        left = 0 if anchor == "left" else W - frag_width
+    else:
+        left = torch.randint(0, W - frag_width + 1, (1,), generator=generator, device="cpu").item()
+        top  = 0 if anchor == "top" else H - frag_height
 
     # fragment = (B, C, fh, fw)
     fragment = x[..., top:top + frag_height, left:left + frag_width]
+
+    # optional random horizontal flip
+    if random_horizontal_flip and torch.rand(1, generator=generator, device="cpu").item() > 0.5:
+        fragment = torch.flip(fragment, dims=[-1])
+
+    # optional random vertical flip
+    if random_vertical_flip and torch.rand(1, generator=generator, device="cpu").item() > 0.5:
+        fragment = torch.flip(fragment, dims=[-2])
+
     # return = (B, C, H, W)
     return F.interpolate(fragment, size=(H, W), mode='bilinear', align_corners=False)
 
 
-def shuffle_tensor(x: torch.Tensor, seed: int) -> torch.Tensor:
+def shuffle_tensor(x     : torch.Tensor,
+                   seed  : int,
+                   counts: tuple[int,int,int,int] | None,
+                   ) -> torch.Tensor:
     """
     Shuffles the input latent image tensor.
 
@@ -660,9 +687,14 @@ def shuffle_tensor(x: torch.Tensor, seed: int) -> torch.Tensor:
     overall standard deviation and mean of the original tensor.
 
     Args:
-        x    : Input tensor of shape (B, C, H, W) representing the latent image.
-        seed : Fixed seed for random number generation to ensure reproducibility.
-
+        x      : Input tensor of shape (B, C, H, W) representing the latent image.
+        seed   : Fixed seed for random number generation to ensure reproducibility.
+        counts : Tuple of four signed integers (left, top, right, bottom) that
+                 control how many fragments are combined for each alignment.
+                 Zero means “no fragments for this side”, a positive value adds
+                 normal fragments, a negative value adds fragments that are also
+                 randomly flipped (horizontally and vertically). Passing `None`
+                 or `(0,0,0,0)` leaves the tensor unchanged.
     Returns:
         A new tensor with the same shape as `x`, where fragments of the
         original image are shuffled in a random manner.
@@ -672,13 +704,35 @@ def shuffle_tensor(x: torch.Tensor, seed: int) -> torch.Tensor:
     if not isinstance(seed, int):
         raise TypeError("seed must be an integer.")
 
+    # if the counts were not provided, return without doing anything
+    if not counts or counts == (0,0,0,0):
+        return x
+
     x_scale = x.std (dim=(2,3), keepdim=True)
     x_bias  = x.mean(dim=(2,3), keepdim=True)
 
     generator = torch.Generator().manual_seed(seed)
-    result =  random_tensor_fragment(x, generator, size=(0.50,0.75), anchor='left')
-    result += random_tensor_fragment(x, generator, size=(0.50,0.75), anchor='right')
-
+    result = torch.zeros_like(x)
+    for i in range( abs(counts[0]) ):
+        result +=  random_tensor_fragment(x, generator, size=(0.50,0.75), anchor='left',
+                                          random_horizontal_flip=counts[0]<0,
+                                          random_vertical_flip=counts[0]<0
+                                          )
+    for i in range( abs(counts[1]) ):
+        result +=  random_tensor_fragment(x, generator, size=(0.50,0.75), anchor='top',
+                                          random_horizontal_flip=counts[0]<0,
+                                          random_vertical_flip=counts[0]<0
+                                          )
+    for i in range( abs(counts[2]) ):
+        result += random_tensor_fragment(x, generator, size=(0.50,0.75), anchor='right',
+                                         random_horizontal_flip=counts[0]<0,
+                                         random_vertical_flip=counts[0]<0
+                                         )
+    for i in range( abs(counts[3]) ):
+        result += random_tensor_fragment(x, generator, size=(0.50,0.75), anchor='bottom',
+                                         random_horizontal_flip=counts[0]<0,
+                                         random_vertical_flip=counts[0]<0
+                                         )
     result_scale = result.std (dim=(2,3), keepdim=True)
     result_bias  = result.mean(dim=(2,3), keepdim=True)
 

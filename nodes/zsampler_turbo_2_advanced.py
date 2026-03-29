@@ -172,7 +172,7 @@ class ZSamplerTurbo2Advanced(io.ComfyNode):
                                             noise_est_sample_scale    = 1.0,
                                             sigma_preset_name         = "bravo",
                                             sigma_step_range          = sigma_step_range,
-                                            shuffle_seed              = seed if turbo_creativity else 0,
+                                            shuffle_counts            = (1,0,1,0) if turbo_creativity else None,
                                             start_with_noise          = add_noise,
                                             end_with_denoise          = force_final_denoising,
                                             progress_preview = ProgressPreview.from_model( model ),

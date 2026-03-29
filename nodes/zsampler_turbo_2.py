@@ -154,7 +154,7 @@ class ZSamplerTurbo2(io.ComfyNode):
                                             noise_est_sample_size     = 512 if use_lowres_sample else "image_size",
                                             sigma_preset_name         = "bravo",
                                             sigma_limits              = sigma_limits,
-                                            shuffle_seed              = seed if turbo_creativity else 0,
+                                            shuffle_counts            = (1,0,1,0) if turbo_creativity else None,
                                             inject_noise_scales       = inject_noise_scales,
                                             inject_noise_freqs        = inject_noise_freqs,
                                             progress_preview = ProgressPreview.from_model( model ),

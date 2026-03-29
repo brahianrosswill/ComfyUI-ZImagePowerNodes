@@ -110,6 +110,21 @@ class ZSamplerTurbo2Laboratory(io.ComfyNode):
 
                 io_Divider("divider3"),#=====================================
 
+                io.Int.Input         ("shuffle_left_count", default=0, min=-16, max=16,
+                                      tooltip="?? ",
+                                     ),
+                io.Int.Input         ("shuffle_top_count", default=0, min=-16, max=16,
+                                      tooltip="?? ",
+                                     ),
+                io.Int.Input         ("shuffle_right_count", default=0, min=-16, max=16,
+                                      tooltip="?? ",
+                                     ),
+                io.Int.Input         ("shuffle_bottom_count", default=0, min=-16, max=16,
+                                      tooltip="?? ",
+                                     ),
+
+                io_Divider("divider4"),#=====================================
+
                 io.Combo.Input       ("sigma_preset_name", default="bravo", options=["alpha", "bravo", "charlie"],
                                       tooltip="The set of predefined sigma values that are used during the denoise process. "
                                      ),
@@ -172,6 +187,10 @@ class ZSamplerTurbo2Laboratory(io.ComfyNode):
                 inject_freq_st2          : int,
                 inject_noise_st3         : float,
                 inject_freq_st3          : int,
+                shuffle_left_count       : int,
+                shuffle_top_count        : int,
+                shuffle_right_count      : int,
+                shuffle_bottom_count     : int,
                 sigma_preset_name        : str,
                 sigma0_off               : float,
                 sigma1_off               : float,
@@ -197,6 +216,8 @@ class ZSamplerTurbo2Laboratory(io.ComfyNode):
         inject_noise_scales = (inject_noise_st1, inject_noise_st2, inject_noise_st3)
         inject_noise_freqs  = (inject_freq_st1 , inject_freq_st2 , inject_freq_st3 )
 
+        shuffle_counts = (shuffle_left_count, shuffle_top_count, shuffle_right_count, shuffle_bottom_count)
+
         # run the Z-Sampler Turbo core method on the latent image
         latent_output = zsampler_turbo_core(latent_input, model, positive,
                                             seed                      = seed,
@@ -209,6 +230,7 @@ class ZSamplerTurbo2Laboratory(io.ComfyNode):
                                             sigma_preset_name         = sigma_preset_name,
                                             sigma_offsets             = sigma_offsets,
                                             sigma_limits              = sigma_limits,
+                                            shuffle_counts            = shuffle_counts,
                                             inject_noise_scales       = inject_noise_scales,
                                             inject_noise_freqs        = inject_noise_freqs,
                                             progress_preview = ProgressPreview.from_model( model ),
