@@ -1,6 +1,6 @@
 """
 File    : image_labeler.py
-Purpose : ...
+Purpose : Node to label an image with text.
 Author  : Martin Rizzo | <martinrizzo@gmail.com>
 Date    : Mar 27, 2026
 Repo    : https://github.com/martin-rizzo/ComfyUI-ZImagePowerNodes

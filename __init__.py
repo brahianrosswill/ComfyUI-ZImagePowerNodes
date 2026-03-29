@@ -145,8 +145,12 @@ class ZImagePowerNodesExtension(ComfyExtension):
 
         #--[ utils ]-----------------------------
         subcategory = "utils"
+
         from .nodes.image_labeler import ImageLabeler
         _register_node( ImageLabeler, nodes, subcategory )
+
+        from .nodes.image_grid_builder import ImageGridBuilder
+        _register_node( ImageGridBuilder, nodes, subcategory )
 
 
         #--[ __dev ]-----------------------------

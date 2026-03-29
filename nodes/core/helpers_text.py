@@ -10,7 +10,7 @@ License : MIT
          ComfyUI nodes designed specifically for the "Z-Image" model.
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 """
-from PIL     import ImageDraw, ImageFont
+from PIL     import ImageDraw, ImageFont, Image
 from pathlib import Path
 Number = int | float
 
@@ -93,8 +93,8 @@ class TextBox(tuple):
                            text   : str,
                            font   : ImageFont.FreeTypeFont,
                            anchor : str | None = None,
-                           spacing: float = 4,
-                           align  : str = "left",
+                           spacing: float      = 4,
+                           align  : str        = "left",
                            ) -> "TextBox":
         """
         Returns the bounding box of multi-line text as measured by Pillow.
@@ -320,3 +320,122 @@ def select_font_variation(font      : ImageFont.FreeTypeFont,
     except:
         # if the font doesn't support variations, do nothing
         pass
+
+
+#======================== COMPLEX DRAWING FUNCTIONS ========================#
+
+def wrap_text(text: str, font: ImageFont.FreeTypeFont, width: int) -> tuple[list[str], float]:
+    """Splits text into lines that fit within the given width.
+
+    Args:
+        text      (str) : The input text to be split.
+        font (ImageFont): Font used for rendering the text.
+        width     (int) : Maximum width in pixels that each line of text can occupy.
+
+    Returns:
+        A list of lines (strings)
+        and the percentage length of the last line.
+    """
+    words = text.split()
+    lines = []
+    current_line = ""
+    for i, word in enumerate(words):
+        test_line = f"{current_line} {word}" if i>0 else word
+        if font.getlength(test_line) <= width:
+            current_line = test_line
+        else:
+            lines.append(current_line)
+            current_line = word
+    if current_line:
+        lines.append(current_line)
+
+    last_line_percent = 100.0 * len(lines[-1]) / len(lines[0])
+    return lines, last_line_percent
+
+
+def write_text_in_box(image               : Image.Image,
+                      text                : str,
+                      box                 : TextBox,
+                      *,
+                      font                : ImageFont.FreeTypeFont,
+                      spacing             : float      = 4,
+                      align               : str        = 'left',
+                      color               : str        = 'black',
+                      back_color          : str | None = None,
+                      padding             : int | None = None,
+                      abort_if_not_fitting: bool       = False
+                      ) -> bool:
+    """
+    Attempts to write the provided text within the rectangle defined by the Box object.
+
+    The function ensures that the last line is not excessively short. 
+
+    The text is aligned according to the specified alignment (left, center, or right).
+    If the text cannot fit within the box and the `abort_if_not_fitting` flag is set,
+    the function does not write the text and returns False.
+
+    Parameters:
+        image      : The image object where the text will be written.
+        box        : The bounding box object defining the area where the text should be placed.
+        text       : The text to be written.
+        font       : The font to be used for the text.
+        spacing    : The spacing between lines. Default is 4.
+        align      : The alignment of the text within the box ('left', 'center', 'right').
+                      Default is 'left'.
+        color      : The color of the text. Default is 'black'.
+        back_color : The optional background color for the box.
+                      If None (default), no background is filled.
+        abort_if_not_fitting: If True, the function returns False if the text cannot fit within the box.
+
+    Returns:
+        True if the text was successfully written, False otherwise.
+    """
+    draw = ImageDraw.Draw(image)
+
+    # the container rectangle can optionally be of a certain color
+    if back_color:
+        draw.rectangle(box, fill=back_color)
+
+    # return `True` immediately if no text is provided
+    if not text:
+        return True
+
+    # apply padding to the box if specified
+    if padding:
+        box = box.shrunken(padding, padding)
+
+    # split the text into lines within the box width and adjust the box size
+    # dynamically to prevent excessively short final line (ensuring last_line>35%)
+    for i in range(1, 10):
+        lines, last_line_percent = wrap_text( text, font, int(box.width) )
+        if last_line_percent > 35  or  box.width < 300:
+            break
+        box = box.shrunken(20,0)
+
+    # join all lines with newline characters
+    text = '\n'.join(lines)
+
+    # set the appropriate position based on alignment
+    if align == 'center':
+        x, y   = box.center[0], box.top
+        anchor = 'ma'
+    elif align == 'right':
+        x, y   = box.right, box.top
+        anchor = 'ra'
+    else:
+        align  = 'left'
+        x, y   = box.left, box.top
+        anchor = 'la'
+
+    textbbox = TextBox.multiline_textbbox( draw, (0,0), text, font=font, anchor=anchor, spacing=spacing, align=align )
+    top_offset = textbbox.top
+    _, descent = font.getmetrics()
+
+    textbbox = textbbox.centered_in( box )
+    y = textbbox.top - top_offset + (descent/4)
+
+    if abort_if_not_fitting and textbbox.top < box.top:
+        return False
+
+    draw.multiline_text( (x,y), text, font=font, anchor=anchor, spacing=spacing, align=align, fill=color)
+    return True
