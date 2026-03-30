@@ -40,7 +40,8 @@ def zsampler_turbo_core(latent_input             : dict[str, Any],
                         end_with_denoise         : bool                                    = True,
                         positive_stg2            : list[ tuple[torch.Tensor,dict] ] | None = None,
                         positive_stg3            : list[ tuple[torch.Tensor,dict] ] | None = None,
-                        shuffle_counts           : tuple[int,int,int,int] | None           = None,
+                        stage2_shuffle_counts    : tuple[int,int,int,int] | None           = None,
+                        stage2_preproc_steps     : int                                     = 0,
                         inject_noise_scales      : tuple[float,float,float] | None         = None,
                         inject_noise_freqs       : tuple[int  ,int  ,int  ] | None         = None,
                         progress_preview         : ProgressPreview
@@ -79,12 +80,15 @@ def zsampler_turbo_core(latent_input             : dict[str, Any],
                                     If `None` (default), the main positive conditioning will be used.
         positive_stg3            : Optional positive conditioning to be used in the third stage.
                                     If `None` (default), the main positive conditioning will be used.
-        shuffle_counts           : Optional tuple of four signed integers (left, top, right, bottom) for shuffling
+        stage2_shuffle_counts    : Optional tuple of four signed integers (left, top, right, bottom) for shuffling
                                     the latent image between the stage1 and stage2. This results in a significant
                                     increase in the model's creativity, generating much more diverse images.
                                     A zero value means “skip that side”, a positive value adds normal fragments, a
                                     negative value adds fragments that are also randomly flipped (hori. and vert.).
                                     If this parameter is (0,0,0,0) or `None` (default), no shuffling will be performed.
+        stage2_preproc_steps     : Optional number of steps to be performed as preprocessing in the second stage.
+                                    This can improve coherence to some extent and reduce hallucinations.
+                                    If zero (default), no preprocessing will be performed.
         inject_noise_scales      : Optional scales of the extra noise injected into the latent image in each stage.
                                     If `None` (default), no extra noise will be injected.
         inject_noise_freqs       : Optional frequencies at which additional noise is injected into the latent image
@@ -98,20 +102,20 @@ def zsampler_turbo_core(latent_input             : dict[str, Any],
     Returns:
         A dict with the denoised latent output.
     """
+    INJECT_NOISE_SCALES = (0.0, 0.0, 0.0)
+    INJECT_NOISE_FREQS  = ( 32,  64, 512)
 
-    # force inject_nise_scales to be a tuple of 3 elements or `None``
-    if isinstance(inject_noise_scales, (tuple,list)):
-        DEFAULTS = (0.0, 0.0, 0.0)
-        inject_noise_scales = (*inject_noise_scales, *DEFAULTS[len(inject_noise_scales):])[:3]
-    else:
-        inject_noise_scales = None
+    # force `inject_noise_scales` & `inject_noise_freqs` to be tuples of 3 elements
+    if inject_noise_scales is None:
+        inject_noise_scales = INJECT_NOISE_SCALES
+    if inject_noise_freqs is None:
+        inject_noise_freqs = INJECT_NOISE_FREQS
 
-    # force inject_noise_freqs to be a tuple of 3 elements or `None`
-    if isinstance(inject_noise_freqs, (tuple,list)):
-        DEFAULTS = (32,64,512)
-        inject_noise_freqs = (*inject_noise_freqs, *DEFAULTS[len(inject_noise_freqs):])[:3]
-    else:
-        inject_noise_freqs = None
+    # force `stage2_shuffle_counts` to be a tuple of 4 integers
+    if stage2_shuffle_counts is None:
+        stage2_shuffle_counts = (0,0,0,0)
+    elif not isinstance(stage2_shuffle_counts, tuple) or len(stage2_shuffle_counts) != 4:
+        raise ValueError("`shuffle_counts` must be None or a tuple of 4 integers")
 
     # only "euler" sampler has been tested with this technique
     sampler_name = "euler"
@@ -120,17 +124,6 @@ def zsampler_turbo_core(latent_input             : dict[str, Any],
     # z-image turbo is a cfg-distilled model requiring CFG=1.0, which discard
     # negative conditioning, here we set it to `positive` for simplicity
     negative = positive
-
-
-    # set the `is_shuffle_enabled` flag if shuffle_counts different from zero,
-    # at the same time check the parameter has a valid type and length
-    if shuffle_counts is None:
-        is_shuffle_enabled = False
-    else:
-        if not isinstance(shuffle_counts, tuple) or len(shuffle_counts) != 4:
-            raise ValueError("`shuffle_counts` must be None or a tuple of 4 integers")
-        is_shuffle_enabled = shuffle_counts != (0,0,0,0)
-
 
     # validate sigma_limits & sigma_step_range
     if sigma_limits is not None:
@@ -216,18 +209,19 @@ def zsampler_turbo_core(latent_input             : dict[str, Any],
         sample_size = None
 
 
-    # estimate the initial noise features (bias & scale):
-    # these parameters can be thought of as modifying the brightness and contrast
-    # of the final image, though the actual impact is more nuanced; since the sigma
-    # sequence starts with values below 1.0, using this modified initial noise
-    # introduces low-frequency components that may be missing in the early stages
-    # of the denoising process.
-    # the initial noise bias represents a shift in the mean noise value, while
-    # the initial noise scale controls the amplitude of the noise.
-    # (they are only calculated if the generation starts from pure noise and
-    #  if the user has specified a non-zero level for either parameter)
-    initial_noise_bias  = 0.0
+    # the initial noise scale is directly controlled by the user through the
+    # `initial_noise_overdose` parameter; adding extra noise at the beginning
+    # generally helps generate images with more vivid colors or pronounced contrasts.
     initial_noise_scale = 1.0 + initial_noise_overdose
+    #print("##>> initial_noise_scale", initial_noise_scale)
+
+    # estimate the initial noise bias, which represents a shift in the mean noise values;
+    # since any sigma sequence in this sampler starts with values below 1.0, using this
+    # modified initial noise bias can introduce low-frequency components necessary for
+    # the denoising process to be effective.
+    # this calculation is performed only if the generation starts from pure noise and the
+    # user has specified a non-zero level for the initial bias.
+    initial_noise_bias = 0.0
     if start_from_pure_noise and (initial_noise_bias_level != 0):
         bias, scale = estimate_initial_noise_features(
                                 latent_input, model, seed, positive, positive,
@@ -246,46 +240,39 @@ def zsampler_turbo_core(latent_input             : dict[str, Any],
         #    initial_noise_scale *= 1+initial_noise_overdose if initial_noise_overdose>=0 else 1/(1-initial_noise_overdose)
 
 
+    # hardcoding the sigmas of the stage 2 preprocessing
+    if   stage2_preproc_steps<=0:  stage2_preproc_sigmas = None
+    elif stage2_preproc_steps==1:  stage2_preproc_sigmas = (0.942, 0.000)
+    elif stage2_preproc_steps==2:  stage2_preproc_sigmas = (0.935, 0.789, 0.000)
+    else                        :  stage2_preproc_sigmas = (0.935, 0.770, 0.690, 0.000)
+
+
     # execute the 3-stage denoising process
     latent_output = execute_3_stage_denoising(latent_input,
                                               model, seed, 1.0, positive, negative,
-                                              positive_stg2        = positive_stg2,
-                                              positive_stg3        = positive_stg3,
-                                              sampler              = sampler,
-                                              sigmas1              = sigmas1,
-                                              sigmas2              = sigmas2,
-                                              sigmas3              = sigmas3,
-                                              sigma_limits         = sigma_limits,
-                                              sigma_step_range     = sigma_step_range,
-                                              initial_noise_bias   = initial_noise_bias,
-                                              initial_noise_scale  = initial_noise_scale,
-                                              start_with_noise     = start_with_noise,
-                                              end_with_denoise     = end_with_denoise,
-                                              shuffle_counts       = shuffle_counts if is_shuffle_enabled else None,
-                                              inject_noise_scales  = inject_noise_scales,
-                                              inject_noise_freqs   = inject_noise_freqs,
+                                              sampler                = sampler,
+                                              sigmas1                = sigmas1,
+                                              sigmas2                = sigmas2,
+                                              sigmas3                = sigmas3,
+                                              sigma_limits           = sigma_limits,
+                                              sigma_step_range       = sigma_step_range,
+                                              start_with_noise       = start_with_noise,
+                                              end_with_denoise       = end_with_denoise,
+                                              positive_stg2          = positive_stg2,
+                                              positive_stg3          = positive_stg3,
+                                              initial_noise_bias     = initial_noise_bias,
+                                              initial_noise_scale    = initial_noise_scale,
+                                              noise_injection_scales = inject_noise_scales,
+                                              noise_injection_freqs  = inject_noise_freqs,
+                                              stage2_shuffle_counts  = stage2_shuffle_counts,
+                                              stage2_preproc_sigmas  = stage2_preproc_sigmas,
                                               progress_preview = ProgressPreview( 100, parent=(progress_preview,100//steps,100) ),
                                               )
     return latent_output
 
 
-    #----------------------------------------------------------------------------
-    # Alternative 8/7-step sigma sequences discarded in the early stages of development
-    # if steps==8:
-    #     sigma0  = 1.000
-    #     sigmas1 = [0.991, 0.980, 0.920]
-    #     sigmas2 = [0.935, 0.8916, 0.7895, 0.000],
-    #     sigmas3 = [0.6582, 0.3019, 0.0000]
-    # if steps==7:
-    #     sigma0  = 1.000
-    #     sigmas1 = [0.991, 0.980, 0.920]
-    #     sigmas2 = [0.935, 0.770, 0.000]
-    #     sigmas3 = [0.6582, 0.3019, 0.0000]
-    #----------------------------------------------------------------------------
 
 
-def step_count(sigmas: torch.Tensor | None) -> int:
-    return sigmas.shape[-1]-1 if sigmas is not None else 0
 
 def execute_3_stage_denoising(latent_image,
                               model    : Any,
@@ -294,23 +281,24 @@ def execute_3_stage_denoising(latent_image,
                               positive : list,
                               negative : list,
                               *,
-                              sampler             : comfy.samplers.KSAMPLER,
-                              sigmas1             : torch.Tensor | list | None,
-                              sigmas2             : torch.Tensor | list | None,
-                              sigmas3             : torch.Tensor | list | None,
-                              sigma_limits        : tuple[float,float] | list[float] | None = None,
-                              sigma_step_range    : tuple[int,int]     | list[int]   | None = None,
-                              initial_noise_bias  : torch.Tensor | float | int | None       = None,
-                              initial_noise_scale : torch.Tensor | float | int | None       = 1.0,
-                              start_with_noise    : bool                                    = True,
-                              end_with_denoise    : bool                                    = True,
-                              positive_stg2       : list | None                             = None,
-                              positive_stg3       : list | None                             = None,
-                              shuffle_counts      : tuple[int,int,int,int] | None           = None,
-                              shuffle_seed        : int  | None                             = None,
-                              inject_noise_scales : tuple[float,float,float] | None         = None,
-                              inject_noise_freqs  : tuple[int  ,int  ,int  ] | None         = None,
-                              progress_preview    : ProgressPreview,
+                              sampler               : comfy.samplers.KSAMPLER,
+                              sigmas1               : torch.Tensor | list | None,
+                              sigmas2               : torch.Tensor | list | None,
+                              sigmas3               : torch.Tensor | list | None,
+                              sigma_limits          : tuple[float,float] | list[float] | None = None,
+                              sigma_step_range      : tuple[int,int]     | list[int]   | None = None,
+                              start_with_noise      : bool                                    = True,
+                              end_with_denoise      : bool                                    = True,
+                              positive_stg2         : list | None                             = None,
+                              positive_stg3         : list | None                             = None,
+                              initial_noise_bias    : torch.Tensor | float | int | None       = None,
+                              initial_noise_scale   : torch.Tensor | float | int | None       = 1.0,
+                              noise_injection_freqs : tuple[int  , int  , int  ]              = (0, 0, 0),
+                              noise_injection_scales: tuple[float, float, float]              = (0.0, 0.0, 0.0),
+                              stage2_shuffle_counts : tuple[int,int,int,int]                  = (0,0,0,0),
+                              stage2_shuffle_seed   : int  | None                             = None,
+                              stage2_preproc_sigmas : torch.Tensor | list | tuple | None      = None,
+                              progress_preview      : ProgressPreview,
                               ):
     """
     Executes a three-stage denoising process on the provided latent image.
@@ -333,18 +321,38 @@ def execute_3_stage_denoising(latent_image,
                               Can be a tuple or list of two floats, or None if all steps should be processed.
         sigma_step_range   : The range of steps to be processed. Steps outside this range will be ignored.
                               Can be a tuple or list of two integers, or None if all steps should be processed.
-        initial_noise_bias : An optional constant bias applied to the initial noise.
-                              (where 0.0 = no bias; None = no bias)
-                              Can be a tensor, scalar, or None.
-                              If tensor, it must have shape [batch_size, channels, 1, 1].
-        initial_noise_scale: An optional scale factor applied to the initial noise.
-                              (where 0.0 = no-noise; 1.0 = standard deviation; None = standard deviation)
-                              Can be a tensor, scalar, or None.
-                              If tensor, it must have shape [batch_size, channels, 1, 1].
         start_with_noise   : If `True` (default), begins the denoising process by injecting noise.
                               Set to `False` to preserve noise from a previous process (chaining samplers).
         end_with_denoise   : If `True` (default), ends the denoising process by zeroing out residual noise.
                               Set to `False` to preserve noise for a next process (chaining samplers).
+        positive_stg2      : Optional positive conditioning to be used in the second stage.
+                              If `None` (default), the main positive conditioning will be used.
+        positive_stg3      : Optional positive conditioning to be used in the third stage.
+                              If `None` (default), the main positive conditioning will be used.
+
+        initial_noise_bias    : An optional constant bias applied to the initial noise.
+                                 (where 0.0 = no bias; None = no bias)
+                                 Can be a tensor, scalar, or None.
+                                 If tensor, it must have shape [batch_size, channels, 1, 1].
+        initial_noise_scale   : An optional scale factor applied to the initial noise.
+                                 (where 0.0 = no-noise; 1.0 = standard deviation; None = standard deviation)
+                                 Can be a tensor, scalar, or None.
+                                 If tensor, it must have shape [batch_size, channels, 1, 1].
+        noise_injection_freqs : Optional frequencies at which additional noise is injected into the latent image
+                                 during each stage. These frequencies determine the granularity of noise injection.
+                                 For example, a value of 1024 means noise is injected into every pixel, while a
+                                 value of 512 means noise is injected every second pixel, with intermediate pixels
+                                 being interpolated. Lower frequency values result in smoother noise transitions
+                                 across the image. A value of zero in the tuple means no noise is injected in the
+                                 corresponding stage.
+        noise_injection_scales: Optional scales of the extra noise injected into the latent image in each stage.
+                                 A value of 0.0 in the tuple means no noise is injected in the corresponding stage.
+        stage2_shuffle_counts : Optional tuple of four signed integers (left, top, right, bottom) for shuffling
+                                 the latent image between the stage1 and stage2. This results in a significant
+                                 increase in the model's creativity, generating much more diverse images.
+                                 A zero value means “skip that side”, a positive value adds normal fragments, a
+                                 negative value adds fragments that are also randomly flipped (hori. and vert.).
+                                 If this parameter is (0,0,0,0) (default), no shuffling will be performed.
 
     Returns:
         A dictionary with the updated latent image data after all three denoising stages.
@@ -364,8 +372,8 @@ def execute_3_stage_denoising(latent_image,
     if isinstance(sigmas3, list):
         sigmas3 = torch.tensor(sigmas3, device='cpu')
 
-    # enable shuffling only when valid, non-empty shuffle counts are provided
-    is_shuffle_enabled = (shuffle_counts is not None) and (shuffle_counts != (0, 0, 0, 0))
+    # enable shuffling only when non-empty shuffle counts are provided
+    is_shuffle_enabled = any(stage2_shuffle_counts)
 
     # store the stage3 sigmas to later evaluate if it was truncated
     original_sigmas3 = sigmas3
@@ -373,8 +381,8 @@ def execute_3_stage_denoising(latent_image,
     # truncate the sigmas to the specified range of steps. [start_step, end_step)
     if isinstance(sigma_step_range, (list,tuple)):
         i0 = 0
-        i1 = i0 + step_count(sigmas1)
-        i2 = i1 + step_count(sigmas2)
+        i1 = i0 + _num_steps(sigmas1)
+        i2 = i1 + _num_steps(sigmas2)
         sigmas1 = truncate_sigmas_by_step_range(sigmas1, sigma_step_range, first_sigma_step=i0)
         sigmas2 = truncate_sigmas_by_step_range(sigmas2, sigma_step_range, first_sigma_step=i1)
         sigmas3 = truncate_sigmas_by_step_range(sigmas3, sigma_step_range, first_sigma_step=i2)
@@ -393,9 +401,9 @@ def execute_3_stage_denoising(latent_image,
 
     # calculate the progress level for each step
     prog0 = 0
-    prog1 = prog0 + step_count(sigmas1)
-    prog2 = prog1 + step_count(sigmas2)
-    total = prog2 + step_count(sigmas3)
+    prog1 = prog0 + _num_steps(sigmas1)
+    prog2 = prog1 + _num_steps(sigmas2)
+    total = prog2 + _num_steps(sigmas3)
 
 
     #-- THREE-STAGE PROCESS ---------------------------
@@ -413,8 +421,8 @@ def execute_3_stage_denoising(latent_image,
                         noise_scale         = initial_noise_scale if add_noise else 0,
                         force_final_denoise = force_denoise,
                         keep_masked_area    = True,
-                        inject_noise_scale  = inject_noise_scales[0] if inject_noise_scales else 0,
-                        inject_noise_freq   = inject_noise_freqs[0]  if inject_noise_freqs  else 0,
+                        inject_noise_scale  = noise_injection_scales[0],
+                        inject_noise_freq   = noise_injection_freqs [0],
                         progress_preview    = ProgressPreview( prog1-prog0,
                                 parent=(progress_preview, 100*prog0//total, 100*prog1//total)),
                         )
@@ -432,14 +440,15 @@ def execute_3_stage_denoising(latent_image,
                         model, seed, cfg, positive_stg2, negative,
                         sampler             = sampler,
                         sigmas              = sigmas2,
+                        preproc_sigmas      = stage2_preproc_sigmas,
                         noise_bias          = 0,
                         noise_scale         = 1.0 if add_noise else 0,
                         force_final_denoise = force_denoise,
                         keep_masked_area    = True,
-                        shuffle_seed        = shuffle_seed,
-                        shuffle_counts      = shuffle_counts if is_shuffle_enabled else None,
-                        inject_noise_scale  = inject_noise_scales[1] if inject_noise_scales else 0,
-                        inject_noise_freq   = inject_noise_freqs[1]  if inject_noise_freqs  else 0,
+                        shuffle_counts      = stage2_shuffle_counts if is_shuffle_enabled else (0,0,0,0),
+                        shuffle_seed        = stage2_shuffle_seed,
+                        inject_noise_scale  = noise_injection_scales[1],
+                        inject_noise_freq   = noise_injection_freqs [1],
                         progress_preview    = ProgressPreview( prog2-prog1,
                                 parent=(progress_preview, 100*prog1//total, 100*prog2//total)),
                         )
@@ -458,8 +467,8 @@ def execute_3_stage_denoising(latent_image,
                         noise_scale         = 1.0 if add_noise else 0,
                         force_final_denoise = force_denoise,
                         keep_masked_area    = True,
-                        inject_noise_scale  = inject_noise_scales[2] if inject_noise_scales else 0,
-                        inject_noise_freq   = inject_noise_freqs[2]  if inject_noise_freqs  else 0,
+                        inject_noise_scale  = noise_injection_scales[2],
+                        inject_noise_freq   = noise_injection_freqs [2],
                         progress_preview    = ProgressPreview( total-prog2,
                                 parent=(progress_preview, 100*prog2//total, 100*total//total)),
                         )
@@ -474,16 +483,17 @@ def execute_sampler(latent_image    : dict[str, Any],
                     negative        : list,
                     *,
                     sampler         : comfy.samplers.KSAMPLER,
-                    sigmas          : list | torch.Tensor,
+                    sigmas          : list | tuple | torch.Tensor,
+                    preproc_sigmas  : list | tuple | torch.Tensor | None = None,
                     noise_bias      : torch.Tensor | float | int | None,
                     noise_scale     : torch.Tensor | float | int | None,
                     force_final_denoise : bool  = False,
                     keep_masked_area    : bool  = False,
                     fix_empty_latent    : bool  = True,
-                    shuffle_counts      : tuple[int,int,int,int] | None = None,
-                    shuffle_seed        : int | None                    = None,
-                    inject_noise_scale  : float                         = 0,
-                    inject_noise_freq   : int                           = 0,
+                    shuffle_counts      : tuple[int,int,int,int]  = (0,0,0,0),
+                    shuffle_seed        : int | None              = None,
+                    inject_noise_scale  : float                   = 0,
+                    inject_noise_freq   : int                     = 0,
                     progress_preview    : ProgressPreview | None = None,
                     ) -> dict[str, Any]:
     """
@@ -527,8 +537,29 @@ def execute_sampler(latent_image    : dict[str, Any],
         - The initial noise is scaled using `noise_scale`, and then the bias from `noise_bias` is applied.
     """
 
+    # if a pre-process is required, then the complete sampling process
+    # is executed through the preprocessing wrapper function
+    if preproc_sigmas is not None:
+        return preproc_wrapper(
+                execute_sampler,
+                    latent_image, model, noise_seed, cfg, positive, negative,
+                    sampler             = sampler,
+                    sigmas              = sigmas,
+                    preproc_sigmas      = preproc_sigmas,
+                    noise_bias          = noise_bias,
+                    noise_scale         = noise_scale,
+                    force_final_denoise = force_final_denoise,
+                    keep_masked_area    = keep_masked_area,
+                    fix_empty_latent    = fix_empty_latent,
+                    shuffle_counts      = shuffle_counts,
+                    shuffle_seed        = shuffle_seed,
+                    inject_noise_scale  = inject_noise_scale,
+                    inject_noise_freq   = inject_noise_freq,
+                    progress_preview    = progress_preview,
+        )
+
     # if sigmas is a list then convert it to tensor
-    if isinstance(sigmas, list):
+    if isinstance(sigmas, (list,tuple)):
         sigmas = torch.tensor(sigmas, device='cpu')
 
     # if `noise_bias` is a torch.Tensor
@@ -570,7 +601,7 @@ def execute_sampler(latent_image    : dict[str, Any],
 
 
     # shuffle the image if it was required
-    if shuffle_counts:
+    if any(shuffle_counts):
         samples = shuffle_tensor(samples,
                                  shuffle_seed,
                                  shuffle_counts)
@@ -589,8 +620,7 @@ def execute_sampler(latent_image    : dict[str, Any],
 
     # generate the noise needed by `comfy.sample.sample_custom(..)`;
     # if both `noise_scale` and `noise_bias` are 0, then no noise is generated
-    if isinstance(noise_scale, (float,int)) and noise_scale == 0 and \
-       isinstance(noise_bias , (float,int)) and noise_bias  == 0:
+    if isinstance(noise_scale, (float,int)) and noise_scale == 0 and noise_bias is None:
         comfy_noise = torch.zeros(samples.shape,
                                   dtype   = samples.dtype,
                                   layout  = samples.layout,
@@ -627,7 +657,93 @@ def execute_sampler(latent_image    : dict[str, Any],
     return out
 
 
+def preproc_wrapper(sampler_fn, *args, **kwargs) -> dict[str, Any]:
+    """
+    Wrapper that applies a preprocessing step to the sampling process using a different set of sigmas.
+
+    Args:
+        sampler_fn: The main sampling function to be wrapped and called with different sigma values.
+        *args     : Variable length argument list to be passed to the sampler_function.
+        **kwargs  : Arbitrary keyword arguments to be passed to the sampler_function.
+    Returns:
+        The updated latent image data after denoising, including "samples" and any other relevant information.
+    """
+    sigmas: torch.Tensor | None = kwargs.pop('sigmas', None)
+    if sigmas is None: raise Exception('sigmas is required')
+
+    preproc_sigmas: torch.Tensor | None = kwargs.pop('preproc_sigmas', None)
+    if preproc_sigmas is None: raise Exception('preproc_sigmas is required')
+
+    # execute the pre-processing sampler using the sigmas provided in `preproc_sigmas`
+    kwargs['sigmas'] = preproc_sigmas
+    latent_image = sampler_fn(*args, **kwargs)
+
+    # execute the sampler using the original sigmas
+    kwargs['sigmas']             = sigmas
+    kwargs['noise_bias']         = 0.0
+    kwargs['noise_scale']        = 1.0
+    kwargs['shuffle_counts']     = (0,0,0,0)
+    kwargs['inject_noise_scale'] = 4.0
+    kwargs['inject_noise_freq' ] = 48
+    return sampler_fn(latent_image, *args[1:], **kwargs)
+
+
 #============================= IMAGE SHUFFLING =============================#
+
+def shuffle_tensor(x     : torch.Tensor,
+                   seed  : int,
+                   counts: tuple[int,int,int,int],
+                   ) -> torch.Tensor:
+    """
+    Shuffles the input latent image tensor.
+
+    The function shuffles the tensor by dividing it into fragments, shuffling
+    each fragment independently, and then combining them while preserving the
+    overall standard deviation and mean of the original tensor.
+
+    Args:
+        x      : Input tensor of shape (B, C, H, W) representing the latent image.
+        seed   : Fixed seed for random number generation to ensure reproducibility.
+        counts : Tuple of four signed integers (left, top, right, bottom) that
+                 control how many fragments are combined for each alignment.
+                 Zero means “no fragments for this side”, a positive value adds
+                 normal fragments, a negative value adds fragments that are also
+                 randomly flipped (horizontally and vertically).
+                 Passing `(0,0,0,0)` leaves the tensor unchanged.
+    Returns:
+        A new tensor with the same shape as `x`, where fragments of the
+        original image are shuffled in a random manner.
+    """
+    ANCHOR_NAMES = ('left', 'top', 'right', 'bottom' )
+    if x.dim() != 4:
+        raise ValueError("Input tensor must be (B, C, H, W).")
+
+    # if all counts are zero, return the tensor as is
+    if not any(counts):
+        return x
+
+    x_scale   = x.std (dim=(2,3), keepdim=True)
+    x_bias    = x.mean(dim=(2,3), keepdim=True)
+    generator = torch.Generator().manual_seed(seed)
+
+    result = torch.zeros_like(x)
+    for anchor_idx in range(4):
+        for i in range( abs(counts[anchor_idx]) ):
+            result +=  random_tensor_fragment(x, generator,
+                                              size   = (0.50,0.75),
+                                              anchor = ANCHOR_NAMES[anchor_idx],
+                                              random_horizontal_flip = counts[anchor_idx]<0,
+                                              random_vertical_flip   = counts[anchor_idx]<0
+                                              )
+
+    result_scale = result.std (dim=(2,3), keepdim=True)
+    result_bias  = result.mean(dim=(2,3), keepdim=True)
+
+    # re-scale/shift to match original features
+    scale_factor  = x_scale / result_scale.clamp(min=1e-6)
+    combined_bias = x_bias - (result_bias * scale_factor)
+    return result * scale_factor + combined_bias
+
 
 def random_tensor_fragment(x                      : torch.Tensor,
                            generator              : torch.Generator,
@@ -686,73 +802,6 @@ def random_tensor_fragment(x                      : torch.Tensor,
 
     # return = (B, C, H, W)
     return F.interpolate(fragment, size=(H, W), mode='bilinear', align_corners=False)
-
-
-def shuffle_tensor(x     : torch.Tensor,
-                   seed  : int,
-                   counts: tuple[int,int,int,int] | None,
-                   ) -> torch.Tensor:
-    """
-    Shuffles the input latent image tensor.
-
-    The function shuffles the tensor by dividing it into fragments, shuffling
-    each fragment independently, and then combining them while preserving the
-    overall standard deviation and mean of the original tensor.
-
-    Args:
-        x      : Input tensor of shape (B, C, H, W) representing the latent image.
-        seed   : Fixed seed for random number generation to ensure reproducibility.
-        counts : Tuple of four signed integers (left, top, right, bottom) that
-                 control how many fragments are combined for each alignment.
-                 Zero means “no fragments for this side”, a positive value adds
-                 normal fragments, a negative value adds fragments that are also
-                 randomly flipped (horizontally and vertically). Passing `None`
-                 or `(0,0,0,0)` leaves the tensor unchanged.
-    Returns:
-        A new tensor with the same shape as `x`, where fragments of the
-        original image are shuffled in a random manner.
-    """
-    if x.dim() != 4:
-        raise ValueError("Input tensor must be (B, C, H, W).")
-    if not isinstance(seed, int):
-        raise TypeError("seed must be an integer.")
-
-    # if the counts were not provided, return without doing anything
-    if not counts or counts == (0,0,0,0):
-        return x
-
-    x_scale = x.std (dim=(2,3), keepdim=True)
-    x_bias  = x.mean(dim=(2,3), keepdim=True)
-
-    generator = torch.Generator().manual_seed(seed)
-    result = torch.zeros_like(x)
-    for i in range( abs(counts[0]) ):
-        result +=  random_tensor_fragment(x, generator, size=(0.50,0.75), anchor='left',
-                                          random_horizontal_flip=counts[0]<0,
-                                          random_vertical_flip=counts[0]<0
-                                          )
-    for i in range( abs(counts[1]) ):
-        result +=  random_tensor_fragment(x, generator, size=(0.50,0.75), anchor='top',
-                                          random_horizontal_flip=counts[0]<0,
-                                          random_vertical_flip=counts[0]<0
-                                          )
-    for i in range( abs(counts[2]) ):
-        result += random_tensor_fragment(x, generator, size=(0.50,0.75), anchor='right',
-                                         random_horizontal_flip=counts[0]<0,
-                                         random_vertical_flip=counts[0]<0
-                                         )
-    for i in range( abs(counts[3]) ):
-        result += random_tensor_fragment(x, generator, size=(0.50,0.75), anchor='bottom',
-                                         random_horizontal_flip=counts[0]<0,
-                                         random_vertical_flip=counts[0]<0
-                                         )
-    result_scale = result.std (dim=(2,3), keepdim=True)
-    result_bias  = result.mean(dim=(2,3), keepdim=True)
-
-    # re-scale/shift to match original features
-    scale_factor  = x_scale / result_scale.clamp(min=1e-6)
-    combined_bias = x_bias - (result_bias * scale_factor)
-    return result * scale_factor + combined_bias
 
 
 #============================ NOISE PROCESSING =============================#
@@ -1085,6 +1134,13 @@ def refine_sigma_sequence(sigmas: list[float] | None, insert_count: int) -> list
     return sigmas
 
 
+#================================= HELPERS =================================#
+
+# retorna el numero de pasos que esta representado en el tensor de sigmas
+def _num_steps(sigmas: torch.Tensor | None) -> int:
+    """Returns the number of sampling steps represented in the sigmas tensor."""
+    return sigmas.shape[-1]-1 if sigmas is not None else 0
+
 #============================== SIGMA PRESETS ==============================#
 
 ALPHA_SIGMA_PRESET = (
@@ -1202,4 +1258,16 @@ SIGMA_PRESETS_BY_NAME = {
 #         (0.708, 0.586, 0.270, 0.000),         #< 3 steps (+3 refiner steps)
 #     )
 # )
+#
+# Alternative 8/7-step sigma sequences discarded in the early stages of development
+# if steps==8:
+#     sigma0  = 1.000
+#     sigmas1 = [0.991, 0.980, 0.920]
+#     sigmas2 = [0.935, 0.8916, 0.7895, 0.000],
+#     sigmas3 = [0.6582, 0.3019, 0.0000]
+# if steps==7:
+#     sigma0  = 1.000
+#     sigmas1 = [0.991, 0.980, 0.920]
+#     sigmas2 = [0.935, 0.770, 0.000]
+#     sigmas3 = [0.6582, 0.3019, 0.0000]
 #
