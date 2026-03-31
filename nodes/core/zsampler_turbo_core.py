@@ -213,7 +213,6 @@ def zsampler_turbo_core(latent_input             : dict[str, Any],
     # `initial_noise_overdose` parameter; adding extra noise at the beginning
     # generally helps generate images with more vivid colors or pronounced contrasts.
     initial_noise_scale = 1.0 + initial_noise_overdose
-    #print("##>> initial_noise_scale", initial_noise_scale)
 
     # estimate the initial noise bias, which represents a shift in the mean noise values;
     # since any sigma sequence in this sampler starts with values below 1.0, using this
@@ -233,18 +232,14 @@ def zsampler_turbo_core(latent_input             : dict[str, Any],
                                 progress_preview = ProgressPreview( 100, parent=(progress_preview,0,100//steps) ),
                                 )
         initial_noise_bias  = (bias / scale * initial_noise_bias_level)
-        #-- OLD MTHOD ---------
-        # initial_noise_bias  = (bias  / 100 * initial_noise_bias_level)
-        # initial_noise_scale = (scale / 100 * initial_noise_scale_level) + (1-initial_noise_scale_level)
-        # if initial_noise_overdose:
-        #    initial_noise_scale *= 1+initial_noise_overdose if initial_noise_overdose>=0 else 1/(1-initial_noise_overdose)
+        initial_noise_bias.clamp_(-0.015, 0.015)
 
 
     # hardcoding the sigmas of the stage 2 preprocessing
     if   stage2_preproc_steps<=0:  stage2_preproc_sigmas = None
     elif stage2_preproc_steps==1:  stage2_preproc_sigmas = (0.942, 0.000)
     elif stage2_preproc_steps==2:  stage2_preproc_sigmas = (0.935, 0.789, 0.000)
-    else                        :  stage2_preproc_sigmas = (0.935, 0.770, 0.690, 0.000)
+    elif stage2_preproc_steps>=3:  stage2_preproc_sigmas = [ (0.948, 0.000), (0.948, 0.740, 0.000) ]
 
 
     # execute the 3-stage denoising process
@@ -282,9 +277,9 @@ def execute_3_stage_denoising(latent_image,
                               negative : list,
                               *,
                               sampler               : comfy.samplers.KSAMPLER,
-                              sigmas1               : torch.Tensor | list | None,
-                              sigmas2               : torch.Tensor | list | None,
-                              sigmas3               : torch.Tensor | list | None,
+                              sigmas1               : torch.Tensor | list | tuple | None,
+                              sigmas2               : torch.Tensor | list | tuple | None,
+                              sigmas3               : torch.Tensor | list | tuple | None,
                               sigma_limits          : tuple[float,float] | list[float] | None = None,
                               sigma_step_range      : tuple[int,int]     | list[int]   | None = None,
                               start_with_noise      : bool                                    = True,
@@ -364,12 +359,12 @@ def execute_3_stage_denoising(latent_image,
     if positive_stg3 is None or (isinstance(positive_stg3,(list,tuple)) and len(positive_stg3) == 0):
         positive_stg3 = positive
 
-    # if sigmas is a list then convert it to pytorch tensor
-    if isinstance(sigmas1, list):
+    # force each `sigma` to be a tensor
+    if isinstance(sigmas1, (list,tuple)):
         sigmas1 = torch.tensor(sigmas1, device='cpu')
-    if isinstance(sigmas2, list):
+    if isinstance(sigmas2, (list,tuple)):
         sigmas2 = torch.tensor(sigmas2, device='cpu')
-    if isinstance(sigmas3, list):
+    if isinstance(sigmas3, (list,tuple)):
         sigmas3 = torch.tensor(sigmas3, device='cpu')
 
     # enable shuffling only when non-empty shuffle counts are provided
@@ -411,11 +406,12 @@ def execute_3_stage_denoising(latent_image,
         is_first_stage = True
         is_last_stage  = (sigmas2 is None and sigmas3 is None)
         add_noise     = (is_first_stage and start_with_noise)
-        force_denoise = (is_last_stage  and end_with_denoise) or is_shuffle_enabled
+        force_denoise = (is_last_stage  and end_with_denoise) or is_shuffle_enabled or stage2_preproc_sigmas is not None
 
         latent_image = execute_sampler(latent_image,
-                        model, seed, cfg, positive, negative,
+                        model, cfg, positive, negative,
                         sampler             = sampler,
+                        noise_seed          = seed,
                         sigmas              = sigmas1,
                         noise_bias          = initial_noise_bias  if add_noise else 0,
                         noise_scale         = initial_noise_scale if add_noise else 0,
@@ -433,16 +429,17 @@ def execute_3_stage_denoising(latent_image,
         # this stage is the first and therefore it must add noise
         is_first_stage = (sigmas1 is None)
         is_last_stage  = (sigmas3 is None)
-        add_noise     = (is_first_stage and start_with_noise) or is_shuffle_enabled
+        add_noise     = (is_first_stage and start_with_noise) or is_shuffle_enabled or stage2_preproc_sigmas is not None
         force_denoise = (is_last_stage  and end_with_denoise)
 
         latent_image = execute_sampler(latent_image,
-                        model, seed, cfg, positive_stg2, negative,
+                        model, cfg, positive_stg2, negative,
                         sampler             = sampler,
+                        noise_seed          = seed+16,
                         sigmas              = sigmas2,
-                        preproc_sigmas      = stage2_preproc_sigmas,
-                        noise_bias          = 0,
-                        noise_scale         = 1.0 if add_noise else 0,
+                        preproc_sigma_list  = _to_tensor_list(stage2_preproc_sigmas),
+                        noise_bias          = initial_noise_bias  if add_noise else 0,
+                        noise_scale         = initial_noise_scale if add_noise else 0,
                         force_final_denoise = force_denoise,
                         keep_masked_area    = True,
                         shuffle_counts      = stage2_shuffle_counts if is_shuffle_enabled else (0,0,0,0),
@@ -460,8 +457,9 @@ def execute_3_stage_denoising(latent_image,
         force_denoise = (is_last_stage  and end_with_denoise)
 
         latent_image = execute_sampler(latent_image,
-                        model, 696969, cfg, positive_stg3, negative,
+                        model, cfg, positive_stg3, negative,
                         sampler             = sampler,
+                        noise_seed          = 696969,
                         sigmas              = sigmas3,
                         noise_bias          = 0,
                         noise_scale         = 1.0 if add_noise else 0,
@@ -477,16 +475,16 @@ def execute_3_stage_denoising(latent_image,
 
 def execute_sampler(latent_image    : dict[str, Any],
                     model           : Any,
-                    noise_seed      : int,
                     cfg             : float,
                     positive        : list,
                     negative        : list,
                     *,
-                    sampler         : comfy.samplers.KSAMPLER,
-                    sigmas          : list | tuple | torch.Tensor,
-                    preproc_sigmas  : list | tuple | torch.Tensor | None = None,
-                    noise_bias      : torch.Tensor | float | int | None,
-                    noise_scale     : torch.Tensor | float | int | None,
+                    sampler             : comfy.samplers.KSAMPLER,
+                    noise_seed          : int,
+                    sigmas              : torch.Tensor,
+                    preproc_sigma_list  : list[torch.Tensor] | None = None,
+                    noise_bias          : torch.Tensor | float | int | None,
+                    noise_scale         : torch.Tensor | float | int | None,
                     force_final_denoise : bool  = False,
                     keep_masked_area    : bool  = False,
                     fix_empty_latent    : bool  = True,
@@ -539,13 +537,14 @@ def execute_sampler(latent_image    : dict[str, Any],
 
     # if a pre-process is required, then the complete sampling process
     # is executed through the preprocessing wrapper function
-    if preproc_sigmas is not None:
+    if isinstance( preproc_sigma_list, (list,tuple) ):
         return preproc_wrapper(
                 execute_sampler,
-                    latent_image, model, noise_seed, cfg, positive, negative,
+                    latent_image, model, cfg, positive, negative,
                     sampler             = sampler,
+                    noise_seed          = noise_seed,
                     sigmas              = sigmas,
-                    preproc_sigmas      = preproc_sigmas,
+                    preproc_sigma_list  = preproc_sigma_list,
                     noise_bias          = noise_bias,
                     noise_scale         = noise_scale,
                     force_final_denoise = force_final_denoise,
@@ -671,20 +670,30 @@ def preproc_wrapper(sampler_fn, *args, **kwargs) -> dict[str, Any]:
     sigmas: torch.Tensor | None = kwargs.pop('sigmas', None)
     if sigmas is None: raise Exception('sigmas is required')
 
-    preproc_sigmas: torch.Tensor | None = kwargs.pop('preproc_sigmas', None)
-    if preproc_sigmas is None: raise Exception('preproc_sigmas is required')
+    preproc_sigma_list: list[torch.Tensor] | None = kwargs.pop('preproc_sigma_list', None)
+    if not isinstance( preproc_sigma_list, (list,tuple) ):
+        raise Exception('preproc_sigmas is required and must be a list')
 
-    # execute the pre-processing sampler using the sigmas provided in `preproc_sigmas`
-    kwargs['sigmas'] = preproc_sigmas
-    latent_image = sampler_fn(*args, **kwargs)
+    latent_image: dict[str, Any] = args[0]
+    noise_seed  : int            = kwargs.get('noise_seed',0)
 
-    # execute the sampler using the original sigmas
-    kwargs['sigmas']             = sigmas
-    kwargs['noise_bias']         = 0.0
-    kwargs['noise_scale']        = 1.0
-    kwargs['shuffle_counts']     = (0,0,0,0)
-    kwargs['inject_noise_scale'] = 4.0
-    kwargs['inject_noise_freq' ] = 48
+    noise_scale = kwargs.get('noise_scale', 1.0)
+
+    # 1) execute the pre-processing sampler using the sigmas provided in `preproc_sigma_list`
+    for i, preproc_sigmas in enumerate(preproc_sigma_list):
+        kwargs['sigmas'] = preproc_sigmas
+        latent_image = sampler_fn(latent_image, *args[1:], **kwargs)
+
+        kwargs['noise_seed']         = noise_seed + i
+        kwargs['shuffle_counts']     = (0,0,0,0)
+        kwargs['inject_noise_scale'] = 4.0
+        kwargs['inject_noise_freq' ] = 64  # 48
+        kwargs['noise_scale']        = noise_scale # 1.0
+        if 'noise_bias' in kwargs:
+            kwargs['noise_bias'] *= 0.1  #<< are we sure about this? 0.9
+
+    # 2) execute the sampler using the original sigmas
+    kwargs['sigmas'] = sigmas
     return sampler_fn(latent_image, *args[1:], **kwargs)
 
 
@@ -940,8 +949,9 @@ def estimate_initial_noise_features(latent_image,
 
     # run the sampler on pure noise and calculate the mean of the result
     latent_image = execute_sampler(latent_image,
-                                   model, seed, 1.0, positive, negative,
+                                   model, 1.0, positive, negative,
                                    sampler             = sampler,
+                                   noise_seed          = seed,
                                    sigmas              = sigmas,
                                    noise_bias          = sample_bias,
                                    noise_scale         = sample_scale,
@@ -953,9 +963,6 @@ def estimate_initial_noise_features(latent_image,
     samples = latent_image["samples"]
     bias  = samples.mean(dim=[2, 3], keepdim=True)
     scale = samples.std (dim=[2, 3], keepdim=True)
-
-    # TODO: check clamp range
-    #bias.clamp_(min=-4.5, max=4.5)
     return bias, scale
 
 
@@ -1136,10 +1143,51 @@ def refine_sigma_sequence(sigmas: list[float] | None, insert_count: int) -> list
 
 #================================= HELPERS =================================#
 
-# retorna el numero de pasos que esta representado en el tensor de sigmas
 def _num_steps(sigmas: torch.Tensor | None) -> int:
     """Returns the number of sampling steps represented in the sigmas tensor."""
     return sigmas.shape[-1]-1 if sigmas is not None else 0
+
+
+def _to_tensor_list(sigmas: torch.Tensor | list | tuple | None) -> list[torch.Tensor] | None:
+    """
+    Converts the input sigmas into a list of tensors.
+
+    If sigmas is already a tensor, it is wrapped into a list. If sigmas is
+    a list or tuple, it is processed to ensure all elements are tensors.
+    None input returns None.
+
+    Args:
+        sigmas: The input to be converted to a list of tensors.
+    Returns:
+        A list of tensors or None if input is None.
+    """
+    # if sigmas is None, return None
+    if sigmas is None:
+        return None
+    # if sigmas is a tensor, return it wrapped in a list
+    elif isinstance(sigmas, torch.Tensor):
+        return [ sigmas ]
+    elif not isinstance(sigmas, (list,tuple)):
+        raise ValueError(f"sigmas must be a torch.Tensor or a list/tuple and it is {type(sigmas)!r}")
+
+    #-- in this point, sigmas is a list or tuple --
+
+    # if all elements in sigmas are tensors, return them as a list
+    if all(isinstance(i, torch.Tensor) for i in sigmas):
+        tensor_list = list(sigmas)
+
+    # if all elements are numbers, convert them to a single tensor and return it in a list
+    elif all( isinstance(value,(float,int)) for value in sigmas ):
+        return [ torch.tensor( sigmas, device='cpu' ) ]
+
+    # if all elements are sub-lists, convert each to a tensor and return in a list
+    elif all( isinstance(value,(list,tuple)) for value in sigmas ):
+        return [ torch.tensor(list, device='cpu') for list in sigmas ]
+    else:
+        # if sigmas is a list but its elements are not all tensors, sub-lists, or numbers, raise an error
+        raise ValueError("sigmas is a list but its elements are not all tensors, sublists, or numbers")
+
+
 
 #============================== SIGMA PRESETS ==============================#
 
