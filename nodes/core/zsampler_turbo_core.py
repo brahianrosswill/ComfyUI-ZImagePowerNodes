@@ -34,13 +34,13 @@ def zsampler_turbo_core(latent_input             : dict[str, Any],
                         *,
                         seed                     : int,
                         steps                    : int,
-                        initial_noise_bias_level : float              = 0.0,
-                        initial_noise_overdose   : float              = 0.0,
-                        noise_est_sample_size    : str | int | None   = None,
-                        noise_est_sample_bias    : float              = 0.0,
-                        noise_est_sample_scale   : float              = 1.0,
-                        sigma_preset_name        : str | None         = None,
-                        sigma_offsets            : list[float] | None = None,
+                        initial_noise_bias_level : float                                   = 0.0,
+                        initial_noise_overdose   : float                                   = 0.0,
+                        noise_est_sample_size    : str | int | None                        = None,
+                        noise_est_sample_bias    : float                                   = 0.0,
+                        noise_est_sample_scale   : float                                   = 1.0,
+                        sigma_preset_name        : str | None                              = None,
+                        sigma_offsets            : list[float] | None                      = None,
                         sigma_limits             : tuple[float,float] | list[float] | None = None,
                         sigma_step_range         : tuple[int,int] | list[int] | None       = None,
                         start_with_noise         : bool                                    = True,
@@ -77,6 +77,8 @@ def zsampler_turbo_core(latent_input             : dict[str, Any],
                                     If `None`, the size of the latent input will be used.
         noise_est_sample_bias    : The bias of the pure noise used in the initial noise estimation,
         noise_est_sample_scale   : The scale of the pure noise used in the initial noise estimation.,
+        sigma_preset_name        : Name of the sigma preset group to be used for denoising.
+                                    Currently, 'alpha' and 'bravo' are available.
         sigma_offsets            : Optional list of offsets to be added to the calculated sigma values.
         sigma_limits             : Optional tuple with minimum and maximum limits for sigma values.
         sigma_step_range         : Optional tuple with the range of steps that will actually be performed.
@@ -88,23 +90,27 @@ def zsampler_turbo_core(latent_input             : dict[str, Any],
                                     If `None` (default), the main positive conditioning will be used.
         positive_stg3            : Optional positive conditioning to be used in the third stage.
                                     If `None` (default), the main positive conditioning will be used.
-        stage2_shuffle_counts    : Optional tuple of four signed integers (left, top, right, bottom) for shuffling
-                                    the latent image between the stage1 and stage2. This results in a significant
-                                    increase in the model's creativity, generating much more diverse images.
-                                    A zero value means “skip that side”, a positive value adds normal fragments, a
-                                    negative value adds fragments that are also randomly flipped (hori. and vert.).
-                                    If this parameter is (0,0,0,0) or `None` (default), no shuffling will be performed.
+        stage2_shuffle           : Optional boolean to enable shuffling the latent image at the start of stage2.
+                                    This increases the model's creativity, generating images with more varied
+                                    compositions without altering the style.
+        stage2_shuffle_counts    : Optional tuple of four signed integers (left, top, right, bottom) that determine
+                                    the amount of steps for the latent shuffling. Zero values mean "skip that side",
+                                    positive values add normal fragments from that side, while negative values add
+                                    randomly flipped fragments.
+                                    If this parameter is (0,0,0,0), no shuffling is performed even if `stage2_shuffle=True`.
+                                    If this parameter is None (default), the amount of steps is pseudo-randomly
+                                    determined when `stage2_shuffle=True`.
         stage2_preproc_steps     : Optional number of steps to be performed as preprocessing in the second stage.
-                                    This can improve coherence to some extent and reduce hallucinations.
-                                    If zero (default), no preprocessing will be performed.
-        inject_noise_scales      : Optional scales of the extra noise injected into the latent image in each stage.
-                                    If `None` (default), no extra noise will be injected.
+                                    This can improve coherence and reduce hallucinations.
+                                    If zero (default), no preprocessing is performed.
         inject_noise_freqs       : Optional frequencies at which additional noise is injected into the latent image
                                     during each stage. These frequencies determine the granularity of noise injection.
                                     For example, a value of 1024 means noise is injected into every pixel, while a
                                     value of 512 means noise is injected every second pixel, with intermediate pixels
                                     being interpolated. Lower frequency values result in smoother noise transitions
                                     across the image.
+        inject_noise_scales      : Optional scales for extra noise injected into the latent image in each stage.
+                                    If `None` (default), no extra noise is injected.
         progress_preview         : A `ProgressPreview` object for displaying progress during the denoising process.
 
     Returns:
@@ -321,32 +327,31 @@ def execute_3_stage_denoising(latent_image,
     Executes a three-stage denoising process on the provided latent image.
 
     Args:
-        latent_image       : Dictionary containing data about the initial latent image to be processed.
-                              Includes keys like "samples" and optional "noise_mask", "batch_index".
-        model              : ComfyUI object representing the model to use for denoising.
-        seed               : The seed used to generate random noise.
-        cfg (float)        : Classifier-free guidance scale that controls the influence of negative prompts.
-                              A value of 1.0 means the negative prompt has no effect on generation.
-        positive           : Positive prompts or conditioning applied to the model during denoising.
-        negative           : Negative prompts or conditioning applied to the model during denoising.
-        sampler            : ComfyUI object representing the sampler used for each denoising step.
-        sigmas1            : Sigma values for the first stage of denoising. Can be a tensor, list, or None.
-        sigmas2            : Sigma values for the second stage of denoising. Can be a tensor, list, or None.
-        sigmas3            : Sigma values for the third stage of denoising. Can be a tensor, list, or None.
-        sigma_limits       : The range of sigma values where the denoising process should be performed.
-                             Steps with sigmas outside this range will be ignored.
-                              Can be a tuple or list of two floats, or None if all steps should be processed.
-        sigma_step_range   : The range of steps to be processed. Steps outside this range will be ignored.
-                              Can be a tuple or list of two integers, or None if all steps should be processed.
-        start_with_noise   : If `True` (default), begins the denoising process by injecting noise.
-                              Set to `False` to preserve noise from a previous process (chaining samplers).
-        end_with_denoise   : If `True` (default), ends the denoising process by zeroing out residual noise.
-                              Set to `False` to preserve noise for a next process (chaining samplers).
-        positive_stg2      : Optional positive conditioning to be used in the second stage.
-                              If `None` (default), the main positive conditioning will be used.
-        positive_stg3      : Optional positive conditioning to be used in the third stage.
-                              If `None` (default), the main positive conditioning will be used.
-
+        latent_image          : Dictionary containing data about the initial latent image to be processed.
+                                 Includes keys like "samples" and optional "noise_mask", "batch_index".
+        model                 : ComfyUI object representing the model to use for denoising.
+        seed                  : The seed used to generate random noise.
+        cfg (float)           : Classifier-free guidance scale that controls the influence of negative prompts.
+                                 A value of 1.0 means the negative prompt has no effect on generation.
+        positive              : Positive prompts or conditioning applied to the model during denoising.
+        negative              : Negative prompts or conditioning applied to the model during denoising.
+        sampler               : ComfyUI object representing the sampler used for each denoising step.
+        sigmas1               : Sigma values for the first stage of denoising. Can be a tensor, list, or None.
+        sigmas2               : Sigma values for the second stage of denoising. Can be a tensor, list, or None.
+        sigmas3               : Sigma values for the third stage of denoising. Can be a tensor, list, or None.
+        sigma_limits          : The range of sigma values where the denoising process should be performed.
+                                 Steps with sigmas outside this range will be ignored.
+                                 Can be a tuple or list of two floats, or None if all steps should be processed.
+        sigma_step_range      : The range of steps to be processed. Steps outside this range will be ignored.
+                                 Can be a tuple or list of two integers, or None if all steps should be processed.
+        start_with_noise      : If `True` (default), begins the denoising process by injecting noise.
+                                 Set to `False` to preserve noise from a previous process (chaining samplers).
+        end_with_denoise      : If `True` (default), ends the denoising process by zeroing out residual noise.
+                                 Set to `False` to preserve noise for a next process (chaining samplers).
+        positive_stg2         : Optional positive conditioning to be used in the second stage.
+                                 If `None` (default), the main positive conditioning will be used.
+        positive_stg3         : Optional positive conditioning to be used in the third stage.
+                                 If `None` (default), the main positive conditioning will be used.
         initial_noise_bias    : An optional constant bias applied to the initial noise.
                                  (where 0.0 = no bias; None = no bias)
                                  Can be a tensor, scalar, or None.
@@ -364,13 +369,11 @@ def execute_3_stage_denoising(latent_image,
                                  corresponding stage.
         noise_injection_scales: Optional scales of the extra noise injected into the latent image in each stage.
                                  A value of 0.0 in the tuple means no noise is injected in the corresponding stage.
-        stage2_shuffle_counts : Optional tuple of four signed integers (left, top, right, bottom) for shuffling
-                                 the latent image between the stage1 and stage2. This results in a significant
-                                 increase in the model's creativity, generating much more diverse images.
-                                 A zero value means “skip that side”, a positive value adds normal fragments, a
-                                 negative value adds fragments that are also randomly flipped (hori. and vert.).
-                                 If this parameter is (0,0,0,0) (default), no shuffling will be performed.
-
+        stage2_shuffle_counts : Optional tuple of four signed integers (left, top, right, bottom) that determine
+                                 the amount of steps for the latent shuffling. Zero values mean "skip that side",
+                                 positive values add normal fragments from that side, while negative values add
+                                 randomly flipped fragments.
+                                 If this parameter is (0,0,0,0) (default), no shuffling is performed.
     Returns:
         A dictionary with the updated latent image data after all three denoising stages.
     """
