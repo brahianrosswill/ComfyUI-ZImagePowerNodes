@@ -64,7 +64,7 @@ class ZSamplerTurbo2Laboratory(io.ComfyNode):
 
                 io_Divider("divider1"),#=====================================
 
-                io.Float.Input       ("initial_noise_bias_level", default=1.5, min=0.0, max=10.0, step=0.5,
+                io.Float.Input       ("initial_noise_bias_level", default=1.0, min=0.0, max=10.0, step=0.2,
                                       tooltip="The level of adjustament from the calculated noise bias "
                                               "to apply before the first denoising step. "
                                               "(0.0 means no noise bias adjustment; 1.0 means using the calculated noise bias).",
@@ -86,30 +86,33 @@ class ZSamplerTurbo2Laboratory(io.ComfyNode):
 
                 io_Divider("divider2"),#=====================================
 
+                io.Int.Input         ("inject_freq_st1", default=32, min=0, max=1024,
+                                      tooltip="?? ",
+                                     ),
                 io.Float.Input       ("inject_noise_st1", default=7.5, min=0.0, max=50.0, step=0.1,
                                       tooltip="The amount of noise to be injected into the latent image during the first stage. "
                                               "A value of 0 means that no noise will be injected. ",
                                      ),
-                io.Int.Input         ("inject_freq_st1", default=32, min=0, max=1024,
+                io.Int.Input         ("inject_freq_st2", default=64, min=0, max=1024,
                                       tooltip="?? ",
                                      ),
                 io.Float.Input       ("inject_noise_st2", default=3.7, min=0.0, max=50.0, step=0.1,
                                       tooltip="The amount of noise to be injected into the latent image during the second stage. "
                                               "A value of 0 means that no noise will be injected. ",
                                      ),
-                io.Int.Input         ("inject_freq_st2", default=64, min=0, max=1024,
+                io.Int.Input         ("inject_freq_st3", default=512, min=0, max=1024,
                                       tooltip="?? ",
                                      ),
                 io.Float.Input       ("inject_noise_st3", default=1.0, min=0.0, max=50.0, step=0.1,
                                       tooltip="The amount of noise to be injected into the latent image during the third stage. "
                                               "A value of 0 means that no noise will be injected. ",
                                      ),
-                io.Int.Input         ("inject_freq_st3", default=512, min=0, max=1024,
-                                      tooltip="?? ",
-                                     ),
 
                 io_Divider("divider3"),#=====================================
 
+                io.Int.Input         ("stage2_preproc_steps", default=0, min=0, max=3,
+                                      tooltip="?? ",
+                                     ),
                 io.Int.Input         ("shuffle_left_count", default=0, min=-16, max=16,
                                       tooltip="?? ",
                                      ),
@@ -181,12 +184,13 @@ class ZSamplerTurbo2Laboratory(io.ComfyNode):
                 noise_est_sample_scale   : float,
                 initial_noise_bias_level : float,
                 initial_noise_overdose   : float,
-                inject_noise_st1         : float,
                 inject_freq_st1          : int,
-                inject_noise_st2         : float,
+                inject_noise_st1         : float,
                 inject_freq_st2          : int,
-                inject_noise_st3         : float,
+                inject_noise_st2         : float,
                 inject_freq_st3          : int,
+                inject_noise_st3         : float,
+                stage2_preproc_steps     : int,
                 shuffle_left_count       : int,
                 shuffle_top_count        : int,
                 shuffle_right_count      : int,
@@ -212,11 +216,12 @@ class ZSamplerTurbo2Laboratory(io.ComfyNode):
         # creates a list of sigma offsets
         sigma_offsets = [sigma0_off, sigma1_off, sigma2_off, sigma3_off, sigma4_off, sigma5_off, sigma6_off, sigma7_off, sigma8_off, sigma9_off, sigma10_off]
 
-        # creates a list of inject noise scales
-        inject_noise_scales = (inject_noise_st1, inject_noise_st2, inject_noise_st3)
+        # creates a list of inject noise frequencies with its corresponding scales
         inject_noise_freqs  = (inject_freq_st1 , inject_freq_st2 , inject_freq_st3 )
+        inject_noise_scales = (inject_noise_st1, inject_noise_st2, inject_noise_st3)
 
-        shuffle_counts = (shuffle_left_count, shuffle_top_count, shuffle_right_count, shuffle_bottom_count)
+        # creates a list of counts for the shuffle of the image before the sampler's "stage2"
+        stage2_shuffle_counts = (shuffle_left_count, shuffle_top_count, shuffle_right_count, shuffle_bottom_count)
 
         # run the Z-Sampler Turbo core method on the latent image
         latent_output = zsampler_turbo_core(latent_input, model, positive,
@@ -230,9 +235,11 @@ class ZSamplerTurbo2Laboratory(io.ComfyNode):
                                             sigma_preset_name         = sigma_preset_name,
                                             sigma_offsets             = sigma_offsets,
                                             sigma_limits              = sigma_limits,
-                                            shuffle_counts            = shuffle_counts,
-                                            inject_noise_scales       = inject_noise_scales,
+                                            stage2_shuffle            = True,
+                                            stage2_shuffle_counts     = stage2_shuffle_counts,
+                                            stage2_preproc_steps      = stage2_preproc_steps,
                                             inject_noise_freqs        = inject_noise_freqs,
+                                            inject_noise_scales       = inject_noise_scales,
                                             progress_preview = ProgressPreview.from_model( model ),
                                             )
 

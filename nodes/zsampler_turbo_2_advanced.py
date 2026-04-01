@@ -94,31 +94,45 @@ class ZSamplerTurbo2Advanced(io.ComfyNode):
 
                 Divider("divider"),#=========================================
 
-                io.Float.Input       ("turbo_vibrance", default=0.0, min=-1.0, max=1.0, step=0.1,
-                                      tooltip="The amount of over-amplitude in the initial noise to generate images with "
-                                              "more pronounced contrasts and colors. 0.0 means no correction is applied. "
-                                              "Negative values result in more washed-out images, while positive values "
-                                              "enhance intensity and saturation. This parameter only affects the image "
-                                              "when 'start_at_step' is set to 0 and 'add_noise' is enabled. ",
+                io.Float.Input       ("intensity",
+                                      default=1.0, min=0.0, max=2.0, step=0.1,
+                                      tooltip="Initial noise amplitude for generating images with enhanced contrasts "
+                                              "and colors. A value of 1.0 applies no correction. Values below 1 result "
+                                              "in more muted images, while values above 1.0 increase contrast and "
+                                              "saturation. This parameter only affects the image when 'denoise' is set "
+                                              "to 1.00. ",
                                      ),
+
+                Divider("divider2"),#========================================
+
                 io.Boolean.Input     ("turbo_creativity", default=False, label_on="yes", label_off="no",
                                       tooltip="When enabled, this option increases the model's creativity, resulting "
                                               "in more diverse and imaginative outputs. This solves the problem that "
                                               "Z-Image Turbo has with low image variability. However, it may increase "
                                               "the model's hallucinations and is not recommended for in-painting. ",
                                      ),
-                io.Float.Input       ("initial_bias_level", default=1.5, min=0.0, max=2.0, step=0.1,
+                io.Int.Input         ("consistency_extra_steps",
+                                      default=0, min=0, max=3,
+                                      tooltip="Number of additional steps aimed at achieving visual stability and more "
+                                              "coherent structures. Higher values can help reduce hallucinations, but "
+                                              "results may vary based on prompt complexity. These steps are useful to "
+                                              "counteract hallucinations caused by 'creativity'. ",
+                                     ),
+                io.Float.Input       ("initial_bias_level",
+                                      default=1.5, min=0.0, max=2.0, step=0.1,
                                       tooltip="The level of adjustament from the estimated noise bias to apply before "
                                               "the first denoising step. 0.0 means no noise bias adjustment; 1.0 means "
                                               "using the estimated noise bias. "
                                               "This parameter works only when 'start_at_step' is set to 0 "
                                               "and 'add_noise' is enabled. ",
                                      ),
-                io.Combo.Input       ("initial_sample_size", default="image_size",
-                                      options=["128px", "256px", "512px", "1024px", "image_size"],
-                                      tooltip="The size of the latent image used to calculate the initial bias. "
-                                              "The smaller the image size, the faster the calculation of the first step. "
+                io.Combo.Input       ("initial_sample_size",
+                                      default="full_size",
+                                      options=["128px", "256px", "512px", "1024px", "full_size"],
+                                      tooltip="Size of the latent image used to calculate the initial bias. "
+                                              "Smaller image sizes result in faster calculation of the first step. ",
                                      ),
+
 
             ],
             outputs=[
@@ -132,26 +146,25 @@ class ZSamplerTurbo2Advanced(io.ComfyNode):
     #__ FUNCTION __________________________________________
     @classmethod
     def execute(cls,
-                latent_input          : dict[str, Any],
-                model                 : Any,
-                positive              : list,
-                add_noise             : bool,
-                seed                  : int,
-                steps                 : int,
-                start_at_step         : int,
-                end_at_step           : int,
-                force_final_denoising : bool,
-                turbo_vibrance        : float,
-                turbo_creativity      : bool,
-                initial_bias_level    : float,
-                initial_sample_size   : str,
+                latent_input           : dict[str, Any],
+                model                  : Any,
+                positive               : list,
+                add_noise              : bool,
+                seed                   : int,
+                steps                  : int,
+                start_at_step          : int,
+                end_at_step            : int,
+                force_final_denoising  : bool,
+                intensity              : float,
+                turbo_creativity       : bool,
+                consistency_extra_steps: int,
+                initial_bias_level     : float,
+                initial_sample_size    : str,
+                *,
                 positive_stg2         : list | None = None,
                 positive_stg3         : list | None = None,
                 **kwargs
                 ) -> io.NodeOutput:
-
-        # calculate the amount of noise overdose based on `turbo_vibrance`
-        initial_noise_overdose = (0.2 * ((turbo_vibrance+1)**2) + 0.8) - 1
 
         # if the start/stop values restrict the number of steps,
         # apply that start/stop range using the `sigma_step_range` parameter
@@ -159,22 +172,37 @@ class ZSamplerTurbo2Advanced(io.ComfyNode):
         if start_at_step > 0 or end_at_step<steps:
             sigma_step_range = (start_at_step, end_at_step)
 
+        # `intensity` determines the level of noise bias and overdose
+        initial_noise_bias_level = min(max(intensity*4-1, 0.0), 4.0)
+        initial_noise_overdose   = (intensity-1.0) * 0.4
+
+        # allow the user to calibrate the initial_noise_bias_level,
+        # which is not possible in the standard node
+        initial_noise_bias_level += initial_bias_level
+
+        # `turbo_creativity` triggers a shuffle of the image before sampler's "stage2"
+        stage2_shuffle = turbo_creativity
+
+        # `consistency extra steps` is the number of pre-processing steps before sampler's "stage2"
+        stage2_preproc_steps  = consistency_extra_steps
+
         # run the Z-Sampler Turbo core method on the latent image
         latent_output = zsampler_turbo_core(latent_input, model, positive,
-                                            positive_stg2             = positive_stg2,
-                                            positive_stg3             = positive_stg3,
                                             seed                      = seed,
                                             steps                     = steps,
-                                            initial_noise_bias_level  = initial_bias_level,
+                                            initial_noise_bias_level  = initial_noise_bias_level,
                                             initial_noise_overdose    = initial_noise_overdose,
                                             noise_est_sample_size     = initial_sample_size,
                                             noise_est_sample_bias     = 0.0,
                                             noise_est_sample_scale    = 1.0,
                                             sigma_preset_name         = "bravo",
                                             sigma_step_range          = sigma_step_range,
-                                            shuffle_counts            = (1,0,1,0) if turbo_creativity else None,
                                             start_with_noise          = add_noise,
                                             end_with_denoise          = force_final_denoising,
+                                            positive_stg2             = positive_stg2,
+                                            positive_stg3             = positive_stg3,
+                                            stage2_shuffle            = stage2_shuffle,
+                                            stage2_preproc_steps      = stage2_preproc_steps,
                                             progress_preview = ProgressPreview.from_model( model ),
                                             )
 

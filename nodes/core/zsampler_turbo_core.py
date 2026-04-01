@@ -50,8 +50,8 @@ def zsampler_turbo_core(latent_input             : dict[str, Any],
                         stage2_shuffle           : bool                                    = False,
                         stage2_shuffle_counts    : tuple[int,int,int,int] | None           = None,
                         stage2_preproc_steps     : int                                     = 0,
-                        inject_noise_scales      : tuple[float,float,float] | None         = None,
                         inject_noise_freqs       : tuple[int  ,int  ,int  ] | None         = None,
+                        inject_noise_scales      : tuple[float,float,float] | None         = None,
                         progress_preview         : ProgressPreview
                         ) -> dict[str, Any]:
     """

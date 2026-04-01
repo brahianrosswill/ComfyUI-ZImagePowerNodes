@@ -45,62 +45,78 @@ class ZSamplerTurbo2(io.ComfyNode):
             ),
             inputs=[
                 io.Latent.Input      ("latent_input",
-                                      tooltip="The initial latent image to be modified; typically an 'Empty Latent' for "
-                                              "text-to-image or an encoded image for img2img.",
+                                      tooltip="The initial latent image to be denoised; usually an 'Empty Latent' for "
+                                              "text-to-image tasks or an encoded image for image-to-image processing. ",
                                      ),
                 io.Model.Input       ("model",
-                                      tooltip="The model used for generating the latent images.",
+                                      tooltip="The Z-Image Turbo model used for denoising. ",
                                      ),
                 io.Conditioning.Input("positive",
-                                      tooltip="The conditioning used to guide the generation process toward the desired "
-                                               "content.",
+                                      tooltip="The conditioning that guide the generation process toward the desired "
+                                              "content. ",
                                      ),
-                io.Conditioning.Input("positive_stg2", optional=True,
-                                      tooltip="This input is optional and can remain disconennect. It allows defining "
-                                              "a different conditioning for the second stage of the denoising process.",
+                io.Conditioning.Input("positive_stg2",
+                                      optional=True,
+                                      tooltip="This input is optional and can remain disconennect. It allows specifying "
+                                              "a different conditioning for the second stage of the denoising process. ",
                                      ),
-                io.Conditioning.Input("positive_stg3", optional=True,
-                                      tooltip="This input is optional and can remain disconennect. It allows defining "
-                                              "a different conditioning for the third stage of the denoising process.",
+                io.Conditioning.Input("positive_stg3",
+                                      optional=True,
+                                      tooltip="This input is optional and can remain disconennect. It allows specifying "
+                                              "a different conditioning for the third stage of the denoising process. ",
                                      ),
-                io.Int.Input         ("seed", default=1, min=1, max=0xffffffffffffffff, control_after_generate=True,
-                                      tooltip="The seed used for the random noise generator, ensuring the same result " 
+                io.Int.Input         ("seed",
+                                      default=1, min=1, max=0xffffffffffffffff, control_after_generate=True,
+                                      tooltip="The seed used for the random noise generator, ensuring the same result "
                                               "is produced with the same value. ",
                                      ),
-                io.Int.Input         ("steps", default=8, min=3, max=20, step=1,
-                                      tooltip="The number of iterations to be performed during the sampling process.",
+                io.Int.Input         ("steps",
+                                      default=8, min=3, max=20, step=1,
+                                      tooltip="Number of iterations to perform during the sampling process. ",
                                      ),
-                io.Float.Input       ("denoise", default=1.00, min=0.00, max=1.00, step=0.01,
-                                      tooltip="The amount of denoising applied, lower values will maintain the structure "
-                                              "of the initial image allowing for image to image sampling.",
+                io.Float.Input       ("denoise",
+                                      default=1.00, min=0.00, max=1.00, step=0.01,
+                                      tooltip="Denoising strength; lower values preserve more of the initial image "
+                                              "structure, suitable for image-to-image sampling. ",
                                      ),
 
                 Divider("divider"),#=========================================
 
-                io.Float.Input       ("turbo_vibrance", default=0.0, min=-1.0, max=1.0, step=0.1,
-                                      tooltip="The amount of over-amplitude in the initial noise to generate images with "
-                                              "more pronounced contrasts and colors. 0.0 means no correction is applied. "
-                                              "Negative values result in more washed-out images, while positive values "
-                                              "enhance intensity and saturation. This parameter only affects the image "
-                                              "when 'denoise' is set to 1.00. ",
-                                     ),
-                io.Boolean.Input     ("turbo_creativity", default=False, label_on="yes", label_off="no",
-                                      tooltip="When enabled, this option increases the model's creativity, resulting "
-                                              "in more diverse and imaginative outputs. This solves the problem that "
-                                              "Z-Image Turbo has with low image variability. However, it may increase "
-                                              "the model's hallucinations and is not recommended for in-painting. ",
-                                     ),
-                io.Boolean.Input     ("use_lowres_sample", default=False, label_on="yes", label_off="no",
-                                      tooltip="When enabled, this option uses a smaller latent image to estimate initial "
-                                              "noise features, accelerating the first step. If disabled, the full input "
-                                              "image size is used. This parameter is only relevant when 'denoise' is set "
+                io.Float.Input       ("intensity",
+                                      default=1.0, min=0.0, max=2.0, step=0.1,
+                                      tooltip="Initial noise amplitude for generating images with enhanced contrasts "
+                                              "and colors. A value of 1.0 applies no correction. Values below 1 result "
+                                              "in more muted images, while values above 1.0 increase contrast and "
+                                              "saturation. This parameter only affects the image when 'denoise' is set "
                                               "to 1.00. ",
+                                     ),
+
+                Divider("divider2"),#=========================================
+
+                io.Boolean.Input     ("turbo_creativity",
+                                      default=False, label_on="yes", label_off="no",
+                                      tooltip="Increases model creativity for more diverse outputs, generating varied "
+                                              "compositions while maintaining the overall style. May lead to more "
+                                              "hallucinations and is not recommended for inpainting tasks. ",
+                                     ),
+                io.Int.Input         ("consistency_extra_steps",
+                                      default=0, min=0, max=3,
+                                      tooltip="Number of additional steps aimed at achieving visual stability and more "
+                                              "coherent structures. Higher values can help reduce hallucinations, but "
+                                              "results may vary based on prompt complexity. These steps are useful to "
+                                              "counteract hallucinations caused by 'creativity'. ",
+                                     ),
+                io.Combo.Input       ("initial_sample_size",
+                                      default="full_size",
+                                      options=["256px", "512px", "full_size"],
+                                      tooltip="Size of the latent image used to calculate the initial bias. "
+                                              "Smaller image sizes result in faster calculation of the first step. ",
                                      ),
             ],
             outputs=[
                 io.Latent.Output(display_name="latent_output",
-                                 tooltip="The resulting denoised latent image, ready to be decoded "
-                                         "by a VAE or passed to another node for further processing. ",
+                                 tooltip="The resulting denoised latent image, ready for decoding "
+                                         "by a VAE or passed to another node for further processing. "
                                 ),
             ]
         )
@@ -108,55 +124,61 @@ class ZSamplerTurbo2(io.ComfyNode):
     #__ FUNCTION __________________________________________
     @classmethod
     def execute(cls,
-                latent_input     : dict[str, Any],
-                model            : Any,
-                positive         : list,
-                seed             : int,
-                steps            : int,
-                denoise          : float,
-                turbo_vibrance   : float,
-                turbo_creativity : bool,
-                use_lowres_sample: bool,
-                positive_stg2    : list | None = None,
-                positive_stg3    : list | None = None,
+                latent_input           : dict[str, Any],
+                model                  : Any,
+                positive               : list,
+                seed                   : int,
+                steps                  : int,
+                denoise                : float,
+                intensity              : float,
+                turbo_creativity       : bool,
+                consistency_extra_steps: int,
+                initial_sample_size    : str,
+                positive_stg2          : list | None = None,
+                positive_stg3          : list | None = None,
                 **kwargs
                 ) -> io.NodeOutput:
 
-        # sets sigma limits when denoise is less than 1.0 (mostly when performing inpainting)
+        # set sigma limits when denoise is less than 1.0, typically used for inpainting
         sigma_limits = ( denoise**0.5 , 0 ) if denoise < 0.999 else None
 
-        # hardcode the initial noise bias level to 1.5
-        initial_noise_bias_level = 1.5
+        # `intensity` determines the level of noise bias and overdose
+        initial_noise_bias_level = min(max(intensity*4-1, 0.0), 4.0)
+        initial_noise_overdose   = (intensity-1.0) * 0.4
 
-        # calculate the amount of noise overdose based on `turbo_vibrance`
-        initial_noise_overdose = (0.2 * ((turbo_vibrance+1)**2) + 0.8) - 1
+        # `turbo_creativity` triggers a shuffle of the image before sampler's "stage2"
+        stage2_shuffle = turbo_creativity
+
+        # `consistency extra steps` is the number of pre-processing steps before sampler's "stage2"
+        stage2_preproc_steps = consistency_extra_steps
 
         ## by now I didn't find practical use for noise injection, but I did
-        ## some experiments to generate variation and details and left some
-        ## values used in these tests:
-        ## ( 7.5, 3.7, 1.0) / (32,64,512)
-        ## (20.0, 1.0, 1.0) / (20,64,512)
-        ## (18.0, 1.5, 1.0) / (20,40,512)
-        ## (19.0, 1.0, 1.0) / (20,35,512)
-        #   inject_noise_scales = ( 7.5, 3.7, 3.0)
+        ## some experiments to generate variation and details,
+        ## here are some values ​​used in these tests:
+        ## (32,64,512) : ( 7.5, 3.7, 1.0)
+        ## (20,64,512) : (20.0, 1.0, 1.0)
+        ## (20,40,512) : (18.0, 1.5, 1.0)
+        ## (20,35,512) : (19.0, 1.0, 1.0)
         #   inject_noise_freqs  = (32,64,768)
-        inject_noise_scales = None
+        #   inject_noise_scales = ( 7.5, 3.7, 3.0)
         inject_noise_freqs  = None
+        inject_noise_scales = None
 
         # run the Z-Sampler Turbo core method on the latent image
         latent_output = zsampler_turbo_core(latent_input, model, positive,
-                                            positive_stg2             = positive_stg2,
-                                            positive_stg3             = positive_stg3,
                                             seed                      = seed,
                                             steps                     = steps,
                                             initial_noise_bias_level  = initial_noise_bias_level,
                                             initial_noise_overdose    = initial_noise_overdose,
-                                            noise_est_sample_size     = 512 if use_lowres_sample else "image_size",
+                                            noise_est_sample_size     = initial_sample_size,
                                             sigma_preset_name         = "bravo",
                                             sigma_limits              = sigma_limits,
-                                            shuffle_counts            = (1,0,1,0) if turbo_creativity else None,
-                                            inject_noise_scales       = inject_noise_scales,
+                                            positive_stg2             = positive_stg2,
+                                            positive_stg3             = positive_stg3,
+                                            stage2_shuffle            = stage2_shuffle,
+                                            stage2_preproc_steps      = stage2_preproc_steps,
                                             inject_noise_freqs        = inject_noise_freqs,
+                                            inject_noise_scales       = inject_noise_scales,
                                             progress_preview = ProgressPreview.from_model( model ),
                                             )
 
