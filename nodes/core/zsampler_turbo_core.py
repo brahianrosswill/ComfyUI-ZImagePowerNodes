@@ -19,6 +19,13 @@ import comfy.samplers
 import comfy.sampler_helpers
 from typing         import Any
 from .progress_bar  import ProgressPreview
+_DEFAULT_INJECT_NOISE_FREQS  = ( 32,  64, 512)
+_DEFAULT_INJECT_NOISE_SCALES = (0.0, 0.0, 0.0)
+_SHUFFLE_COUNTS_DISABLED       = ( 0,  0,  0,  0)
+_SHUFFLE_COUNTS_DEFAULT        = ( 1,  0,  1,  0)
+_SHUFFLE_COUNTS_OCCASIONAL     = ( 2, -1,  2, -1)
+_SHUFFLE_COUNTS_MULTIPLE_OF_10 = (-2, -2, -2, -2)
+
 
 
 def zsampler_turbo_core(latent_input             : dict[str, Any],
@@ -40,6 +47,7 @@ def zsampler_turbo_core(latent_input             : dict[str, Any],
                         end_with_denoise         : bool                                    = True,
                         positive_stg2            : list[ tuple[torch.Tensor,dict] ] | None = None,
                         positive_stg3            : list[ tuple[torch.Tensor,dict] ] | None = None,
+                        stage2_shuffle           : bool                                    = False,
                         stage2_shuffle_counts    : tuple[int,int,int,int] | None           = None,
                         stage2_preproc_steps     : int                                     = 0,
                         inject_noise_scales      : tuple[float,float,float] | None         = None,
@@ -102,20 +110,35 @@ def zsampler_turbo_core(latent_input             : dict[str, Any],
     Returns:
         A dict with the denoised latent output.
     """
-    INJECT_NOISE_SCALES = (0.0, 0.0, 0.0)
-    INJECT_NOISE_FREQS  = ( 32,  64, 512)
 
-    # force `inject_noise_scales` & `inject_noise_freqs` to be tuples of 3 elements
+    # validate `inject_noise_scales/freqs`
+    if inject_noise_scales is not None:
+        if not isinstance(inject_noise_scales,tuple) or len(inject_noise_scales) != 3:
+            raise ValueError("`inject_noise_scales` must be None or a tuple of 3 floats")
+    if inject_noise_freqs is not None:
+        if not isinstance(inject_noise_freqs,tuple) or len(inject_noise_freqs) != 3:
+            raise ValueError("`inject_noise_freqs` must be None or a tuple of 3 floats")
+
+    # validate `stage2_shuffle_counts`
+    if stage2_shuffle_counts is not None:
+        if not isinstance(stage2_shuffle_counts,tuple) or len(stage2_shuffle_counts) != 4:
+            raise ValueError("`shuffle_counts` must be None or a tuple of 4 integers")
+
+
+    # force `inject_noise_scales/freqs` to be tuples of 3 elements
     if inject_noise_scales is None:
-        inject_noise_scales = INJECT_NOISE_SCALES
+        inject_noise_scales = _DEFAULT_INJECT_NOISE_SCALES
     if inject_noise_freqs is None:
-        inject_noise_freqs = INJECT_NOISE_FREQS
+        inject_noise_freqs  = _DEFAULT_INJECT_NOISE_FREQS
 
     # force `stage2_shuffle_counts` to be a tuple of 4 integers
-    if stage2_shuffle_counts is None:
-        stage2_shuffle_counts = (0,0,0,0)
-    elif not isinstance(stage2_shuffle_counts, tuple) or len(stage2_shuffle_counts) != 4:
-        raise ValueError("`shuffle_counts` must be None or a tuple of 4 integers")
+    if not stage2_shuffle:
+        stage2_shuffle_counts = _SHUFFLE_COUNTS_DISABLED
+    elif stage2_shuffle_counts is None:
+        stage2_shuffle_counts = _SHUFFLE_COUNTS_MULTIPLE_OF_10 if (seed % 10) == 0 else \
+                                _SHUFFLE_COUNTS_OCCASIONAL     if (seed %  4) == 0 else \
+                                _SHUFFLE_COUNTS_DEFAULT
+
 
     # only "euler" sampler has been tested with this technique
     sampler_name = "euler"
@@ -291,7 +314,6 @@ def execute_3_stage_denoising(latent_image,
                               noise_injection_freqs : tuple[int  , int  , int  ]              = (0, 0, 0),
                               noise_injection_scales: tuple[float, float, float]              = (0.0, 0.0, 0.0),
                               stage2_shuffle_counts : tuple[int,int,int,int]                  = (0,0,0,0),
-                              stage2_shuffle_seed   : int  | None                             = None,
                               stage2_preproc_sigmas : torch.Tensor | list | tuple | None      = None,
                               progress_preview      : ProgressPreview,
                               ):
@@ -368,7 +390,8 @@ def execute_3_stage_denoising(latent_image,
         sigmas3 = torch.tensor(sigmas3, device='cpu')
 
     # enable shuffling only when non-empty shuffle counts are provided
-    is_shuffle_enabled = any(stage2_shuffle_counts)
+    is_stg2_shuffle_enabled = any(stage2_shuffle_counts)
+    is_stg2_preproc_enabled = stage2_preproc_sigmas is not None
 
     # store the stage3 sigmas to later evaluate if it was truncated
     original_sigmas3 = sigmas3
@@ -406,7 +429,7 @@ def execute_3_stage_denoising(latent_image,
         is_first_stage = True
         is_last_stage  = (sigmas2 is None and sigmas3 is None)
         add_noise     = (is_first_stage and start_with_noise)
-        force_denoise = (is_last_stage  and end_with_denoise) or is_shuffle_enabled or stage2_preproc_sigmas is not None
+        force_denoise = (is_last_stage  and end_with_denoise) or is_stg2_shuffle_enabled or is_stg2_preproc_enabled
 
         latent_image = execute_sampler(latent_image,
                         model, cfg, positive, negative,
@@ -429,7 +452,7 @@ def execute_3_stage_denoising(latent_image,
         # this stage is the first and therefore it must add noise
         is_first_stage = (sigmas1 is None)
         is_last_stage  = (sigmas3 is None)
-        add_noise     = (is_first_stage and start_with_noise) or is_shuffle_enabled or stage2_preproc_sigmas is not None
+        add_noise     = (is_first_stage and start_with_noise) or is_stg2_shuffle_enabled or is_stg2_preproc_enabled
         force_denoise = (is_last_stage  and end_with_denoise)
 
         latent_image = execute_sampler(latent_image,
@@ -437,13 +460,12 @@ def execute_3_stage_denoising(latent_image,
                         sampler             = sampler,
                         noise_seed          = seed+16,
                         sigmas              = sigmas2,
-                        preproc_sigma_list  = _to_tensor_list(stage2_preproc_sigmas),
+                        preproc_sigma_list  = _list_of_tensors(stage2_preproc_sigmas) if is_stg2_preproc_enabled else None,
                         noise_bias          = initial_noise_bias  if add_noise else 0,
                         noise_scale         = initial_noise_scale if add_noise else 0,
                         force_final_denoise = force_denoise,
                         keep_masked_area    = True,
-                        shuffle_counts      = stage2_shuffle_counts if is_shuffle_enabled else (0,0,0,0),
-                        shuffle_seed        = stage2_shuffle_seed,
+                        shuffle_counts      = stage2_shuffle_counts if is_stg2_shuffle_enabled else (0,0,0,0),
                         inject_noise_scale  = noise_injection_scales[1],
                         inject_noise_freq   = noise_injection_freqs [1],
                         progress_preview    = ProgressPreview( prog2-prog1,
@@ -489,7 +511,6 @@ def execute_sampler(latent_image    : dict[str, Any],
                     keep_masked_area    : bool  = False,
                     fix_empty_latent    : bool  = True,
                     shuffle_counts      : tuple[int,int,int,int]  = (0,0,0,0),
-                    shuffle_seed        : int | None              = None,
                     inject_noise_scale  : float                   = 0,
                     inject_noise_freq   : int                     = 0,
                     progress_preview    : ProgressPreview | None = None,
@@ -551,7 +572,6 @@ def execute_sampler(latent_image    : dict[str, Any],
                     keep_masked_area    = keep_masked_area,
                     fix_empty_latent    = fix_empty_latent,
                     shuffle_counts      = shuffle_counts,
-                    shuffle_seed        = shuffle_seed,
                     inject_noise_scale  = inject_noise_scale,
                     inject_noise_freq   = inject_noise_freq,
                     progress_preview    = progress_preview,
@@ -581,10 +601,6 @@ def execute_sampler(latent_image    : dict[str, Any],
     if isinstance(noise_scale, (float,int)) and noise_scale == 1:
         noise_scale = None
 
-    # by default, the `shuffle_seed` is the same as the `noise_seed`
-    if shuffle_seed is None:
-        shuffle_seed = noise_seed
-
     # extract all info that comes packaged in the `latent_image` dictionary
     latent     : dict                = latent_image.copy()
     samples    : torch.Tensor        = latent["samples"]
@@ -601,9 +617,7 @@ def execute_sampler(latent_image    : dict[str, Any],
 
     # shuffle the image if it was required
     if any(shuffle_counts):
-        samples = shuffle_tensor(samples,
-                                 shuffle_seed,
-                                 shuffle_counts)
+        samples = shuffle_tensor(samples, shuffle_counts, seed=noise_seed)
 
     # apply extra noise injection if it was required
     if inject_noise_scale and inject_noise_freq:
@@ -700,8 +714,9 @@ def preproc_wrapper(sampler_fn, *args, **kwargs) -> dict[str, Any]:
 #============================= IMAGE SHUFFLING =============================#
 
 def shuffle_tensor(x     : torch.Tensor,
-                   seed  : int,
                    counts: tuple[int,int,int,int],
+                   *,
+                   seed  : int,
                    ) -> torch.Tensor:
     """
     Shuffles the input latent image tensor.
@@ -712,13 +727,13 @@ def shuffle_tensor(x     : torch.Tensor,
 
     Args:
         x      : Input tensor of shape (B, C, H, W) representing the latent image.
-        seed   : Fixed seed for random number generation to ensure reproducibility.
         counts : Tuple of four signed integers (left, top, right, bottom) that
                  control how many fragments are combined for each alignment.
                  Zero means “no fragments for this side”, a positive value adds
                  normal fragments, a negative value adds fragments that are also
                  randomly flipped (horizontally and vertically).
                  Passing `(0,0,0,0)` leaves the tensor unchanged.
+        seed   : The seed for random number generation to ensure reproducibility.
     Returns:
         A new tensor with the same shape as `x`, where fragments of the
         original image are shuffled in a random manner.
@@ -1148,7 +1163,7 @@ def _num_steps(sigmas: torch.Tensor | None) -> int:
     return sigmas.shape[-1]-1 if sigmas is not None else 0
 
 
-def _to_tensor_list(sigmas: torch.Tensor | list | tuple | None) -> list[torch.Tensor] | None:
+def _list_of_tensors(sigmas: torch.Tensor | list | tuple | None) -> list[torch.Tensor] | None:
     """
     Converts the input sigmas into a list of tensors.
 
