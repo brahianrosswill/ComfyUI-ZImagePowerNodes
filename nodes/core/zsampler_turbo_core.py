@@ -19,6 +19,8 @@ import comfy.samplers
 import comfy.sampler_helpers
 from typing         import Any
 from .progress_bar  import ProgressPreview
+
+from itertools import accumulate
 _DEFAULT_INJECT_NOISE_FREQS  = ( 32,  64, 512)
 _DEFAULT_INJECT_NOISE_SCALES = (0.0, 0.0, 0.0)
 _SHUFFLE_COUNTS_DISABLED       = ( 0,  0,  0,  0)
@@ -445,7 +447,7 @@ def execute_3_stage_denoising(latent_image,
                         keep_masked_area    = True,
                         inject_noise_scale  = noise_injection_scales[0],
                         inject_noise_freq   = noise_injection_freqs [0],
-                        progress_preview    = ProgressPreview( prog1-prog0,
+                        progress_preview    = ProgressPreview( 100,
                                 parent=(progress_preview, 100*prog0//total, 100*prog1//total)),
                         )
 
@@ -471,7 +473,7 @@ def execute_3_stage_denoising(latent_image,
                         shuffle_counts      = stage2_shuffle_counts if is_stg2_shuffle_enabled else (0,0,0,0),
                         inject_noise_scale  = noise_injection_scales[1],
                         inject_noise_freq   = noise_injection_freqs [1],
-                        progress_preview    = ProgressPreview( prog2-prog1,
+                        progress_preview    = ProgressPreview( 100,
                                 parent=(progress_preview, 100*prog1//total, 100*prog2//total)),
                         )
 
@@ -492,7 +494,7 @@ def execute_3_stage_denoising(latent_image,
                         keep_masked_area    = True,
                         inject_noise_scale  = noise_injection_scales[2],
                         inject_noise_freq   = noise_injection_freqs [2],
-                        progress_preview    = ProgressPreview( total-prog2,
+                        progress_preview    = ProgressPreview( 100,
                                 parent=(progress_preview, 100*prog2//total, 100*total//total)),
                         )
     return latent_image
@@ -650,10 +652,10 @@ def execute_sampler(latent_image    : dict[str, Any],
                                      layout         = samples.layout,
                                      device         = "cpu")
 
-    # this wrapper increments by 1 the steps count reported by comfyui.
-    # comfyui reports the end of the first denoising step as 0 (0% completion)
-    # breaking internal ProgressPreview calculation, the wrapper solves that
-    progress_wrapper = ProgressPreview( steps, parent=(progress_preview, 1, steps+1) )
+
+    # this component modifies the progress report sent by comfyui
+    # to show an external progress from 0 to 100
+    progress_wrapper = ProgressPreview( steps, parent=(progress_preview, 100/(steps+1), 100) )
     disable_pbar = not comfy.utils.PROGRESS_BAR_ENABLED
 
     # generates the denoised latent using a native function from comfyui
@@ -684,34 +686,62 @@ def preproc_wrapper(sampler_fn, *args, **kwargs) -> dict[str, Any]:
     Returns:
         The updated latent image data after denoising, including "samples" and any other relevant information.
     """
-    sigmas: torch.Tensor | None = kwargs.pop('sigmas', None)
-    if sigmas is None: raise Exception('sigmas is required')
-
+    latent_image      : dict[str, Any]            = args[0]
+    progress_preview  : ProgressPreview | None    = kwargs.pop('progress_preview', None)
+    sigmas            : torch.Tensor | None       = kwargs.pop('sigmas', None)
     preproc_sigma_list: list[torch.Tensor] | None = kwargs.pop('preproc_sigma_list', None)
+    noise_seed        : int                       = kwargs.pop('noise_seed', 0)
+
+    if sigmas is None:
+        raise Exception('sigmas is required')
+
     if not isinstance( preproc_sigma_list, (list,tuple) ):
         raise Exception('preproc_sigmas is required and must be a list')
 
-    latent_image: dict[str, Any] = args[0]
-    noise_seed  : int            = kwargs.get('noise_seed',0)
 
     noise_scale = kwargs.get('noise_scale', 1.0)
+    noise_bias  = kwargs.get('noise_bias' , 0.0)
 
-    # 1) execute the pre-processing sampler using the sigmas provided in `preproc_sigma_list`
-    for i, preproc_sigmas in enumerate(preproc_sigma_list):
-        kwargs['sigmas'] = preproc_sigmas
+
+    # calculate the total number of steps to set the progress bar speed
+    substeps    = [0, *accumulate((_num_steps(s) for s in preproc_sigma_list))]
+    total_steps = substeps[-1] + _num_steps(sigmas)
+
+    # 1) run the sampler with the first sigma group for pre-processing (`preproc_sigma_list`)
+    if len(preproc_sigma_list) > 0:
+        kwargs['sigmas']     = preproc_sigma_list[0]
+        kwargs['noise_seed'] = noise_seed
+        if progress_preview:
+            kwargs['progress_preview'] = ProgressPreview(100,
+                    parent=(progress_preview, 100*substeps[0]/total_steps, 100*substeps[1]/total_steps))
         latent_image = sampler_fn(latent_image, *args[1:], **kwargs)
 
-        kwargs['noise_seed']         = noise_seed + i
-        kwargs['shuffle_counts']     = (0,0,0,0)
-        kwargs['inject_noise_scale'] = 4.0
-        kwargs['inject_noise_freq' ] = 64  # 48
-        kwargs['noise_scale']        = noise_scale # 1.0
-        if 'noise_bias' in kwargs:
-            kwargs['noise_bias'] *= 0.1  #<< are we sure about this? 0.9
 
-    # 2) execute the sampler using the original sigmas
-    kwargs['sigmas'] = sigmas
-    return sampler_fn(latent_image, *args[1:], **kwargs)
+    kwargs['shuffle_counts']     = (0,0,0,0)
+    kwargs['inject_noise_scale'] = 4.0
+    kwargs['inject_noise_freq' ] = 64  # 48
+    kwargs['noise_scale']        = noise_scale * 0.9 + 0.1  # 1.0
+    kwargs['noise_bias']         = noise_bias * 0.5
+
+
+    # 2) run the sampler with the remaining sigma groups for pre-processing (`preproc_sigma_list`)
+    for i, preproc_sigmas in enumerate(preproc_sigma_list[1:], start=1):
+        kwargs['sigmas']     = preproc_sigmas
+        kwargs['noise_seed'] = noise_seed + i
+        if progress_preview:
+            kwargs['progress_preview'] = ProgressPreview(100,
+                    parent=(progress_preview, 100*substeps[i+0]/total_steps, 100*substeps[i+1]/total_steps))
+        latent_image = sampler_fn(latent_image, *args[1:], **kwargs)
+
+
+    # 3) run the sampler using the original sigmas
+    kwargs['sigmas']     = sigmas
+    kwargs['noise_seed'] = noise_seed + len(preproc_sigma_list) + 1
+    if progress_preview:
+        kwargs['progress_preview'] = ProgressPreview(100,
+                parent=(progress_preview, 100*substeps[-1]/total_steps, 100))
+    latent_image = sampler_fn(latent_image, *args[1:], **kwargs)
+    return latent_image
 
 
 #============================= IMAGE SHUFFLING =============================#

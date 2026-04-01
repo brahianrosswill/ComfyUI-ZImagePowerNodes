@@ -91,7 +91,7 @@ class ProgressPreview:
 
     def __init__(self,
                  steps : int,
-                 parent: tuple[Any, int, int],
+                 parent: tuple[Any, int|float, int|float],
                  ):
         self.parent    = parent[0]
         self.range_min = int(parent[1])
