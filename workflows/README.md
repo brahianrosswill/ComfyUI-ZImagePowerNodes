@@ -22,25 +22,22 @@ If you choose to use GGUF-format checkpoints, it is necessary to install the
 "ComfyUI-GGUF" nodes as well, since ComfyUI does not natively support GGUF files.
 You can find information about these nodes at: https://github.com/city96/ComfyUI-GGUF
 
-Below in this readme, you will find detailed instructions on how to install the
-necessary nodes and checkpoints.
+Below in this README, you will find detailed instructions on how to install the
+necessary nodes and files.
 
-Please note that while my work with "Z-Image Power Nodes" was developed and
-tested using the recommended checkpoints listed below, it may also work
-correctly with other "Z-Image Turbo" checkpoints or when applying LoRA.
-However, if custom modifications are made to the workflows or alternative
-checkpoint combinations are used, I cannot guarantee 100% functionality in all
-cases. It becomes your responsibility to determine the suitable configuration
-for your customized setups.
-
+Please be aware that although I tested "Z-Image Power Nodes" using the
+recommended checkpoints below, it should also be compatible with other
+"Z-Image Turbo" checkpoints and LoRAs. However, I cannot guarantee full
+functionality for all alternative combinations; you may need to tweak
+the workflows to optimize them for your own setup.
 
 ## Checkpoint Files
 
 The following list includes the pre-configured checkpoints used in the workflows.
 I chose these specifically because they performed best during my testing phase.
-However, given the diversity of GPUs, VRAM, and ComfyUI versions, results may
-vary. Therefore, I recommend testing them all to find the one that works best
-for you
+However, given the diversity of GPUs, VRAM, and ComfyUI versions, it is very
+difficult to determine which one will work best on most systems. Therefore, I
+recommend testing them all to find the one that works best for you.
 
 ### GGUF (Q8/Q5)
 
