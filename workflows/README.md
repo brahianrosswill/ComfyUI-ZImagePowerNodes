@@ -33,15 +33,14 @@ checkpoint combinations are used, I cannot guarantee 100% functionality in all
 cases. It becomes your responsibility to determine the suitable configuration
 for your customized setups.
 
-The node pack includes an "Advanced" version of "Z-Sampler Turbo" that incorporates
-additional parameters which may help it function better in your custom workflows.
 
 ## Checkpoint Files
 
-The following list includes the checkpoint files that I found to perform best during development
-and testing. While the workflows are compatible with any Z-Image Turbo and Qwen3-4B checkpoints,
-it's important to note that using other finetuned files may require adjustments to the workflows
-to extract the best possible quality from those alternative models.
+The following list includes the pre-configured checkpoints used in the workflows.
+I chose these specifically because they performed best during my testing phase.
+However, given the diversity of GPUs, VRAM, and ComfyUI versions, results may
+vary. Therefore, I recommend testing them all to find the one that works best
+for you
 
 ### GGUF (Q8/Q5)
 
