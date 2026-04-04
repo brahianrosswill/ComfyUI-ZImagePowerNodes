@@ -28,6 +28,16 @@ There are several ways to do so:
 4. [Recommended Checkpoints](#recommended-checkpoints)
 5. [License](#license)
 
+## Features
+
+### Intensity Control
+
+__"Intensity"__ is a parameter within the Z-Sampler Turbo node that modifies the amplitude of the initial noise to generate images with enhanced contrast and saturation. Values above 1.0 heighten contrast and edge sharpness, resulting in a more defined and vibrant aesthetic. Conversely, values below 1.0 yield a softer, more muted look with reduced micro-detail.
+
+It is important to note that the final effect of this parameter is heavily influenced by the prompt and the specific image style being used. While not a hard rule, lower values generally complement photographic styles, whereas higher values tend to work better for illustrations.
+
+<img src="workflows/___zzdev/__figure__intensity.jpg" width="90%"></img>
+
 ## Nodes
 
 * __[⚡Z-Sampler Turbo](docs/zsampler_turbo.md)__  
