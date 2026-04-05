@@ -30,6 +30,10 @@ There are several ways to do so:
 
 ## Features
 
+### Visual Styles
+
+<img src="workflows/___zzdev/__figure__styles.jpg" width="90%"></img>
+
 ### Intensity Control
 
 __"Intensity"__ is a parameter within the Z-Sampler Turbo node that modifies the amplitude of the initial noise to generate images with enhanced contrast and saturation. Values above 1.0 heighten contrast and edge sharpness, resulting in a more defined and vibrant aesthetic. Conversely, values below 1.0 yield a softer, more muted look with reduced micro-detail.
@@ -37,6 +41,18 @@ __"Intensity"__ is a parameter within the Z-Sampler Turbo node that modifies the
 It is important to note that the final effect of this parameter is heavily influenced by the prompt and the specific image style being used. While not a hard rule, lower values generally complement photographic styles, whereas higher values tend to work better for illustrations.
 
 <img src="workflows/___zzdev/__figure__intensity.jpg" width="90%"></img>
+
+### Turbo Creativity
+
+__"Turbo Creativity"__ is a toggle in the Z-Sampler Turbo node that enables latent shuffling during the sampling process to increase variety without compromising the overall visual style or prompt instructions. This feature attempts to address the inherent limitations of Z-Image Turbo regarding image variability across different seeds.
+
+Currently, Turbo Creativity exclusively influences compositional elements (such as object placement, posing, and framing) while maintaining consistency in color palettes and image style. Because of how it is implemented, this process may introduce hallucinations; these can be mitigated by increasing the "Consistency Extra Steps" parameter to further refine the process.
+
+<img src="workflows/___zzdev/__figure__turbo_creativity.jpg" width="90%"></img>
+
+### Consistency Extra Steps
+
+???
 
 ## Nodes
 
