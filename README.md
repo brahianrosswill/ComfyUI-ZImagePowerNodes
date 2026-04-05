@@ -52,9 +52,10 @@ Currently, Turbo Creativity exclusively influences compositional elements (such 
 
 ### Consistency Extra Steps
 
-???
+__"Consistency Extra Steps"__ is a parameter within the Z-Sampler Turbo node designed to enhance image coherence and reduce hallucinations introduced by "Turbo Creativity". This parameter enables you to specify 1, 2, or 3 additional sampling steps specifically aimed at stabilizing the generated image. While it helps in achieving a more consistent output, adding these extra steps increases the overall sampling time, impacting generation speed.
 
-## Nodes
+
+## Power Nodes Documentation
 
 * __[⚡Z-Sampler Turbo](docs/zsampler_turbo.md)__  
 <sub>A specialized sampler designed to Z-Image Turbo that achieves sufficient quality to eliminate the need for further post-processing.</sub>
