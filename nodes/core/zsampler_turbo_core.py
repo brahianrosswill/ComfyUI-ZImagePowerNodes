@@ -262,8 +262,8 @@ def zsampler_turbo_core(latent_input             : dict[str, Any],
                                 sample_scale = noise_est_sample_scale,
                                 progress_preview = ProgressPreview( 100, parent=(progress_preview,0,100//steps) ),
                                 )
-        initial_noise_bias  = (bias / scale * initial_noise_bias_level)
-        initial_noise_bias.clamp_(-0.015, 0.015)
+        initial_noise_bias = (bias / scale).clamp(-0.005, 0.005)
+        initial_noise_bias *= initial_noise_bias_level
 
 
     # hardcoding the sigmas of the stage 2 preprocessing
