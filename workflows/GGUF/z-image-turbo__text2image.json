@@ -229,74 +229,6 @@
       "shape": 1
     },
     {
-      "id": 64,
-      "type": "ZSamplerTurbo2 //ZImagePowerNodes",
-      "pos": [
-        1210,
-        150
-      ],
-      "size": [
-        310,
-        750
-      ],
-      "flags": {},
-      "order": 8,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "latent_input",
-          "type": "LATENT",
-          "link": 90
-        },
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 108
-        },
-        {
-          "name": "positive",
-          "type": "CONDITIONING",
-          "link": 92
-        },
-        {
-          "name": "positive_stg2",
-          "shape": 7,
-          "type": "CONDITIONING",
-          "link": null
-        },
-        {
-          "name": "positive_stg3",
-          "shape": 7,
-          "type": "CONDITIONING",
-          "link": null
-        }
-      ],
-      "outputs": [
-        {
-          "name": "latent_output",
-          "type": "LATENT",
-          "links": [
-            93
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "ZSamplerTurbo2 //ZImagePowerNodes"
-      },
-      "widgets_values": [
-        1,
-        "fixed",
-        8,
-        1,
-        null,
-        1.4,
-        null,
-        false,
-        0,
-        "full_size"
-      ]
-    },
-    {
       "id": 43,
       "type": "StylePromptEncoder2 //ZImagePowerNodes",
       "pos": [
@@ -464,6 +396,75 @@
       ],
       "color": "#432",
       "bgcolor": "#653"
+    },
+    {
+      "id": 64,
+      "type": "ZSamplerTurbo2 //ZImagePowerNodes",
+      "pos": [
+        1210,
+        150
+      ],
+      "size": [
+        310,
+        750
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "latent_input",
+          "type": "LATENT",
+          "link": 90
+        },
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 108
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 92
+        },
+        {
+          "name": "positive_stg2",
+          "shape": 7,
+          "type": "CONDITIONING",
+          "link": null
+        },
+        {
+          "name": "positive_stg3",
+          "shape": 7,
+          "type": "CONDITIONING",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "latent_output",
+          "type": "LATENT",
+          "links": [
+            93
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ZSamplerTurbo2 //ZImagePowerNodes"
+      },
+      "widgets_values": [
+        1,
+        "fixed",
+        8,
+        1,
+        null,
+        1.4,
+        0,
+        "full_size",
+        0,
+        false,
+        0
+      ]
     }
   ],
   "links": [
@@ -558,10 +559,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.620921323059155,
+      "scale": 0.8264462809917354,
       "offset": [
-        86.18001760584067,
-        394.751788610127
+        -228.24429395281155,
+        86.5728668081801
       ]
     },
     "frontendVersion": "1.41.20",

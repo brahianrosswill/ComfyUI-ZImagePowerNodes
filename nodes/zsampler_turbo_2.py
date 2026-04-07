@@ -84,33 +84,41 @@ class ZSamplerTurbo2(io.ComfyNode):
 
                 io.Float.Input       ("intensity",
                                       default=1.0, min=0.0, max=2.0, step=0.1,
-                                      tooltip="Initial noise amplitude for generating images with enhanced contrasts "
-                                              "and colors. A value of 1.0 applies no correction. Values below 1 result "
-                                              "in more muted images, while values above 1.0 increase contrast and "
-                                              "saturation. This parameter only affects the image when 'denoise' is set "
-                                              "to 1.00. ",
+                                     tooltip="Initial noise amplitude used to enhance contrast and colors. A value "
+                                             "of 1.0 is neutral; values below 1.0 create more muted images, while "
+                                             "values above 1.0 increase contrast and saturation. This only takes "
+                                             "effect when 'denoise' is set to 1.00 ",
+                                     ),
+                io.Float.Input       ("intensity_bias",
+                                      default=0.0, min=-1.0, max=1.0, step=0.1,
+                                      tooltip="Custom adjustment for the intensity correction noise bias. Usually kept "
+                                              "at 0.0; used to fine-tune brightness. Note that its effect depends "
+                                              "heavily on the prompt and image style, so it may not always act as a "
+                                              "simple brightness control. Tweak it until it looks right to you. ",
+                                     ),
+                io.Combo.Input       ("initial_sample_size",
+                                      default="full_size",
+                                      options=["256px", "512px", "full_size"],
+                                      tooltip="The latent image size used for calculating the initial noise for "
+                                              "intensity correction. While smaller sizes result in a faster first "
+                                              "step, they can lead to a less accurate correction",
                                      ),
 
                 Divider("divider2"),#=========================================
 
                 io.Boolean.Input     ("turbo_creativity",
                                       default=False, label_on="yes", label_off="no",
-                                      tooltip="Increases model creativity for more diverse outputs, generating varied "
-                                              "compositions while maintaining the overall style. May lead to more "
-                                              "hallucinations and is not recommended for inpainting tasks. ",
+                                      tooltip="Boosts model creativity for more diverse compositions while maintaining "
+                                              "the general style. Be aware that this can lead to hallucinations and "
+                                              "isn't recommended for inpainting tasks. "
                                      ),
-                io.Int.Input         ("consistency_extra_steps",
+                io.Int.Input         ("turbo_creativity_extra_steps",
                                       default=0, min=0, max=3,
-                                      tooltip="Number of additional steps aimed at achieving visual stability and more "
-                                              "coherent structures. Higher values can help reduce hallucinations, but "
-                                              "results may vary based on prompt complexity. These steps are useful to "
-                                              "counteract hallucinations caused by 'creativity'. ",
-                                     ),
-                io.Combo.Input       ("initial_sample_size",
-                                      default="full_size",
-                                      options=["256px", "512px", "full_size"],
-                                      tooltip="Size of the latent image used to calculate the initial bias. "
-                                              "Smaller image sizes result in faster calculation of the first step. ",
+                                      tooltip="Additional steps to improve visual stability and structural coherence. "
+                                              "Higher values may help reduce hallucinations depending on image "
+                                              "complexity, though this will slow down the generation process. These "
+                                              "steps are specifically designed to counteract hallucinations caused "
+                                              "by 'Turbo Creativity'. "
                                      ),
             ],
             outputs=[
@@ -124,33 +132,42 @@ class ZSamplerTurbo2(io.ComfyNode):
     #__ FUNCTION __________________________________________
     @classmethod
     def execute(cls,
-                latent_input           : dict[str, Any],
-                model                  : Any,
-                positive               : list,
-                seed                   : int,
-                steps                  : int,
-                denoise                : float,
-                intensity              : float,
-                turbo_creativity       : bool,
-                consistency_extra_steps: int,
-                initial_sample_size    : str,
-                positive_stg2          : list | None = None,
-                positive_stg3          : list | None = None,
+                latent_input                : dict[str, Any],
+                model                       : Any,
+                positive                    : list,
+                seed                        : int,
+                steps                       : int,
+                denoise                     : float,
+                intensity                   : float,
+                intensity_bias              : float,
+                initial_sample_size         : str,
+                turbo_creativity            : bool,
+                turbo_creativity_extra_steps: int,
+                *,
+                positive_stg2               : list | None = None,
+                positive_stg3               : list | None = None,
                 **kwargs
                 ) -> io.NodeOutput:
 
         # set sigma limits when denoise is less than 1.0, typically used for inpainting
         sigma_limits = ( denoise**0.5 , 0 ) if denoise < 0.999 else None
 
-        # `intensity` determines the level of noise bias and overdose
-        initial_noise_bias_level = min(max(intensity*4-1, 0.0), 4.0)
+        # `intensity` determines the level of noise overdose and noise bias
         initial_noise_overdose   = (intensity-1.0) * 0.4
+        initial_noise_bias_level = intensity*4-1
+        initial_noise_bias_level = min(max(initial_noise_bias_level, 0.0), 4.0)
+
+        # apply user-defined adjustment to the calculated noise bias level
+        initial_noise_bias_level += 10 * intensity_bias
+        initial_noise_bias_level = min(max(initial_noise_bias_level, -5.0), 14.0)
 
         # `turbo_creativity` triggers a shuffle of the image before sampler's "stage2"
         stage2_shuffle = turbo_creativity
 
-        # `consistency extra steps` is the number of pre-processing steps before sampler's "stage2"
-        stage2_preproc_steps = consistency_extra_steps
+        # `turbo_creativity_extra_steps` is the number of pre-processing steps
+        # before sampler's "stage2", used to try to give coherence to the image
+        # after shuffle
+        stage2_preproc_steps = turbo_creativity_extra_steps if stage2_shuffle else 0
 
         ## by now I didn't find practical use for noise injection, but I did
         ## some experiments to generate variation and details,
