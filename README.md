@@ -28,7 +28,36 @@ There are several ways to do so:
 4. [Recommended Checkpoints](#recommended-checkpoints)
 5. [License](#license)
 
-## Nodes
+## Features
+
+### Visual Styles
+
+A library of over 100 predefined visual styles is included in the "Style & Prompt Encoder" node. When you select a style, the node automatically adds the required text to your prompt, making it easy to change the artistic direction of your output. You can browse the styles through a searchable gallery with thumbnails to preview how each one looks. This feature helps you achieve a consistent aesthetic without having to write complex prompts, all while keeping your original subject and composition intact.
+
+<img src="workflows/___zzdev/__figure__styles.jpg" width="90%"></img>
+
+### Intensity Control
+
+__Intensity__ is a parameter within the "Z-Sampler Turbo" node that modifies the amplitude of the initial noise to generate images with enhanced contrast and saturation. Values above 1.0 heighten contrast and edge sharpness, resulting in a more defined and vibrant aesthetic. Conversely, values below 1.0 yield a softer, more muted look with reduced micro-detail.
+
+It is important to note that the final effect of this parameter is heavily influenced by the prompt and the specific image style being used. While not a hard rule, lower values generally complement photographic styles, whereas higher values tend to work better for illustrations.
+
+<img src="workflows/___zzdev/__figure__intensity.jpg" width="90%"></img>
+
+### Turbo Creativity
+
+__Turbo Creativity__ is a toggle in the "Z-Sampler Turbo" node that enables latent shuffling during the sampling process to increase variety without compromising the overall visual style or prompt instructions. This feature attempts to address the inherent limitations of Z-Image Turbo regarding image variability across different seeds.
+
+Currently, Turbo Creativity exclusively influences compositional elements (such as object placement, posing, and framing) while maintaining consistency in color palettes and image style. Because of how it is implemented, this process may introduce hallucinations; these can be mitigated by increasing the "Consistency Extra Steps" parameter to further refine the process.
+
+<img src="workflows/___zzdev/__figure__turbo_creativity.jpg" width="90%"></img>
+
+### Consistency Extra Steps
+
+__Consistency Extra Steps__ is a parameter within the "Z-Sampler Turbo" node designed to enhance image coherence and reduce hallucinations introduced by "Turbo Creativity". This parameter enables you to specify 1, 2, or 3 additional sampling steps specifically aimed at stabilizing the generated image. While it helps in achieving a more consistent output, adding these extra steps increases the overall sampling time, impacting generation speed.
+
+
+## Power Nodes Documentation
 
 * __[⚡Z-Sampler Turbo](docs/zsampler_turbo.md)__  
 <sub>A specialized sampler designed to Z-Image Turbo that achieves sufficient quality to eliminate the need for further post-processing.</sub>

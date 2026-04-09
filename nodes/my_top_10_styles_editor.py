@@ -16,7 +16,7 @@ The V3 schema documentation can be found here:
 """
 from functools                   import cache
 from comfy_api.latest            import io
-from .lib.style_helpers          import normalize_style_name
+from .core.style_helpers         import normalize_style_name
 from ..styles.predefined_styles  import PREDEFINED_STYLE_GROUPS
 
 

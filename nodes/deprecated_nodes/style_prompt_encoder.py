@@ -16,8 +16,8 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 """
 from functools                        import cache
 from comfy_api.latest                 import io
-from ..lib.system                     import logger
-from ..lib.style_group                import StyleGroup
+from ..core.system                    import logger
+from ..core.style_group               import StyleGroup
 from ...styles.predefined_styles_0_9  import PREDEFINED_STYLE_GROUPS_0_9 as PREDEFINED_STYLE_GROUPS
 
 
