@@ -194,8 +194,6 @@ class ZSamplerTurbo2Advanced(io.ComfyNode):
                                             initial_noise_bias_level  = initial_noise_bias_level,
                                             initial_noise_overdose    = initial_noise_overdose,
                                             noise_est_sample_size     = initial_sample_size,
-                                            noise_est_sample_bias     = 0.0,
-                                            noise_est_sample_scale    = 1.0,
                                             sigma_preset_name         = "bravo",
                                             sigma_step_range          = sigma_step_range,
                                             start_with_noise          = add_noise,

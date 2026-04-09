@@ -77,12 +77,6 @@ class ZSamplerTurbo2Laboratory(io.ComfyNode):
                                       tooltip="The size of the latent image used to calculate the initial noise. "
                                               "The smaller the image size, the faster the calculation of the first step. "
                                      ),
-                io.Float.Input       ("noise_est_sample_bias", default=0.00, min=0.00, max=1.00, step=0.01,
-                                      tooltip="The bias of the latent image used to calculate the initial noise. "
-                                     ),
-                io.Float.Input       ("noise_est_sample_scale", default=1.00, min=0.00, max=1.00, step=0.01,
-                                      tooltip="The scale of the latent image used to calculate the initial noise. "
-                                     ),
 
                 io_Divider("divider2"),#=====================================
 
@@ -180,8 +174,6 @@ class ZSamplerTurbo2Laboratory(io.ComfyNode):
                 steps       : int,
                 denoise     : float,
                 noise_est_sample_size    : str | int | None,
-                noise_est_sample_bias    : float,
-                noise_est_sample_scale   : float,
                 initial_noise_bias_level : float,
                 initial_noise_overdose   : float,
                 inject_freq_st1          : int,
@@ -230,8 +222,6 @@ class ZSamplerTurbo2Laboratory(io.ComfyNode):
                                             initial_noise_bias_level  = initial_noise_bias_level,
                                             initial_noise_overdose    = initial_noise_overdose,
                                             noise_est_sample_size     = noise_est_sample_size,
-                                            noise_est_sample_bias     = noise_est_sample_bias,
-                                            noise_est_sample_scale    = noise_est_sample_scale,
                                             sigma_preset_name         = sigma_preset_name,
                                             sigma_offsets             = sigma_offsets,
                                             sigma_limits              = sigma_limits,
