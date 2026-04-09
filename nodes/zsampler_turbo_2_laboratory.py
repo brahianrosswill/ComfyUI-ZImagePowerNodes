@@ -206,7 +206,7 @@ class ZSamplerTurbo2Laboratory(io.ComfyNode):
         sigma_limits = ( denoise**0.5 , 0 ) if denoise < 0.999 else None
 
         # creates a list of sigma offsets
-        sigma_offsets = [sigma0_off, sigma1_off, sigma2_off, sigma3_off, sigma4_off, sigma5_off, sigma6_off, sigma7_off, sigma8_off, sigma9_off, sigma10_off]
+        sigma_offsets = [sigma1_off, sigma2_off, sigma3_off, sigma4_off, sigma5_off, sigma6_off, sigma7_off, sigma8_off, sigma9_off, sigma10_off]
 
         # creates a list of inject noise frequencies with its corresponding scales
         inject_noise_freqs  = (inject_freq_st1 , inject_freq_st2 , inject_freq_st3 )
@@ -225,11 +225,11 @@ class ZSamplerTurbo2Laboratory(io.ComfyNode):
                                             sigma_preset_name         = sigma_preset_name,
                                             sigma_offsets             = sigma_offsets,
                                             sigma_limits              = sigma_limits,
-                                            stage2_shuffle            = True,
-                                            stage2_shuffle_counts     = stage2_shuffle_counts,
+                                            stage2_scramble           = True,
+                                            stage2_scramble_counts    = stage2_shuffle_counts,
                                             stage2_preproc_steps      = stage2_preproc_steps,
-                                            inject_noise_freqs        = inject_noise_freqs,
-                                            inject_noise_scales       = inject_noise_scales,
+                                            extra_noise_freqs         = inject_noise_freqs,
+                                            extra_noise_scales        = inject_noise_scales,
                                             progress_preview = ProgressPreview.from_model( model ),
                                             )
 

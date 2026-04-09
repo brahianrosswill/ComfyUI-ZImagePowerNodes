@@ -186,7 +186,7 @@ class ZSamplerTurbo2(io.ComfyNode):
         # # after shuffle
         # stage2_preproc_steps = turbo_creativity_extra_steps if stage2_shuffle else 0
 
-        stage2_shuffle, stage2_preproc_steps = TURBO_CREATIVITY.get(turbo_creativity, (False,0))
+        stage2_scramble, stage2_preproc_steps = TURBO_CREATIVITY.get(turbo_creativity, (False,0))
 
         ## by now I didn't find practical use for noise injection, but I did
         ## some experiments to generate variation and details,
@@ -211,10 +211,10 @@ class ZSamplerTurbo2(io.ComfyNode):
                                             sigma_limits              = sigma_limits,
                                             positive_stg2             = positive_stg2,
                                             positive_stg3             = positive_stg3,
-                                            stage2_shuffle            = stage2_shuffle,
+                                            stage2_scramble           = stage2_scramble,
                                             stage2_preproc_steps      = stage2_preproc_steps,
-                                            inject_noise_freqs        = inject_noise_freqs,
-                                            inject_noise_scales       = inject_noise_scales,
+                                            extra_noise_freqs         = inject_noise_freqs,
+                                            extra_noise_scales        = inject_noise_scales,
                                             progress_preview = ProgressPreview.from_model( model ),
                                             )
 

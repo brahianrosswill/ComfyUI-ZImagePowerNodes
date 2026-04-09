@@ -200,7 +200,7 @@ class ZSamplerTurbo2Advanced(io.ComfyNode):
                                             end_with_denoise          = force_final_denoising,
                                             positive_stg2             = positive_stg2,
                                             positive_stg3             = positive_stg3,
-                                            stage2_shuffle            = stage2_shuffle,
+                                            stage2_scramble           = stage2_shuffle,
                                             stage2_preproc_steps      = stage2_preproc_steps,
                                             progress_preview = ProgressPreview.from_model( model ),
                                             )
