@@ -46,8 +46,9 @@ def zsampler_turbo_core(latent_input             : ComfyLatent,
                         sigma_step_range         : tuple[int,int] | list[int] | None       = None,
                         start_with_noise         : bool                                    = True,
                         end_with_denoise         : bool                                    = True,
-                        positive_stg2            : list[ tuple[torch.Tensor,dict] ] | None = None,
-                        positive_stg3            : list[ tuple[torch.Tensor,dict] ] | None = None,
+                        positive_stg2_preproc    : ComfyConditioning | None                = None,
+                        positive_stg2            : ComfyConditioning | None                = None,
+                        positive_stg3            : ComfyConditioning | None                = None,
                         stage2_scramble          : bool                                    = False,
                         stage2_scramble_counts   : tuple[int,int,int,int] | None           = None,
                         stage2_preproc_steps     : int                                     = 0,
@@ -60,64 +61,66 @@ def zsampler_turbo_core(latent_input             : ComfyLatent,
     Perform the three-stage denoising process on a latent input.
 
     Args:
-        latent_input             : ComfyUI LATENT dict containing the initial latent tensor to be denoised.
-                                    Includes keys like "samples" and optional "noise_mask", "batch_index".
-        model                    : ComfyUI MODEL obj representing the model to use for denoising.
-        positive                 : Positive conditioning for the denoising process.
-        seed                     : Seed for the deterministic RNG used throughout the sampler.
-        steps                    : The total number of denoising steps. This value will
-                                    be used internally to determine the sigmas values.
-        initial_noise_bias_level : The proportion of the estimated noise bias to apply before the first
-                                    denoising step.
-                                    0.0 = no noise bias applied
-                                    1.0 = using 100% of the estimated noise bias
-        initial_noise_overdose    : The level of over-amplitude in the initial noise scale.
-                                    0.0 = default noise scale;
-                                    positive values will increase the noise scale, e.g: 0.1 = 10% increment;
-                                    negative values will reduce the noise scale, e.g: -0.1 = 10% decrement.
-        noise_est_sample_size    : Size in pixels of the sample for initial noise estimation.
-                                    A string can be used to specify the size in pixels, e.g: "512px".
-                                    If `None`, the size of the latent input will be used.
-        sigma_preset_name        : Name of a predefined sigma schedule (e.g. "alpha", "bravo").
-                                   If `None` the default schedule is used.
-        sigma_offsets            : Optional list of offsets to be added to the calculated sigma values.
-        sigma_limits             : Optional tuple with minimum and maximum limits for sigma values.
-        sigma_step_range         : Optional tuple with the range of steps that will actually be performed.
-        start_with_noise         : If `True` (default), begins the denoising process by injecting noise.
-                                    Set to `False` to preserve noise from a previous process (chaining samplers).
-        end_with_denoise         : If `True` (default), ends the denoising process by zeroing out residual noise.
-                                    Set to `False` to preserve noise for a next process (chaining samplers).
-        positive_stg2            : Optional positive conditioning to be used in the second stage.
-                                    If `None` (default), the main positive conditioning will be used.
-        positive_stg3            : Optional positive conditioning to be used in the third stage.
-                                    If `None` (default), the main positive conditioning will be used.
-        stage2_scramble          : Optional boolean to enable scrambling the latent image at the start of stage2.
-                                    This increases the model's creativity, generating images with more varied
-                                    compositions without altering the style.
-        stage2_scramble_counts   : Optional tuple of four signed integers (left, top, right, bottom) that determine
-                                    the amount of steps for the latent scrambling. Zero values mean "skip that side",
-                                    positive values add normal fragments from that side, while negative values add
-                                    randomly flipped fragments.
-                                    If this parameter is (0,0,0,0), no scrambling is performed even if `stage2_scramble=True`.
-                                    If this parameter is None (default), the amount of steps is pseudo-randomly
-                                    determined when `stage2_scramble=True`.
-        stage2_preproc_steps     : Optional number of steps to be performed as preprocessing in the second stage.
-                                    This can improve coherence and reduce hallucinations.
-                                    If zero (default), no preprocessing is performed.
-        extra_noise_freqs        : Optional frequencies at which additional noise is injected into the latent image
-                                    during each stage. These frequencies determine the granularity of noise injection.
-                                    For example, a value of 1024 means noise is injected into every pixel, while a
-                                    value of 512 means noise is injected every second pixel, with intermediate pixels
-                                    being interpolated. Lower frequency values result in smoother noise transitions
-                                    across the image.
-        extra_noise_scales       : Optional scales for extra noise injected into the latent image in each stage.
-                                    If `None` (default), no extra noise is injected.
-        use_dynamic_noise        : Optional tuple with three booleans that control whether each of the three stages
-                                    updates its noise at every denoising step. When a value is `True` the sampler
-                                    switches from a pure euler to a simulated euler-ancestral for that stage,
-                                    mutating the noise continuously in each step. I'm not using it because I thought
-                                    it would boost generation, but the final effect isn't very good.
-        progress_preview         : A `ProgressPreview` object for displaying progress during the denoising process.
+        latent_input            : ComfyUI LATENT dict containing the initial latent tensor to be denoised.
+                                   Includes keys like "samples" and optional "noise_mask", "batch_index".
+        model                   : ComfyUI MODEL obj representing the model to use for denoising.
+        positive                : Positive conditioning for the denoising process.
+        seed                    : Seed for the deterministic RNG used throughout the sampler.
+        steps                   : The total number of denoising steps. This value will
+                                   be used internally to determine the sigmas values.
+        initial_noise_bias_level: The proportion of the estimated noise bias to apply before the first
+                                   denoising step.
+                                   0.0 = no noise bias applied
+                                   1.0 = using 100% of the estimated noise bias
+        initial_noise_overdose  : The level of over-amplitude in the initial noise scale.
+                                   0.0 = default noise scale;
+                                   positive values will increase the noise scale, e.g: 0.1 = 10% increment;
+                                   negative values will reduce the noise scale, e.g: -0.1 = 10% decrement.
+        noise_est_sample_size   : Size in pixels of the sample for initial noise estimation.
+                                   A string can be used to specify the size in pixels, e.g: "512px".
+                                   If `None`, the size of the latent input will be used.
+        sigma_preset_name       : Name of a predefined sigma schedule (e.g. "alpha", "bravo").
+                                  If `None` the default schedule is used.
+        sigma_offsets           : Optional list of offsets to be added to the calculated sigma values.
+        sigma_limits            : Optional tuple with minimum and maximum limits for sigma values.
+        sigma_step_range        : Optional tuple with the range of steps that will actually be performed.
+        start_with_noise        : If `True` (default), begins the denoising process by injecting noise.
+                                   Set to `False` to preserve noise from a previous process (chaining samplers).
+        end_with_denoise        : If `True` (default), ends the denoising process by zeroing out residual noise.
+                                   Set to `False` to preserve noise for a next process (chaining samplers).
+        positive_stg2_preproc   : Optional positive conditioning to be used in the second stage pre-processing.
+                                   If `None` (default), the main positive conditioning will be used.
+        positive_stg2           : Optional positive conditioning to be used in the second stage.
+                                   If `None` (default), the main positive conditioning will be used.
+        positive_stg3           : Optional positive conditioning to be used in the third stage.
+                                   If `None` (default), the second stage positive conditioning will be used.
+        stage2_scramble         : Optional boolean to enable scrambling the latent image at the start of stage2.
+                                   This increases the model's creativity, generating images with more varied
+                                   compositions without altering the style.
+        stage2_scramble_counts  : Optional tuple of four signed integers (left, top, right, bottom) that determine
+                                   the amount of steps for the latent scrambling. Zero values mean "skip that side",
+                                   positive values add normal fragments from that side, while negative values add
+                                   randomly flipped fragments.
+                                   If this parameter is (0,0,0,0), no scrambling is performed even if `stage2_scramble=True`.
+                                   If this parameter is None (default), the amount of steps is pseudo-randomly
+                                   determined when `stage2_scramble=True`.
+        stage2_preproc_steps    : Optional number of steps to be performed as preprocessing in the second stage.
+                                   This can improve coherence and reduce hallucinations.
+                                   If zero (default), no preprocessing is performed.
+        extra_noise_freqs       : Optional frequencies at which additional noise is injected into the latent image
+                                   during each stage. These frequencies determine the granularity of noise injection.
+                                   For example, a value of 1024 means noise is injected into every pixel, while a
+                                   value of 512 means noise is injected every second pixel, with intermediate pixels
+                                   being interpolated. Lower frequency values result in smoother noise transitions
+                                   across the image.
+        extra_noise_scales      : Optional scales for extra noise injected into the latent image in each stage.
+                                   If `None` (default), no extra noise is injected.
+        use_dynamic_noise       : Optional tuple with three booleans that control whether each of the three stages
+                                   updates its noise at every denoising step. When a value is `True` the sampler
+                                   switches from a pure euler to a simulated euler-ancestral for that stage,
+                                   mutating the noise continuously in each step. I'm not using it because I thought
+                                   it would boost generation, but the final effect isn't very good.
+        progress_preview        : A `ProgressPreview` object for displaying progress during the denoising process.
 
     Returns:
         A ComfyUI LATENT object with the denoised latent output.
@@ -221,6 +224,7 @@ def zsampler_turbo_core(latent_input             : ComfyLatent,
                                      sigma_step_range         = sigma_step_range,
                                      start_with_noise         = start_with_noise,
                                      end_with_denoise         = end_with_denoise,
+                                     positive_stg2_preproc    = positive_stg2_preproc,
                                      positive_stg2            = positive_stg2,
                                      positive_stg3            = positive_stg3,
                                      initial_noise_bias_level = initial_noise_bias_level,
@@ -250,14 +254,15 @@ def execute_3_stage_denoising(comfy_latent: ComfyLatent,
                               sigma_step_range        : tuple[int,int]     | list[int]   | None = None,
                               start_with_noise        : bool                                    = True,
                               end_with_denoise        : bool                                    = True,
-                              positive_stg2           : list | None                             = None,
-                              positive_stg3           : list | None                             = None,
+                              positive_stg2_preproc   : ComfyConditioning | None                = None,
+                              positive_stg2           : ComfyConditioning | None                = None,
+                              positive_stg3           : ComfyConditioning | None                = None,
                               initial_noise_bias_level: float                                   = 0.0,
                               initial_noise_overdose  : float                                   = 0.0,
                               noise_est_sample_size   : tuple[int,int] | int | None             = None,
                               extra_noise_freqs       : tuple[int  , int  , int  ]              = (0, 0, 0),
                               extra_noise_scales      : tuple[float, float, float]              = (0.0, 0.0, 0.0),
-                              stage2_scramble_counts   : tuple[int,int,int,int]                  = (0,0,0,0),
+                              stage2_scramble_counts  : tuple[int,int,int,int]                  = (0,0,0,0),
                               stage2_preproc_steps    : int                                     = 0,
                               use_dynamic_noise       : tuple[bool, bool, bool]                 = (False, False, False),
                               progress_preview        : ProgressPreview,
@@ -287,10 +292,12 @@ def execute_3_stage_denoising(comfy_latent: ComfyLatent,
                                    Set to `False` to preserve noise from a previous process (chaining samplers).
         end_with_denoise        : If `True` (default), ends the denoising process by zeroing out residual noise.
                                    Set to `False` to preserve noise for a next process (chaining samplers).
+        positive_stg2_preproc   : Optional positive conditioning to be used in the second stage pre-processing.
+                                   If `None` (default), the main positive conditioning will be used.
         positive_stg2           : Optional positive conditioning to be used in the second stage.
                                    If `None` (default), the main positive conditioning will be used.
-        positive_stg3           :  Optional positive conditioning to be used in the third stage.
-                                   If `None` (default), the main positive conditioning will be used.
+        positive_stg3           : Optional positive conditioning to be used in the third stage.
+                                   If `None` (default), the second stage positive conditioning will be used.
         initial_noise_bias_level: The proportion of the estimated noise bias to apply before the first denoising step.
                                    0.0 = no noise bias applied
                                    1.0 = using 100% of the estimated noise bias
@@ -329,12 +336,17 @@ def execute_3_stage_denoising(comfy_latent: ComfyLatent,
     """
     SIGMA_START = 1.0
 
-    # the positive conditioning for stage 2 and 3 are optional
-    # if not provided, they will be the same as the main conditioning
-    if positive_stg2 is None or (isinstance(positive_stg2,(list,tuple)) and len(positive_stg2) == 0):
+    # if positive cond for stage 2 pre-processing is not provided, it will be the same as main conditioning
+    if _is_empty_conditioning(positive_stg2_preproc):
+        positive_stg2_preproc = positive
+
+    # if positive cond for stage 2 is not provided, it will be the same as main conditioning
+    if _is_empty_conditioning(positive_stg2):
         positive_stg2 = positive
-    if positive_stg3 is None or (isinstance(positive_stg3,(list,tuple)) and len(positive_stg3) == 0):
-        positive_stg3 = positive
+
+    # if positive cond for stage 3 is not provided, it will be the same as the second stage
+    if _is_empty_conditioning(positive_stg3):
+        positive_stg3 = positive_stg2
 
     # force each `sigma` to be a tensor
     if isinstance(sigmas1, (list,tuple)):
@@ -457,8 +469,9 @@ def execute_3_stage_denoising(comfy_latent: ComfyLatent,
                         noise_bias          = initial_noise_bias,
                         extra_noise_freq    = extra_noise_freqs [1],
                         extra_noise_scale   = extra_noise_scales[1],
-                        scramble_counts      = stage2_scramble_counts if is_stg2_scramble_enabled else (0,0,0,0),
+                        scramble_counts     = stage2_scramble_counts if is_stg2_scramble_enabled else (0,0,0,0),
                         preproc_steps       = stage2_preproc_steps  if is_stg2_preproc_enabled else 0,
+                        preproc_positive    = positive_stg2_preproc,
                         use_dynamic_noise   = use_dynamic_noise[1],
                         progress_preview = ProgressPreview( 100,
                             parent=(progress_preview, 100*prog2//total, 100*prog3//total)),
@@ -548,6 +561,8 @@ def _stage2_core(comfy_latent : ComfyLatent,
                  extra_noise_scale   : float                      = 0,
                  scramble_counts     : tuple[int,int,int,int]     = (0, 0, 0, 0),
                  preproc_steps       : int                        = 0,
+                 preproc_positive    : ComfyConditioning | None   = None,
+                 preproc_negative    : ComfyConditioning | None   = None,
                  use_dynamic_noise   : bool                       = False,
                  progress_preview    : ProgressPreview | None     = None,
                  ) -> ComfyLatent:
@@ -558,6 +573,12 @@ def _stage2_core(comfy_latent : ComfyLatent,
 
     original_noise_scale = noise_scale
     original_noise_bias  = noise_bias
+
+    # force positive/negative pre-process conditioning to defaults if not provided by user
+    if preproc_positive is None:
+        preproc_positive = positive
+    if preproc_negative is None:
+        preproc_negative = negative
 
     # calculate the step progression to set the progress bar speed
     prog  = [ 0, *( i+1 for i in range(preproc_steps)), preproc_steps+_num_steps(sigmas) ]
@@ -572,7 +593,7 @@ def _stage2_core(comfy_latent : ComfyLatent,
     # if requested, run extra sampling steps with high sigmas (0.949)
     # to try and give more coherence to the image
     for i in range(preproc_steps):
-        latents = _iterative_denoising(latents, model, positive, negative,
+        latents = _iterative_denoising(latents, model, preproc_positive, preproc_negative,
                                        cfg                 = cfg,
                                        sigmas              = sigmas[:2] if i!=0 else torch.tensor( (0.949, 0.000 ) ), #sigmas[:2],
                                        sampler             = sampler,
@@ -1269,6 +1290,15 @@ def refine_sigma_sequence(sigmas: list[float] | None, insert_count: int) -> list
 def _num_steps(sigmas: torch.Tensor | None) -> int:
     """Returns the number of sampling steps represented in the sigmas tensor."""
     return sigmas.shape[-1]-1 if sigmas is not None else 0
+
+
+def _is_empty_conditioning(comfy_conditioning: ComfyConditioning | None) -> bool:
+    """Returns True if the conditioning tensor is empty or None."""
+    if comfy_conditioning is None:
+        return True
+    if isinstance(comfy_conditioning,(list,tuple)) and len(comfy_conditioning) == 0:
+        return True
+    return False
 
 
 #============================== SIGMA PRESETS ==============================#
