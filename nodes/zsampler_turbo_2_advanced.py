@@ -28,6 +28,7 @@ TURBO_CREATIVITY = {
     "refined (1-step)" : (True , 1),
     "refined (2-steps)": (True , 2),
     "refined (3-steps)": (True , 3),
+   #"only refining"    : (False, 1),
 }
 
 
@@ -199,6 +200,17 @@ class ZSamplerTurbo2Advanced(io.ComfyNode):
         # it also controls how many sampling steps are taken to achieve coherence
         stage2_scramble, stage2_preproc_steps = TURBO_CREATIVITY.get(turbo_creativity, (False,0))
 
+        # little hack to determine the influence of stage 2 prompt when there are
+        # separate prompts for stages 1 and 2 and "turbo creativity refined" is enabled:
+        #
+        #  - If `positive_stg3` is disconnected, it's considered weak stage 2 conditioning,
+        #    and the pre-processing for stage 2 uses the prompt from STAGE-1
+        #  - If `positive_stg3` is connected to stage2, it's considered strong stage 2 conditioning,
+        #    and the pre-processing for stage 2 uses the prompt from STAGE-2.
+        #
+        strong_positive_stg2 = (positive_stg3 is not None)
+        positive_stg2_preproc = positive_stg2 if strong_positive_stg2 else positive
+
         # run the Z-Sampler Turbo core method on the latent image
         latent_output = zsampler_turbo_core(latent_input, model, positive,
                                             seed                      = seed,
@@ -210,6 +222,7 @@ class ZSamplerTurbo2Advanced(io.ComfyNode):
                                             sigma_step_range          = sigma_step_range,
                                             start_with_noise          = add_noise,
                                             end_with_denoise          = force_final_denoising,
+                                            positive_stg2_preproc     = positive_stg2_preproc,
                                             positive_stg2             = positive_stg2,
                                             positive_stg3             = positive_stg3,
                                             stage2_scramble           = stage2_scramble,

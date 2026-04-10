@@ -27,6 +27,7 @@ TURBO_CREATIVITY = {
     "refined (1-step)" : (True , 1),
     "refined (2-steps)": (True , 2),
     "refined (3-steps)": (True , 3),
+   #"only refining"    : (False, 1),
 }
 
 
@@ -169,6 +170,17 @@ class ZSamplerTurbo2(io.ComfyNode):
         # it also controls how many sampling steps are taken to achieve coherence
         stage2_scramble, stage2_preproc_steps = TURBO_CREATIVITY.get(turbo_creativity, (False,0))
 
+        # little hack to determine the influence of stage 2 prompt when there are
+        # separate prompts for stages 1 and 2 and "turbo creativity refined" is enabled:
+        #
+        #  - If `positive_stg3` is disconnected, it's considered weak stage 2 conditioning,
+        #    and the pre-processing for stage 2 uses the prompt from STAGE-1
+        #  - If `positive_stg3` is connected to stage2, it's considered strong stage 2 conditioning,
+        #    and the pre-processing for stage 2 uses the prompt from STAGE-2.
+        #
+        strong_positive_stg2 = (positive_stg3 is not None)
+        positive_stg2_preproc = positive_stg2 if strong_positive_stg2 else positive
+
         ## by now I didn't find practical use for noise injection, but I did
         ## some experiments to generate variation and details,
         ## here are some values ​​used in these tests:
@@ -189,6 +201,7 @@ class ZSamplerTurbo2(io.ComfyNode):
                                             noise_est_sample_size     = initial_sample_size,
                                             sigma_preset_name         = "bravo",
                                             sigma_limits              = sigma_limits,
+                                            positive_stg2_preproc     = positive_stg2_preproc,
                                             positive_stg2             = positive_stg2,
                                             positive_stg3             = positive_stg3,
                                             stage2_scramble           = stage2_scramble,
