@@ -1233,7 +1233,7 @@ def truncate_sigmas_by_value_range(sigmas      : torch.Tensor | None,
 
     # if the range of sigmas is totally outside the limits
     # then none of the sigmas should be returned
-    if sigmas[-1] > upper or lower > sigmas[0]:
+    if sigmas[-1] >= upper or lower >= sigmas[0]:
         return None
 
     # create the mask to filter out values outside the range
