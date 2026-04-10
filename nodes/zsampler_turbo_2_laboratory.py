@@ -24,7 +24,7 @@ def io_Divider(id: str):
 
 
 class ZSamplerTurbo2Laboratory(io.ComfyNode):
-    xTITLE         = "Z-Sampler Turbo ^g2 (Laboratory)"
+    xTITLE         = "Z-Sampler Turbo ^G2 (Laboratory)"
     xCATEGORY      = ""
     xCOMFY_NODE_ID = ""
     xDEPRECATED    = False
@@ -39,8 +39,8 @@ class ZSamplerTurbo2Laboratory(io.ComfyNode):
             is_deprecated = cls.xDEPRECATED,
             description   = (
                 'Efficiently denoises the latent image, specifically tuned for the "Z-Image Turbo" model. '
-                'This node takes a Z-Image Turbo model, an initial latent image, and conditioning parameters, '
-                'and produces a denoised output ready for further processing or decoding.'
+                'This node allows direct modification of internal parameters in the zsample_turbo_core(...) '
+                'method, and was used during development for testing and calibration. '
             ),
             inputs=[
                 io.Model.Input       ("model",
@@ -80,44 +80,62 @@ class ZSamplerTurbo2Laboratory(io.ComfyNode):
 
                 io_Divider("divider2"),#=====================================
 
-                io.Int.Input         ("inject_freq_st1", default=32, min=0, max=1024,
-                                      tooltip="?? ",
+                io.Int.Input         ("extra_noise_freq1", default=32, min=0, max=1024,
+                                      tooltip="The frequency at which extra noise is injected into the latent during "
+                                              "the first stage. A value of 1024 means noise in injected into every "
+                                              "pixel, a value of 512 means noise is injected every second pixel, with "
+                                              "intermediate pixels being interpolated. ",
                                      ),
-                io.Float.Input       ("inject_noise_st1", default=7.5, min=0.0, max=50.0, step=0.1,
-                                      tooltip="The amount of noise to be injected into the latent image during the first stage. "
-                                              "A value of 0 means that no noise will be injected. ",
+                io.Float.Input       ("extra_noise_scale1", default=7.5, min=0.0, max=50.0, step=0.1,
+                                      tooltip="The amount of noise to be injected into the latent image during the "
+                                              "first stage. A value of 0 means that no noise will be injected. ",
                                      ),
-                io.Int.Input         ("inject_freq_st2", default=64, min=0, max=1024,
-                                      tooltip="?? ",
+                io.Int.Input         ("extra_noise_freq2", default=64, min=0, max=1024,
+                                      tooltip="The frequency at which extra noise is injected into the latent during "
+                                              "the second stage. A value of 1024 means noise in injected into every "
+                                              "pixel, a value of 512 means noise is injected every second pixel, with "
+                                              "intermediate pixels being interpolated. ",
                                      ),
-                io.Float.Input       ("inject_noise_st2", default=3.7, min=0.0, max=50.0, step=0.1,
-                                      tooltip="The amount of noise to be injected into the latent image during the second stage. "
-                                              "A value of 0 means that no noise will be injected. ",
+                io.Float.Input       ("extra_noise_scale2", default=3.7, min=0.0, max=50.0, step=0.1,
+                                      tooltip="The amount of noise to be injected into the latent image during the "
+                                              "second stage. A value of 0 means that no noise will be injected. ",
                                      ),
-                io.Int.Input         ("inject_freq_st3", default=512, min=0, max=1024,
-                                      tooltip="?? ",
+                io.Int.Input         ("extra_noise_freq3", default=512, min=0, max=1024,
+                                      tooltip="The frequency at which extra noise is injected into the latent during "
+                                              "the third stage. A value of 1024 means noise in injected into every "
+                                              "pixel, a value of 512 means noise is injected every second pixel, with "
+                                              "intermediate pixels being interpolated. ",
                                      ),
-                io.Float.Input       ("inject_noise_st3", default=1.0, min=0.0, max=50.0, step=0.1,
-                                      tooltip="The amount of noise to be injected into the latent image during the third stage. "
-                                              "A value of 0 means that no noise will be injected. ",
+                io.Float.Input       ("extra_noise_scale3", default=1.0, min=0.0, max=50.0, step=0.1,
+                                      tooltip="The amount of noise to be injected into the latent image during the "
+                                              "third stage. A value of 0 means that no noise will be injected. ",
                                      ),
 
                 io_Divider("divider3"),#=====================================
 
+                io.Int.Input         ("scramble_left_count", default=0, min=-16, max=16,
+                                      tooltip="Number of times to scramble the latent image with left side fragments. "
+                                              "A value of 0 means no scrambling will be done, while negative values "
+                                              "enable random flipping."
+                                     ),
+                io.Int.Input         ("scramble_top_count", default=0, min=-16, max=16,
+                                      tooltip="Number of times to scramble the latent image with top side fragments. "
+                                              "A value of 0 means no scrambling will be done, while negative values "
+                                              "enable random flipping."
+                                     ),
+                io.Int.Input         ("scramble_right_count", default=0, min=-16, max=16,
+                                      tooltip="Number of times to scramble the latent image with right side fragments. "
+                                              "A value of 0 means no scrambling will be done, while negative values "
+                                              "enable random flipping."
+                                     ),
+                io.Int.Input         ("scramble_bottom_count", default=0, min=-16, max=16,
+                                      tooltip="Number of times to scramble the latent image with bottom side fragments. "
+                                              "A value of 0 means no scrambling will be done, while negative values "
+                                              "enable random flipping."
+                                     ),
                 io.Int.Input         ("stage2_preproc_steps", default=0, min=0, max=3,
-                                      tooltip="?? ",
-                                     ),
-                io.Int.Input         ("shuffle_left_count", default=0, min=-16, max=16,
-                                      tooltip="?? ",
-                                     ),
-                io.Int.Input         ("shuffle_top_count", default=0, min=-16, max=16,
-                                      tooltip="?? ",
-                                     ),
-                io.Int.Input         ("shuffle_right_count", default=0, min=-16, max=16,
-                                      tooltip="?? ",
-                                     ),
-                io.Int.Input         ("shuffle_bottom_count", default=0, min=-16, max=16,
-                                      tooltip="?? ",
+                                      tooltip="Number of extra steps to perform as pre-processing in the second stage, "
+                                              "this can improve coherence and reduce hallucination. "
                                      ),
 
                 io_Divider("divider4"),#=====================================
@@ -125,42 +143,42 @@ class ZSamplerTurbo2Laboratory(io.ComfyNode):
                 io.Combo.Input       ("sigma_preset_name", default="bravo", options=["alpha", "bravo", "charlie"],
                                       tooltip="The set of predefined sigma values that are used during the denoise process. "
                                      ),
-                io.Float.Input       ("sigma0_off", default=0.000, min=-1.000, max=1.000, step=0.001,
-                                      #tooltip="",
-                                     ),
                 io.Float.Input       ("sigma1_off", default=0.000, min=-1.000, max=1.000, step=0.001,
-                                      #tooltip="",
+                                      tooltip="Offset that will be applied to the value of sigma1. ",
                                      ),
                 io.Float.Input       ("sigma2_off", default=0.000, min=-1.000, max=1.000, step=0.001,
-                                      #tooltip="",
+                                      tooltip="Offset that will be applied to the value of sigma2. ",
                                      ),
                 io.Float.Input       ("sigma3_off", default=0.000, min=-1.000, max=1.000, step=0.001,
-                                      #tooltip="",
+                                      tooltip="Offset that will be applied to the value of sigma3. ",
                                      ),
                 io.Float.Input       ("sigma4_off", default=0.000, min=-1.000, max=1.000, step=0.001,
-                                      #tooltip="",
+                                      tooltip="Offset that will be applied to the value of sigma4. ",
                                      ),
                 io.Float.Input       ("sigma5_off", default=0.000, min=-1.000, max=1.000, step=0.001,
-                                      #tooltip="",
+                                      tooltip="Offset that will be applied to the value of sigma5. ",
                                      ),
                 io.Float.Input       ("sigma6_off", default=0.000, min=-1.000, max=1.000, step=0.001,
-                                      #tooltip="",
+                                      tooltip="Offset that will be applied to the value of sigma6. ",
                                      ),
                 io.Float.Input       ("sigma7_off", default=0.000, min=-1.000, max=1.000, step=0.001,
-                                      #tooltip="",
+                                      tooltip="Offset that will be applied to the value of sigma7. ",
                                      ),
                 io.Float.Input       ("sigma8_off", default=0.000, min=-1.000, max=1.000, step=0.001,
-                                      #tooltip="",
+                                      tooltip="Offset that will be applied to the value of sigma8. ",
                                      ),
                 io.Float.Input       ("sigma9_off", default=0.000, min=-1.000, max=1.000, step=0.001,
-                                      #tooltip="",
+                                      tooltip="Offset that will be applied to the value of sigma9. ",
                                      ),
                 io.Float.Input       ("sigma10_off", default=0.000, min=-1.000, max=1.000, step=0.001,
-                                      #tooltip="",
+                                      tooltip="Offset that will be applied to the value of sigma10. ",
                                      ),
             ],
             outputs=[
-                io.Latent.Output(display_name="latent_output", tooltip="The resulting denoised latent image, ready to be decoded by a VAE or passed to another sampler."),
+                io.Latent.Output(display_name="latent_output",
+                                 tooltip="The resulting denoised latent image, ready for decoding "
+                                         "by a VAE or passed to another node for further processing. "
+                                ),
             ]
         )
 
@@ -176,19 +194,18 @@ class ZSamplerTurbo2Laboratory(io.ComfyNode):
                 noise_est_sample_size    : str | int | None,
                 initial_noise_bias_level : float,
                 initial_noise_overdose   : float,
-                inject_freq_st1          : int,
-                inject_noise_st1         : float,
-                inject_freq_st2          : int,
-                inject_noise_st2         : float,
-                inject_freq_st3          : int,
-                inject_noise_st3         : float,
+                extra_noise_freq1        : int,
+                extra_noise_scale1       : float,
+                extra_noise_freq2        : int,
+                extra_noise_scale2       : float,
+                extra_noise_freq3        : int,
+                extra_noise_scale3       : float,
+                scramble_left_count       : int,
+                scramble_top_count        : int,
+                scramble_right_count      : int,
+                scramble_bottom_count     : int,
                 stage2_preproc_steps     : int,
-                shuffle_left_count       : int,
-                shuffle_top_count        : int,
-                shuffle_right_count      : int,
-                shuffle_bottom_count     : int,
                 sigma_preset_name        : str,
-                sigma0_off               : float,
                 sigma1_off               : float,
                 sigma2_off               : float,
                 sigma3_off               : float,
@@ -208,12 +225,13 @@ class ZSamplerTurbo2Laboratory(io.ComfyNode):
         # creates a list of sigma offsets
         sigma_offsets = [sigma1_off, sigma2_off, sigma3_off, sigma4_off, sigma5_off, sigma6_off, sigma7_off, sigma8_off, sigma9_off, sigma10_off]
 
-        # creates a list of inject noise frequencies with its corresponding scales
-        inject_noise_freqs  = (inject_freq_st1 , inject_freq_st2 , inject_freq_st3 )
-        inject_noise_scales = (inject_noise_st1, inject_noise_st2, inject_noise_st3)
+        # creates a list of noise frequencies and scales for injected noise
+        # with values for each of the three stages
+        extra_noise_freqs  = ( extra_noise_freq1 , extra_noise_freq2 , extra_noise_freq3  )
+        extra_noise_scales = ( extra_noise_scale1, extra_noise_scale2, extra_noise_scale3 )
 
-        # creates a list of counts for the shuffle of the image before the sampler's "stage2"
-        stage2_shuffle_counts = (shuffle_left_count, shuffle_top_count, shuffle_right_count, shuffle_bottom_count)
+        # creates a list of counts for image scrambling before the sampler's "stage2"
+        stage2_scramble_counts = (scramble_left_count, scramble_top_count, scramble_right_count, scramble_bottom_count)
 
         # run the Z-Sampler Turbo core method on the latent image
         latent_output = zsampler_turbo_core(latent_input, model, positive,
@@ -226,10 +244,10 @@ class ZSamplerTurbo2Laboratory(io.ComfyNode):
                                             sigma_offsets             = sigma_offsets,
                                             sigma_limits              = sigma_limits,
                                             stage2_scramble           = True,
-                                            stage2_scramble_counts    = stage2_shuffle_counts,
+                                            stage2_scramble_counts    = stage2_scramble_counts,
                                             stage2_preproc_steps      = stage2_preproc_steps,
-                                            extra_noise_freqs         = inject_noise_freqs,
-                                            extra_noise_scales        = inject_noise_scales,
+                                            extra_noise_freqs         = extra_noise_freqs,
+                                            extra_noise_scales        = extra_noise_scales,
                                             progress_preview = ProgressPreview.from_model( model ),
                                             )
 

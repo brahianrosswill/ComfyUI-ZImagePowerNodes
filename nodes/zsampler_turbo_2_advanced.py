@@ -22,11 +22,18 @@ from .core.progress_bar         import ProgressPreview
 from .core.zsampler_turbo_core  import zsampler_turbo_core
 def Divider(id: str):
     return io.Custom("ZIPN_DIVIDER").Input(id = id)
+TURBO_CREATIVITY = {
+    "off"              : (False, 0),
+    "scrambled"        : (True , 0),
+    "refined (1-step)" : (True , 1),
+    "refined (2-steps)": (True , 2),
+    "refined (3-steps)": (True , 3),
+}
 
 
 
 class ZSamplerTurbo2Advanced(io.ComfyNode):
-    xTITLE         = "Z-Sampler Turbo ^g2 (Advanced)"
+    xTITLE         = "Z-Sampler Turbo ^G2 (Advanced)"
     xCATEGORY      = ""
     xCOMFY_NODE_ID = ""
     xDEPRECATED    = False
@@ -47,67 +54,62 @@ class ZSamplerTurbo2Advanced(io.ComfyNode):
             ),
             inputs=[
                 io.Latent.Input      ("latent_input",
-                                      tooltip="The initial latent image to be modified; typically an 'Empty Latent' "
-                                              "for text-to-image or an encoded image for img2img. ",
+                                      tooltip="The initial latent image to be denoised; usually an 'Empty Latent' for "
+                                              "text-to-image tasks or an encoded image for image-to-image processing. ",
                                      ),
                 io.Model.Input       ("model",
                                       tooltip="The Z-Image Turbo model used for denoising the latent image. "
                                      ),
                 io.Conditioning.Input("positive",
-                                      tooltip="The main conditioning used to guide the generation process toward "
-                                              "the desired content. ",
+                                      tooltip="The main prompt/conditioning used to guide the generation process "
+                                              "toward the desired content. ",
                                      ),
-                io.Conditioning.Input("positive_stg2", optional=True,
-                                      tooltip="This input is optional and can remain disconennect. It allows defining "
-                                              "a different conditioning for the second stage of the denoising process. ",
+                io.Conditioning.Input("positive_stg2",
+                                      optional=True,
+                                      tooltip="This input is optional and can remain disconennect. It allows "
+                                              "specifying a different prompt/conditioning for the second stage "
+                                              "of the denoising process. ",
                                      ),
-                io.Conditioning.Input("positive_stg3", optional=True,
-                                      tooltip="This input is optional and can remain disconennect. It allows defining "
-                                              "a different conditioning for the third stage of the denoising process. ",
+                io.Conditioning.Input("positive_stg3",
+                                      optional=True,
+                                      tooltip="This input is optional and can remain disconennect. It allows "
+                                              "specifying a different prompt/conditioning for the third stage "
+                                              "of the denoising process. ",
                                      ),
-                io.Boolean.Input     ("add_noise", default=True, label_on="yes", label_off="no",
-                                     tooltip="Determines whether to add initial noise to the latent image. Recommended "
-                                             "for most cases. Disabling this is useful for sampler chaining when the "
-                                             "input latent already contains residual noise from a previous process. ",
+                io.Boolean.Input     ("add_noise",
+                                      default=True, label_on="yes", label_off="no",
+                                      tooltip="Determines whether to add initial noise to the latent image. Recommended "
+                                              "for most cases. Disabling this is useful for sampler chaining when the "
+                                              "input latent already contains residual noise from a previous process. ",
                                      ),
-                io.Int.Input         ("seed", default=1, min=1, max=0xffffffffffffffff, control_after_generate=True,
+                io.Int.Input         ("seed",
+                                      default=1, min=1, max=0xffffffffffffffff, control_after_generate=True,
                                       tooltip="The seed used for the random noise generator, ensuring the same result "
                                               "is produced with the same value.",
                                      ),
-                io.Int.Input         ("steps", default=8, min=3, max=20, step=1,
-                                      tooltip="The number of iterations to be performed during the denoising process.",
+                io.Int.Input         ("steps",
+                                      default=8, min=3, max=20, step=1,
+                                      tooltip="Number of iterations to perform during the denoising process.",
                                      ),
                 io.Int.Input         ("start_at_step", default=0, min=0, max=100, step=1,
-                                      tooltip="The step at which the sampling process should start, allowing for more "
-                                              "precise control over the denoising process and enabling sampler chaining. ",
+                                      tooltip="The step at which the sampling process should start, allowing for "
+                                              "more precise control over the denoising process and enabling sampler "
+                                              "chaining. ",
                                       ),
                 io.Int.Input         ("end_at_step", default=100, min=0, max=100, step=1,
-                                      tooltip="The step at which the sampling process should end. allowing for more "
-                                              "precise control over the denoising process and enabling sampler chaining. ",
+                                      tooltip="The step at which the sampling process should end. allowing for "
+                                              "more precise control over the denoising process and enabling sampler "
+                                              "chaining. ",
                                      ),
                 io.Boolean.Input     ("force_final_denoising", default=True, label_on="yes", label_off="no",
-                                      tooltip="Determines whether to force a full final denoising step, resulting in "
-                                              "a output latent with no residual noise. Recommended for most cases. "
+                                      tooltip="Determines whether to force a full final denoising step, resulting "
+                                              "in a output latent with no residual noise. Recommended for most cases. "
                                               "Disabling this is useful when residual noise is required for the next "
                                               "process in a sampler chain. ",
                                      ),
 
                 Divider("divider"),#=========================================
 
-                io.Float.Input       ("intensity",
-                                      default=1.0, min=0.0, max=2.0, step=0.1,
-                                     tooltip="Initial noise amplitude used to enhance contrast and colors. A value "
-                                             "of 1.0 is neutral; values below 1.0 create more muted images, while "
-                                             "values above 1.0 increase contrast and saturation. This only takes "
-                                             "effect when 'denoise' is set to 1.00 ",
-                                     ),
-                io.Float.Input       ("intensity_bias",
-                                      default=0.0, min=-1.0, max=1.0, step=0.1,
-                                      tooltip="Custom adjustment for the intensity correction noise bias. Usually kept "
-                                              "at 0.0; used to fine-tune brightness. Note that its effect depends "
-                                              "heavily on the prompt and image style, so it may not always act as a "
-                                              "simple brightness control. Tweak it until it looks right to you. ",
-                                     ),
                 io.Combo.Input       ("initial_sample_size",
                                       default="full_size",
                                       options=["256px", "512px", "full_size"],
@@ -116,22 +118,36 @@ class ZSamplerTurbo2Advanced(io.ComfyNode):
                                               "step, they can lead to a less accurate correction",
                                      ),
 
-                Divider("divider2"),#========================================
 
-                io.Boolean.Input     ("turbo_creativity",
-                                      default=False, label_on="yes", label_off="no",
+                Divider("divider2"),#=========================================
+
+                io.Float.Input       ("intensity",
+                                      default=0.0, min=-1.0, max=1.0, step=0.1,
+                                     tooltip="Initial noise amplitude used to enhance contrast and colors. A value "
+                                             "of 0.0 is neutral; negative values create more muted images, while "
+                                             "positive values increase contrast and saturation. This only takes "
+                                             "effect when 'denoise' is set to 1.00 ",
+                                     ),
+                io.Float.Input       ("intensity_bias",
+                                      default=0.0, min=-1.0, max=1.0, step=0.1,
+                                      tooltip="Custom adjustment for the intensity noise bias. Usually kept at 0.0; "
+                                              "used to fine-tune 'brightness'. Note that its effect depends heavily "
+                                              "on the prompt and image style, so it may not always act as a simple "
+                                              "brightness control. Adjust it within the positive or negative range "
+                                              "until it seems right to you. ",
+                                     ),
+                io.Combo.Input       ("turbo_creativity",
+                                      default="off", options=list(TURBO_CREATIVITY.keys()),
                                       tooltip="Boosts model creativity for more diverse compositions while maintaining "
                                               "the general style. Be aware that this can lead to hallucinations and "
-                                              "isn't recommended for inpainting tasks. "
+                                              "isn't recommended for inpainting tasks. The refined options add extra "
+                                              "steps to try to correct the hallucinations and bring coherence to the "
+                                              "image ",
                                      ),
-                io.Int.Input         ("turbo_creativity_extra_steps",
-                                      default=0, min=0, max=3,
-                                      tooltip="Additional steps to improve visual stability and structural coherence. "
-                                              "Higher values may help reduce hallucinations depending on image "
-                                              "complexity, though this will slow down the generation process. These "
-                                              "steps are specifically designed to counteract hallucinations caused "
-                                              "by 'Turbo Creativity'. "
-                                     ),
+                # io.Boolean.Input     ("smooth",
+                #                       default=False, label_on="yes", label_off="no",
+                #                       tooltip="Unused parameter. ",
+                #                      ),
             ],
             outputs=[
                 io.Latent.Output(display_name="latent_output",
@@ -144,23 +160,23 @@ class ZSamplerTurbo2Advanced(io.ComfyNode):
     #__ FUNCTION __________________________________________
     @classmethod
     def execute(cls,
-                latent_input                : dict[str, Any],
-                model                       : Any,
-                positive                    : list,
-                add_noise                   : bool,
-                seed                        : int,
-                steps                       : int,
-                start_at_step               : int,
-                end_at_step                 : int,
-                force_final_denoising       : bool,
-                intensity                   : float,
-                intensity_bias              : float,
-                initial_sample_size         : str,
-                turbo_creativity            : bool,
-                turbo_creativity_extra_steps: int,
+                latent_input          : dict[str, Any],
+                model                 : Any,
+                positive              : list,
+                add_noise             : bool,
+                seed                  : int,
+                steps                 : int,
+                start_at_step         : int,
+                end_at_step           : int,
+                force_final_denoising : bool,
+                intensity             : float,
+                intensity_bias        : float,
+                initial_sample_size   : str,
+                turbo_creativity      : str,
                 *,
-                positive_stg2 : list | None = None,
-                positive_stg3 : list | None = None,
+                positive_stg2         : list | None = None,
+                positive_stg3         : list | None = None,
+                smooth                : bool = False,
                 **kwargs
                 ) -> io.NodeOutput:
 
@@ -179,13 +195,9 @@ class ZSamplerTurbo2Advanced(io.ComfyNode):
         initial_noise_bias_level += 10 * intensity_bias
         initial_noise_bias_level = min(max(initial_noise_bias_level, -5.0), 14.0)
 
-        # `turbo_creativity` triggers a shuffle of the image before sampler's "stage2"
-        stage2_shuffle = turbo_creativity
-
-        # `turbo_creativity_extra_steps` is the number of pre-processing steps
-        # before sampler's "stage2", used to try to give coherence to the image
-        # after shuffle
-        stage2_preproc_steps = turbo_creativity_extra_steps if stage2_shuffle else 0
+        # `turbo_creativity` triggers the scramble of the image in stage2 and
+        # it also controls how many sampling steps are taken to achieve coherence
+        stage2_scramble, stage2_preproc_steps = TURBO_CREATIVITY.get(turbo_creativity, (False,0))
 
         # run the Z-Sampler Turbo core method on the latent image
         latent_output = zsampler_turbo_core(latent_input, model, positive,
@@ -200,8 +212,9 @@ class ZSamplerTurbo2Advanced(io.ComfyNode):
                                             end_with_denoise          = force_final_denoising,
                                             positive_stg2             = positive_stg2,
                                             positive_stg3             = positive_stg3,
-                                            stage2_scramble           = stage2_shuffle,
+                                            stage2_scramble           = stage2_scramble,
                                             stage2_preproc_steps      = stage2_preproc_steps,
+                                            use_dynamic_noise         = (False,False,smooth),
                                             progress_preview = ProgressPreview.from_model( model ),
                                             )
 
