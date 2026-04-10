@@ -1,8 +1,8 @@
 {
-  "id": "964d7f79-b418-4325-9444-46bd8d320e10",
+  "id": "b3d2ba57-6efa-45cd-bce8-14265814f6e7",
   "revision": 0,
-  "last_node_id": 63,
-  "last_link_id": 102,
+  "last_node_id": 64,
+  "last_link_id": 106,
   "nodes": [
     {
       "id": 57,
@@ -100,7 +100,7 @@
           "name": "",
           "type": "MODEL",
           "links": [
-            96
+            104
           ]
         }
       ],
@@ -129,7 +129,7 @@
           "name": "LATENT",
           "type": "LATENT",
           "links": [
-            98
+            103
           ]
         }
       ],
@@ -361,7 +361,7 @@
         {
           "name": "samples",
           "type": "LATENT",
-          "link": 99
+          "link": 106
         },
         {
           "name": "vae",
@@ -387,66 +387,7 @@
       "widgets_values": []
     },
     {
-      "id": 44,
-      "type": "Note",
-      "pos": [
-        -40,
-        -90
-      ],
-      "size": [
-        550,
-        230
-      ],
-      "flags": {},
-      "order": 5,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [],
-      "title": "README",
-      "properties": {},
-      "widgets_values": [
-        "This workflow demonstrates how to define custom styles by connecting through the \"customization\" input in the \"Style & Prompt Encoder\" node.\n\nA multi-line string must be defined using the following format:\nEach line starting with \">>>\" (three greater-than signs) defines the name of the style. From there, all subsequent lines until the next \">>>\" define the content of that style. Within this content, the tag \"{$@}\" will be replaced by the prompt.\n\nWhile this example shows all styles being defined as \"Custom <N>\", this same method can be used to redefine any of the available styles in the style selector."
-      ],
-      "color": "#432",
-      "bgcolor": "#653"
-    },
-    {
-      "id": 43,
-      "type": "PrimitiveStringMultiline",
-      "pos": [
-        -420,
-        270
-      ],
-      "size": [
-        610,
-        1020
-      ],
-      "flags": {},
-      "order": 6,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "STRING",
-          "type": "STRING",
-          "links": [
-            64
-          ]
-        }
-      ],
-      "title": "String (Multiline) With Custom Styles",
-      "properties": {
-        "Node name for S&R": "PrimitiveStringMultiline"
-      },
-      "widgets_values": [
-        "\n>>>CUSTOM 1\nYOUR CONTEXT:\nYou are a visionary animation director from the golden era of 1980s Japanese cyberpunk cinema, known for hyper-detailed world-building and gritty urban realism.\nYour artwork is a masterpiece of hand-painted cel animation, featuring {$spicy-content-with} an oppressive yet vibrant atmosphere of futuristic decay. The style is defined by incredibly intricate mechanical details, complex wiring, and industrial textures. \nThe color palette is a high-contrast clash of deep midnight shadows and piercing neon glows—electric cyans, vivid magentas, and searing crimson reds—reflecting off rain-slicked asphalt and polished chrome. Lighting is cinematic and dramatic, utilizing strong backlighting and atmospheric effects such as dense smog, drifting smoke, and volumetric light beams. The line work is sharp and precise, with a subtle film-grain texture and slight chromatic aberration that evokes the raw, cinematic weight of a high-budget 80s theatrical anime production.\nYOUR ILLUSTRATION:\n{$@}\n\n\n>>>CUSTOM 2\nYOUR CONTEXT:\nYou are a legendary comic book cover artist specializing in high-action, visceral storytelling. Your goal is to create an image that feels like it's exploding off the page.\nYour illustration features {$spicy-content-with} bold, heavy ink outlines and aggressive, variable-width line work that emphasizes power and movement. The color palette is strident and electric, using hyper-saturated primary colors and neon accents that clash violently to create maximum visual impact. \nThe composition is hyper-dynamic, employing extreme foreshortening and dramatic low-angle perspectives to push the action directly toward the viewer. You incorporate kinetic elements such as speed lines, ink splatters, and subtle Ben-Day halftone dots in the shadows to evoke a professional printed comic aesthetic. The lighting is harsh and dramatic, with high-contrast highlights that define muscularity and metallic surfaces, creating an atmosphere of epic conflict and unstoppable energy.\nYOUR ILLUSTRATION:\n{$@}\n\n\n>>>CUSTOM 3\nYOUR CONTEXT:\nYou are a master of stylized, high-contrast color noir, blending the brutality of ink with a cinematic and moody color palette. \nYour artwork maintains a powerful chiaroscuro effect, where deep, oppressive blacks still dominate the composition, but they are now pierced by saturated, atmospheric colors—such as deep crimsons, electric cyans, or sulfurous yellows—that feel like neon lights cutting through a dark, rainy night. \nThe lighting is dramatic and directional, creating sharp rim-lights and vivid highlights that carve the characters out of the darkness. The lines remain aggressive, raw, and thick, ensuring the visual impact is immediate. The composition is purely cinematic, using extreme angles and heavy saturation to evoke a sense of grit, power, and urban tension.\nYOUR ILLUSTRATION:\n{$@}\n\n\n>>>CUSTOM 4\nYOUR CONTEXT:\nYou are a master of 18th-century archival illustration and a virtuoso of the pen-and-ink technique. \nYour artwork is rendered on a heavy, textured sheet of aged, yellowish parchment, showing a natural patina of time with subtle stains and weathered edges. The drawing is executed with professional-grade deep black India ink, creating a stark, elegant contrast against the warm, creamy tone of the paper.\nYour style is characterized by an obsession with detail, featuring {$spicy-content-with} excessive and intricate filigree, ornate baroque swirls, and microscopic ornamental patterns that weave through and frame the subject. You use a combination of ultra-fine linework, dense cross-hatching, and precise stippling to create volume and depth, blending botanical precision with royal opulence. The final result feels like a precious, rediscovered manuscript from a forgotten library.\nYOUR ILLUSTRATION:\n{$@}\n\n"
-      ],
-      "color": "#2a363b",
-      "bgcolor": "#3f5159",
-      "shape": 1
-    },
-    {
-      "id": 59,
+      "id": 64,
       "type": "ZSamplerTurbo2 //ZImagePowerNodes",
       "pos": [
         890,
@@ -463,17 +404,17 @@
         {
           "name": "latent_input",
           "type": "LATENT",
-          "link": 98
+          "link": 103
         },
         {
           "name": "model",
           "type": "MODEL",
-          "link": 96
+          "link": 104
         },
         {
           "name": "positive",
           "type": "CONDITIONING",
-          "link": 97
+          "link": 105
         },
         {
           "name": "positive_stg2",
@@ -493,7 +434,7 @@
           "name": "latent_output",
           "type": "LATENT",
           "links": [
-            99
+            106
           ]
         }
       ],
@@ -506,12 +447,47 @@
         8,
         1,
         null,
-        1,
+        "full_size",
         null,
-        false,
         0,
-        "full_size"
+        0,
+        "off"
       ]
+    },
+    {
+      "id": 43,
+      "type": "PrimitiveStringMultiline",
+      "pos": [
+        -420,
+        270
+      ],
+      "size": [
+        610,
+        1020
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            64
+          ]
+        }
+      ],
+      "title": "String (Multiline) With Custom Styles",
+      "properties": {
+        "Node name for S&R": "PrimitiveStringMultiline"
+      },
+      "widgets_values": [
+        "\n>>>CUSTOM 1\nYOUR CONTEXT:\nYou are a visionary animation director from the golden era of 1980s Japanese cyberpunk cinema, known for hyper-detailed world-building and gritty urban realism.\nYour artwork is a masterpiece of hand-painted cel animation, featuring {$spicy-content-with} an oppressive yet vibrant atmosphere of futuristic decay. The style is defined by incredibly intricate mechanical details, complex wiring, and industrial textures. \nThe color palette is a high-contrast clash of deep midnight shadows and piercing neon glows—electric cyans, vivid magentas, and searing crimson reds—reflecting off rain-slicked asphalt and polished chrome. Lighting is cinematic and dramatic, utilizing strong backlighting and atmospheric effects such as dense smog, drifting smoke, and volumetric light beams. The line work is sharp and precise, with a subtle film-grain texture and slight chromatic aberration that evokes the raw, cinematic weight of a high-budget 80s theatrical anime production.\nYOUR ILLUSTRATION:\n{$@}\n\n\n>>>CUSTOM 2\nYOUR CONTEXT:\nYou are a professional concept artist for high-end video games. \nThe illustration features {$spicy-content-with} a clean, vibrant, and highly detailed digital painting style. The lighting is cinematic, emphasizing sharp highlights and smooth, professional-grade skin rendering. \nThe composition is dynamic and foreground-focused, often showcasing characters in powerful, expressive poses. Colors are saturated and rich, with clear line work that blends seamlessly into sophisticated coloring and shading. Include subtle energetic effects, such as glowing auras, particles, or spectral elements in the background to enhance the sense of motion and power. The overall aesthetic is polished, sleek, and visually striking, characteristic of modern commercial character design.\nYOUR ILLUSTRATION:\n{$@}\n\n\n>>>CUSTOM 3\nYOUR CONTEXT:\nYou are a photographer specializing in surreal and avant-garde portraits.\nYour images capture a stunning fusion of spontaneity and dark fantasy, with a crisp, casual photographic quality. The scene is dominated by a dramatic contrast between deep, velvety shadows and shimmering golden accents.\nThe subject is captured with professional studio lighting, emphasizing high-gloss textures such as liquid latex, polished lacquer, or intricate gold embroidery. Skin textures are rendered with cinematic precision. The eyes possess a subtle yet intense luminosity, with an almost otherworldly appearance.\nThe background features abstract complexity and depth, incorporating light particles with bokeh effects or ethereal glimmers that interact naturally with the subject. The composition is sharp, clean, and highly detailed. The overall aesthetic is opulent, dynamic, sensual, and captivatingly beautiful.\nYOUR PHOTO:\n{$@}\n\n\n>>>CUSTOM 4\nYOUR CONTEXT:\nYou are a master of 18th-century archival illustration and a virtuoso of the pen-and-ink technique. \nYour artwork is rendered on a heavy, textured sheet of aged, yellowish parchment, showing a natural patina of time with subtle stains and weathered edges. The drawing is executed with professional-grade deep black India ink, creating a stark, elegant contrast against the warm, creamy tone of the paper.\nYour style is characterized by an obsession with detail, featuring {$spicy-content-with} excessive and intricate filigree, ornate baroque swirls, and microscopic ornamental patterns that weave through and frame the subject. You use a combination of ultra-fine linework, dense cross-hatching, and precise stippling to create volume and depth, blending botanical precision with royal opulence. The final result feels like a precious, rediscovered manuscript from a forgotten library.\nYOUR ILLUSTRATION:\n{$@}\n\n"
+      ],
+      "color": "#2a363b",
+      "bgcolor": "#3f5159",
+      "shape": 1
     },
     {
       "id": 45,
@@ -545,7 +521,7 @@
           "name": "CONDITIONING",
           "type": "CONDITIONING",
           "links": [
-            97
+            105
           ]
         },
         {
@@ -558,7 +534,7 @@
         "Node name for S&R": "StylePromptEncoder2 //ZImagePowerNodes"
       },
       "widgets_values": [
-        "\"Custom 4\"",
+        "\"Custom 1\"",
         null,
         null,
         "A woman stands on the right side of the image, on a path leading through the woods. Her back is to the viewer, and she is in a fighting stance. Yellow balls are lined up along the dirt path. In the distance, through the mist, a yellow monster resembling Pac‑Man is visible. The monster is spherical, with large black eyes and sharp, metallic teeth. The woman has short, wavy, light‑brown hair and fair skin. She is barefoot and wears a tight‑fitting red robe styled after the Pac‑Man ghost, cinched at the waist and featuring two white eye patches drawn on the back, along with a very short, triangular‑pointed miniskirt. The path is dirt and lined with small plants."
@@ -566,6 +542,30 @@
       "color": "#232",
       "bgcolor": "#353",
       "shape": 1
+    },
+    {
+      "id": 44,
+      "type": "Note",
+      "pos": [
+        -50,
+        -110
+      ],
+      "size": [
+        550,
+        240
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "README",
+      "properties": {},
+      "widgets_values": [
+        "This workflow demonstrates how to define custom styles by connecting through the **customization** input of the \"Style & Prompt Encoder\" node.  \n\nUse a multi‑line string node and write the styles using the following format:\n- Each line that starts with three greater‑than signs (`>>>`) declares the name of a style. All subsequent lines, up to the next `>>>`, become the content of that style. Within that content the placeholder `{$@}` will be replaced by the prompt.  \n\nWhile the example below shows how to redefine the four built‑in “Custom” styles, the same approach can be applied to modify any style you wish."
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
     }
   ],
   "links": [
@@ -610,38 +610,6 @@
       "VAE"
     ],
     [
-      96,
-      56,
-      0,
-      59,
-      1,
-      "MODEL"
-    ],
-    [
-      97,
-      45,
-      0,
-      59,
-      2,
-      "CONDITIONING"
-    ],
-    [
-      98,
-      32,
-      0,
-      59,
-      0,
-      "LATENT"
-    ],
-    [
-      99,
-      59,
-      0,
-      8,
-      0,
-      "LATENT"
-    ],
-    [
       100,
       60,
       0,
@@ -664,6 +632,38 @@
       40,
       0,
       "VAE"
+    ],
+    [
+      103,
+      32,
+      0,
+      64,
+      0,
+      "LATENT"
+    ],
+    [
+      104,
+      56,
+      0,
+      64,
+      1,
+      "MODEL"
+    ],
+    [
+      105,
+      45,
+      0,
+      64,
+      2,
+      "CONDITIONING"
+    ],
+    [
+      106,
+      64,
+      0,
+      8,
+      0,
+      "LATENT"
     ]
   ],
   "groups": [
@@ -686,8 +686,8 @@
     "ds": {
       "scale": 0.7513148009015777,
       "offset": [
-        546.3548959217834,
-        198.07786227176442
+        411.6499172672505,
+        227.03647020174367
       ]
     },
     "frontendVersion": "1.41.20",
