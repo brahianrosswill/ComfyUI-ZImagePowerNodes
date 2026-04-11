@@ -38,11 +38,13 @@ A library of over 100 predefined visual styles is included in the "Style & Promp
 
 ### Intensity Control
 
-__Intensity__ is a parameter within the "Z-Sampler Turbo" node that modifies the amplitude of the initial noise to generate images with enhanced contrast and saturation. Values above 1.0 heighten contrast and edge sharpness, resulting in a more defined and vibrant aesthetic. Conversely, values below 1.0 yield a softer, more muted look with reduced micro-detail.
+__Intensity__ is a parameter within the "Z-Sampler Turbo" node that tweaks the amplitude of the initial noise to give your images more contrast and saturation. Values above 1.0 boost contrast and sharpen edges, resulting in a more defined and vibrant look. On the flip side, values below 1.0 yield a softer, more "washed-out" look with less micro-detail.
 
-It is important to note that the final effect of this parameter is heavily influenced by the prompt and the specific image style being used. While not a hard rule, lower values generally complement photographic styles, whereas higher values tend to work better for illustrations.
+Just keep in mind that the final result depends a lot on your prompt and the specific style you're using. It's not a hard rule, but lower values usually complement photographic styles better, while higher values tend to work well for illustrations.
 
 <img src="workflows/_z_/__figure__intensity.jpg" width="90%"></img>
+
+__Intensity Bias__ is a companion parameter that lets you calibrate the bias of the initial noise. You'll usually want to keep this at 0.0. You could think of it as adjusting the "brightness". Since its effect depends heavily on the prompt and image style, it doesn't always act as a simple brightness control. In some cases, it can even affect how in-focus the image looks. Just tweak it within the positive or negative range until it looks right to you.
 
 <img src="workflows/_z_/__figure__intensity_bias.jpg" width="90%"></img>
 
