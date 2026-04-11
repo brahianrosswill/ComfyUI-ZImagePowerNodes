@@ -1,8 +1,8 @@
 {
-  "id": "f36955eb-c522-4aba-a5c7-762895ecb19b",
+  "id": "53e5b12a-d51a-44f5-b833-086ef5410a33",
   "revision": 0,
-  "last_node_id": 67,
-  "last_link_id": 110,
+  "last_node_id": 71,
+  "last_link_id": 114,
   "nodes": [
     {
       "id": 8,
@@ -22,7 +22,7 @@
         {
           "name": "samples",
           "type": "LATENT",
-          "link": 93
+          "link": 114
         },
         {
           "name": "vae",
@@ -175,7 +175,7 @@
           "name": "MODEL",
           "type": "MODEL",
           "links": [
-            108
+            112
           ]
         }
       ],
@@ -229,60 +229,6 @@
       "shape": 1
     },
     {
-      "id": 43,
-      "type": "StylePromptEncoder2 //ZImagePowerNodes",
-      "pos": [
-        470,
-        230
-      ],
-      "size": [
-        730,
-        670
-      ],
-      "flags": {},
-      "order": 6,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "clip",
-          "type": "CLIP",
-          "link": 109
-        },
-        {
-          "name": "customization",
-          "shape": 7,
-          "type": "STRING",
-          "link": null
-        }
-      ],
-      "outputs": [
-        {
-          "name": "CONDITIONING",
-          "type": "CONDITIONING",
-          "links": [
-            92
-          ]
-        },
-        {
-          "name": "STRING",
-          "type": "STRING",
-          "links": null
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "StylePromptEncoder2 //ZImagePowerNodes"
-      },
-      "widgets_values": [
-        "\"Dark Comic Illustration\"",
-        null,
-        null,
-        "This comic strip consists of five panels:\n\n<!--\nPanel 1 (small top left): A close‑up of a person’s foot, wearing jeans and a brown shoe, stepping into a puddle of thick, glowing blue liquid on a dark floor. A speech bubble reads: \"Ugh, what is this disgusting stuff?!\"\n-->\n\n<!--\nPanel 2 (small top right): The woman is in a state of pure panic as the blue substance aggressively surges up her body like a living creature. Her long hair is wildly flared, as if a fierce wind were whipping it in all directions, creating a dramatic, flame‑like effect. She is flailing, clawing at the air and her own legs, trying to tear the slime away as it binds her. She is dressed in jeans and a white T‑shirt. She screams: \"No! Get it off! It’s crawling under my skin... I can't break free!\"\n-->\n\n<!--\nPanel 3 (small center left): A tight, claustrophobic close‑up of her face. The blue liquid completely covers her mouth, nose, cheeks, and eyes, leaving her skin slick with a glossy sheen. Long, elegant rabbit ears, tinged with the same blue hue, begin to tear through the top of her hair. Her eyes are wide with terror. The speech bubble reads: \"It’s too late... I'm disappearing! HELP!\"\n-->\n\n<!--\nPanel 4 (small center right): The torso and face are visible. The blue entity has reshaped her body into a curvaceous figure. She looks down at her hands—now covered in sleek blue fur—as a black, lace‑up corset begins to tighten around her waist by itself. Two speech bubbles read: \"My body... it's shifting...\" and \"I can feel it... molding me into something else!\"\n-->\n\n<!--\nPanel 5 (large horizontal panel at the bottom): An anthropomorphic rabbit with a striking body rests comfortably on a sofa in a provocative and sensual pose. Her head is resting on the left side, her legs stretched out to the right. She has a slender, feminine figure and wears a tight black corset with intricate lace that contrasts sharply with her blue fur. The background remains dimly lit, with a window and curtains framing her like a beautiful creature born from the shadows.\n-->"
-      ],
-      "color": "#232",
-      "bgcolor": "#353",
-      "shape": 1
-    },
-    {
       "id": 32,
       "type": "EmptyZImageLatentImage //ZImagePowerNodes",
       "pos": [
@@ -302,7 +248,7 @@
           "name": "LATENT",
           "type": "LATENT",
           "links": [
-            90
+            111
           ]
         }
       ],
@@ -377,12 +323,12 @@
       "id": 67,
       "type": "Note",
       "pos": [
-        260,
-        -240
+        180,
+        -380
       ],
       "size": [
-        580,
-        390
+        640,
+        500
       ],
       "flags": {},
       "order": 5,
@@ -392,20 +338,20 @@
       "title": "README",
       "properties": {},
       "widgets_values": [
-        ""
+        "Reference workflow for text-to-image using the Z-Image Turbo model and the Power Nodes.\n\nSelect the desired size and aspect ratio of the output image using the \"Empty Z-Image Latent Image\" node. This node also offers an option to activate \"landscape\" mode for horizontal orientation.\n\nCompose your text prompt and choose your preferred visual style using the \"Style & Prompt Encoder\" node, establishing the aesthetic direction of your image.\n\nFine-tune your image details within the \"Z-Sampler Turbo ^G2\" node:\n\n- steps: Adjust the number of sampling iterations to control image detail. Generally, 8 steps are sufficient; fewer steps (e.g. '3') allow for quick visualization of prompt changes, as the sampler preserves the image composition across its entire step range. Default: 8\n\n- intensity: This parameter affects the saturation and contrast levels of the output image. Values above 1.0 produce a more vibrant appearance, while values below 1.0 yield a softer, more \"washed-out\" look. Default: 0.0\n\n- intensity_bias: Provides finer control similar to 'brightness'. However, its exact impact varies depending on the prompt and selected style, so it may not always function as a simple brightness control. Default: 0.0\n\n- turbo_creativity: Enhances the diversity of generated images by altering the composition while retaining the prompt instructions and visual style. This feature may introduce hallucinations, which can be reduced by selecting the \"refined\" options, adding extra sampling steps to improve image coherence.\n    * off              : Turbo Creativity disabled\n    * scrambled        : Turbo Creativity enabled\n    * refined (1-step) : Turbo Creativity + 1 sampling step for coherence\n    * refined (2-steps): Turbo Creativity + 2 sampling steps for coherence\n"
       ],
       "color": "#432",
       "bgcolor": "#653"
     },
     {
-      "id": 64,
+      "id": 68,
       "type": "ZSamplerTurbo2 //ZImagePowerNodes",
       "pos": [
         1210,
         150
       ],
       "size": [
-        310,
+        320,
         750
       ],
       "flags": {},
@@ -415,17 +361,17 @@
         {
           "name": "latent_input",
           "type": "LATENT",
-          "link": 90
+          "link": 111
         },
         {
           "name": "model",
           "type": "MODEL",
-          "link": 108
+          "link": 112
         },
         {
           "name": "positive",
           "type": "CONDITIONING",
-          "link": 92
+          "link": 113
         },
         {
           "name": "positive_stg2",
@@ -445,7 +391,7 @@
           "name": "latent_output",
           "type": "LATENT",
           "links": [
-            93
+            114
           ]
         }
       ],
@@ -458,13 +404,66 @@
         8,
         1,
         null,
-        1.4,
-        0,
         "full_size",
+        null,
         0,
-        false,
-        0
+        0,
+        "off"
       ]
+    },
+    {
+      "id": 43,
+      "type": "StylePromptEncoder2 //ZImagePowerNodes",
+      "pos": [
+        470,
+        230
+      ],
+      "size": [
+        730,
+        670
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 109
+        },
+        {
+          "name": "customization",
+          "shape": 7,
+          "type": "STRING",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            113
+          ]
+        },
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "StylePromptEncoder2 //ZImagePowerNodes"
+      },
+      "widgets_values": [
+        "\"Casual Photo\"",
+        null,
+        null,
+        "The interior of a bar features an architecture of rounded, modular forms. A bar extends horizontally along the frame, displaying a strip of acrylic. To the left, an elegant black xenomorph, her biomechanical form glowing in a dim light, sits on a bar stool. She wears a tight crimson corset and a leather skirt, holding a tall glass in one hand, raised in a toast as she looks to the right. Her elongated, angular features are accentuated with a subtle bioluminescence. To the right, a cylindrical column supports a vertical neon panel that reads \"OPEN 24 HOURS.\" To the right, a man in his thirties stands at the bar, turning to look at the camera with a playful smile; his glass is reflected in the xenomorph's in a silent, interstellar toast. Behind the bar, in the center of the image, an imposing, octopus-like alien bartender twitches his tentacles, wearing smart black trousers, his octopus eyes glareing in displeasure. Behind the bartender, a mirrored wall reflects rows of liquor bottles with geometric labels. Above the bar floats a neon sign made of curved glass tubes that reads 'COSMIC LOUNGE' in tall, rounded letters, emitting light with a soft, glowing halo. An illuminated menu board reads 'SIGNATURE DRINKS' with three items: 'ORBITAL HIGHBALL,' 'NEBULA SOUR,' and 'ROCKET MARTINI,' each displayed on glowing horizontal bars. To the right, a cylindrical column features a vertical neon panel that reads 'OPEN 24 HOURS' in condensed letters within a translucent strip. To the left, a curved booth sits beneath a domed ceiling light. An illuminated sign reading 'GALAXY BAR SERVICE' encircles the inner rim of the dome in capitals and dominates the left side of the frame. Soft lighting reflects off the glass and acrylic surfaces, highlighting the structural design."
+      ],
+      "color": "#232",
+      "bgcolor": "#353",
+      "shape": 1
     }
   ],
   "links": [
@@ -493,38 +492,6 @@
       "IMAGE"
     ],
     [
-      90,
-      32,
-      0,
-      64,
-      0,
-      "LATENT"
-    ],
-    [
-      92,
-      43,
-      0,
-      64,
-      2,
-      "CONDITIONING"
-    ],
-    [
-      93,
-      64,
-      0,
-      8,
-      0,
-      "LATENT"
-    ],
-    [
-      108,
-      59,
-      0,
-      64,
-      1,
-      "MODEL"
-    ],
-    [
       109,
       60,
       0,
@@ -539,6 +506,38 @@
       19,
       0,
       "VAE"
+    ],
+    [
+      111,
+      32,
+      0,
+      68,
+      0,
+      "LATENT"
+    ],
+    [
+      112,
+      59,
+      0,
+      68,
+      1,
+      "MODEL"
+    ],
+    [
+      113,
+      43,
+      0,
+      68,
+      2,
+      "CONDITIONING"
+    ],
+    [
+      114,
+      68,
+      0,
+      8,
+      0,
+      "LATENT"
     ]
   ],
   "groups": [
@@ -559,10 +558,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.8264462809917354,
+      "scale": 0.6830134553650705,
       "offset": [
-        -228.24429395281155,
-        86.5728668081801
+        -70.5015095778117,
+        334.18759766755574
       ]
     },
     "frontendVersion": "1.41.20",
