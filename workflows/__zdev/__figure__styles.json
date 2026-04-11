@@ -162,7 +162,7 @@
         26
       ],
       "flags": {},
-      "order": 32,
+      "order": 25,
       "mode": 0,
       "inputs": [
         {
@@ -408,8 +408,8 @@
       "id": 32,
       "type": "EmptyZImageLatentImage //ZImagePowerNodes",
       "pos": [
-        880,
-        50
+        870,
+        90
       ],
       "size": [
         310,
@@ -700,15 +700,15 @@
       "id": 122,
       "type": "Reroute",
       "pos": [
-        1280,
-        -30
+        1270,
+        10
       ],
       "size": [
         75,
         26
       ],
       "flags": {},
-      "order": 18,
+      "order": 16,
       "mode": 0,
       "inputs": [
         {
@@ -781,7 +781,7 @@
         26
       ],
       "flags": {},
-      "order": 31,
+      "order": 27,
       "mode": 0,
       "inputs": [
         {
@@ -985,7 +985,7 @@
         26
       ],
       "flags": {},
-      "order": 25,
+      "order": 28,
       "mode": 0,
       "inputs": [
         {
@@ -1023,7 +1023,7 @@
         26
       ],
       "flags": {},
-      "order": 28,
+      "order": 31,
       "mode": 0,
       "inputs": [
         {
@@ -1096,7 +1096,7 @@
         26
       ],
       "flags": {},
-      "order": 29,
+      "order": 32,
       "mode": 0,
       "inputs": [
         {
@@ -1135,7 +1135,7 @@
         26
       ],
       "flags": {},
-      "order": 33,
+      "order": 26,
       "mode": 0,
       "inputs": [
         {
@@ -1175,7 +1175,7 @@
         26
       ],
       "flags": {},
-      "order": 30,
+      "order": 33,
       "mode": 0,
       "inputs": [
         {
@@ -1245,7 +1245,7 @@
         26
       ],
       "flags": {},
-      "order": 15,
+      "order": 17,
       "mode": 0,
       "inputs": [
         {
@@ -1357,7 +1357,7 @@
         26
       ],
       "flags": {},
-      "order": 26,
+      "order": 29,
       "mode": 0,
       "inputs": [
         {
@@ -1877,75 +1877,6 @@
       ]
     },
     {
-      "id": 110,
-      "type": "PrimitiveStringMultiline",
-      "pos": [
-        590,
-        230
-      ],
-      "size": [
-        600,
-        400
-      ],
-      "flags": {},
-      "order": 5,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "STRING",
-          "type": "STRING",
-          "links": [
-            195
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "PrimitiveStringMultiline"
-      },
-      "widgets_values": [
-        "Three people and a creature stand in front of shelves laden with various items. On the left, a brown-haired woman smiles for the camera, wearing a light brown tank top. Next to her is a humanoid figure with a body made of dark, rocky material and pronounced musculature, resembling onyx. This figure has a large head with sharp features, wears a green cloth sash with white patterns tied around its waist, and has a serious expression, with its eyes subtly glowing red. To the right of this figure is a muscular, older man with a light skin tone, wearing a necklace and with shoulder-length green hair; he wears a white crop top with a pink unicorn painted on it and looks serious. The last individual, on the far right of the image, is a dark-haired woman wearing a black T-shirt and looks serious. In the foreground are several plates of food: a white bowl with a creamy dish covered in red seasoning, a rectangular container filled with what appear to be strips of meat, a white bowl with fried and breaded pieces, and a white plate with several round, light brown cookies. Also in the foreground is a light blue object resembling a human head."
-      ],
-      "color": "#232",
-      "bgcolor": "#353",
-      "shape": "box"
-    },
-    {
-      "id": 117,
-      "type": "PrimitiveInt",
-      "pos": [
-        1200,
-        290
-      ],
-      "size": [
-        250,
-        82
-      ],
-      "flags": {},
-      "order": 6,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "INT",
-          "type": "INT",
-          "links": [
-            201
-          ]
-        }
-      ],
-      "title": "FONT SIZE : text",
-      "properties": {
-        "Node name for S&R": "PrimitiveInt"
-      },
-      "widgets_values": [
-        22,
-        "fixed"
-      ],
-      "color": "#223",
-      "bgcolor": "#335"
-    },
-    {
       "id": 97,
       "type": "Reroute",
       "pos": [
@@ -1957,7 +1888,7 @@
         26
       ],
       "flags": {},
-      "order": 19,
+      "order": 15,
       "mode": 0,
       "inputs": [
         {
@@ -2032,7 +1963,7 @@
         26
       ],
       "flags": {},
-      "order": 17,
+      "order": 19,
       "mode": 0,
       "inputs": [
         {
@@ -2071,7 +2002,7 @@
         26
       ],
       "flags": {},
-      "order": 16,
+      "order": 18,
       "mode": 0,
       "inputs": [
         {
@@ -2185,7 +2116,7 @@
         26
       ],
       "flags": {},
-      "order": 27,
+      "order": 30,
       "mode": 0,
       "inputs": [
         {
@@ -2251,41 +2182,6 @@
         "showOutputText": false,
         "horizontal": false
       }
-    },
-    {
-      "id": 123,
-      "type": "PrimitiveInt",
-      "pos": [
-        1200,
-        410
-      ],
-      "size": [
-        250,
-        82
-      ],
-      "flags": {},
-      "order": 7,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "INT",
-          "type": "INT",
-          "links": [
-            211
-          ]
-        }
-      ],
-      "title": "FONT SIZE : label",
-      "properties": {
-        "Node name for S&R": "PrimitiveInt"
-      },
-      "widgets_values": [
-        68,
-        "fixed"
-      ],
-      "color": "#223",
-      "bgcolor": "#335"
     },
     {
       "id": 131,
@@ -2458,65 +2354,6 @@
         0,
         0
       ]
-    },
-    {
-      "id": 67,
-      "type": "Note",
-      "pos": [
-        1210,
-        540
-      ],
-      "size": [
-        450,
-        130
-      ],
-      "flags": {},
-      "order": 8,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [],
-      "title": "README",
-      "properties": {},
-      "widgets_values": [
-        "This workflow generates a 5-style showcase to demonstrate how different styles can completely change the vibe of the same prompt. I use this figure in the README to a quick, visual idea of the kind of results you can expect when playing around with the styles"
-      ],
-      "color": "#432",
-      "bgcolor": "#653"
-    },
-    {
-      "id": 98,
-      "type": "PrimitiveInt",
-      "pos": [
-        600,
-        -30
-      ],
-      "size": [
-        270,
-        90
-      ],
-      "flags": {},
-      "order": 9,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "INT",
-          "type": "INT",
-          "links": [
-            209
-          ]
-        }
-      ],
-      "title": "SEED",
-      "properties": {
-        "Node name for S&R": "PrimitiveInt"
-      },
-      "widgets_values": [
-        2,
-        "fixed"
-      ],
-      "color": "#2a363b",
-      "bgcolor": "#3f5159"
     },
     {
       "id": 64,
@@ -2942,15 +2779,15 @@
       "id": 99,
       "type": "PrimitiveInt",
       "pos": [
-        600,
-        100
+        590,
+        140
       ],
       "size": [
         270,
         90
       ],
       "flags": {},
-      "order": 10,
+      "order": 5,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -2972,6 +2809,169 @@
       ],
       "color": "#2a363b",
       "bgcolor": "#3f5159"
+    },
+    {
+      "id": 98,
+      "type": "PrimitiveInt",
+      "pos": [
+        590,
+        10
+      ],
+      "size": [
+        270,
+        90
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "INT",
+          "type": "INT",
+          "links": [
+            209
+          ]
+        }
+      ],
+      "title": "SEED",
+      "properties": {
+        "Node name for S&R": "PrimitiveInt"
+      },
+      "widgets_values": [
+        2,
+        "fixed"
+      ],
+      "color": "#2a363b",
+      "bgcolor": "#3f5159"
+    },
+    {
+      "id": 110,
+      "type": "PrimitiveStringMultiline",
+      "pos": [
+        580,
+        270
+      ],
+      "size": [
+        600,
+        400
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            195
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PrimitiveStringMultiline"
+      },
+      "widgets_values": [
+        "Three people and a creature stand in front of shelves laden with various items. On the left, a brown-haired woman smiles for the camera, wearing a light brown tank top. Next to her is a humanoid figure with a body made of dark, rocky material and pronounced musculature, resembling onyx. This figure has a large head with sharp features, wears a green cloth sash with white patterns tied around its waist, and has a serious expression, with its eyes subtly glowing red. To the right of this figure is a muscular, older man with a light skin tone, wearing a necklace and with shoulder-length green hair; he wears a white crop top with a pink unicorn painted on it and looks serious. The last individual, on the far right of the image, is a dark-haired woman wearing a black T-shirt and looks serious. In the foreground are several plates of food: a white bowl with a creamy dish covered in red seasoning, a rectangular container filled with what appear to be strips of meat, a white bowl with fried and breaded pieces, and a white plate with several round, light brown cookies. Also in the foreground is a light blue object resembling a human head."
+      ],
+      "color": "#232",
+      "bgcolor": "#353",
+      "shape": "box"
+    },
+    {
+      "id": 117,
+      "type": "PrimitiveInt",
+      "pos": [
+        1190,
+        470
+      ],
+      "size": [
+        250,
+        82
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "INT",
+          "type": "INT",
+          "links": [
+            201
+          ]
+        }
+      ],
+      "title": "FONT SIZE : text",
+      "properties": {
+        "Node name for S&R": "PrimitiveInt"
+      },
+      "widgets_values": [
+        22,
+        "fixed"
+      ],
+      "color": "#223",
+      "bgcolor": "#335"
+    },
+    {
+      "id": 123,
+      "type": "PrimitiveInt",
+      "pos": [
+        1190,
+        590
+      ],
+      "size": [
+        250,
+        82
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "INT",
+          "type": "INT",
+          "links": [
+            211
+          ]
+        }
+      ],
+      "title": "FONT SIZE : label",
+      "properties": {
+        "Node name for S&R": "PrimitiveInt"
+      },
+      "widgets_values": [
+        68,
+        "fixed"
+      ],
+      "color": "#223",
+      "bgcolor": "#335"
+    },
+    {
+      "id": 67,
+      "type": "Note",
+      "pos": [
+        1200,
+        290
+      ],
+      "size": [
+        450,
+        130
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [],
+      "title": "README",
+      "properties": {},
+      "widgets_values": [
+        "This workflow generates a 5-style showcase to demonstrate how different styles can completely change the vibe of the same prompt. I use this figure in the README to a quick, visual idea of the kind of results you can expect when playing around with the styles"
+      ],
+      "color": "#432",
+      "bgcolor": "#653"
     }
   ],
   "links": [
@@ -3770,10 +3770,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 1.055991159163026,
+      "scale": 0.9599919628754778,
       "offset": [
-        -398.3119551342016,
-        165.81142962970225
+        -278.25265198578575,
+        171.62630061296605
       ]
     },
     "frontendVersion": "1.41.20",

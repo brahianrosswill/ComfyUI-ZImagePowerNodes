@@ -1,5 +1,5 @@
 {
-  "id": "718c8004-b83e-4ee1-8d1c-207b337236d5",
+  "id": "e2e2615a-516a-4adb-b882-2f5def2574f2",
   "revision": 0,
   "last_node_id": 126,
   "last_link_id": 218,
@@ -1401,7 +1401,7 @@
         26
       ],
       "flags": {},
-      "order": 31,
+      "order": 32,
       "mode": 0,
       "inputs": [
         {
@@ -1441,7 +1441,7 @@
         26
       ],
       "flags": {},
-      "order": 30,
+      "order": 31,
       "mode": 0,
       "inputs": [
         {
@@ -1480,7 +1480,7 @@
         26
       ],
       "flags": {},
-      "order": 19,
+      "order": 20,
       "mode": 0,
       "inputs": [
         {
@@ -1557,7 +1557,7 @@
         26
       ],
       "flags": {},
-      "order": 20,
+      "order": 19,
       "mode": 0,
       "inputs": [
         {
@@ -1633,7 +1633,7 @@
         26
       ],
       "flags": {},
-      "order": 32,
+      "order": 30,
       "mode": 0,
       "inputs": [
         {
@@ -1833,304 +1833,104 @@
       ]
     },
     {
-      "id": 93,
-      "type": "ImageLabeler //ZImagePowerNodes",
+      "id": 99,
+      "type": "PrimitiveInt",
       "pos": [
-        2720,
-        -790
+        600,
+        100
       ],
       "size": [
         270,
-        274
+        90
       ],
       "flags": {},
-      "order": 55,
+      "order": 6,
       "mode": 0,
-      "inputs": [
-        {
-          "name": "image",
-          "type": "IMAGE",
-          "link": 156
-        },
-        {
-          "name": "font_size",
-          "type": "INT",
-          "widget": {
-            "name": "font_size"
-          },
-          "link": 214
-        }
-      ],
+      "inputs": [],
       "outputs": [
         {
-          "name": "IMAGE",
-          "type": "IMAGE",
+          "name": "INT",
+          "type": "INT",
           "links": [
-            168
+            167
+          ]
+        }
+      ],
+      "title": "STEPS",
+      "properties": {
+        "Node name for S&R": "PrimitiveInt"
+      },
+      "widgets_values": [
+        8,
+        "fixed"
+      ],
+      "color": "#2a363b",
+      "bgcolor": "#3f5159"
+    },
+    {
+      "id": 110,
+      "type": "PrimitiveStringMultiline",
+      "pos": [
+        600,
+        360
+      ],
+      "size": [
+        600,
+        400
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            188,
+            195
           ]
         }
       ],
       "properties": {
-        "Node name for S&R": "ImageLabeler //ZImagePowerNodes"
+        "Node name for S&R": "PrimitiveStringMultiline"
       },
       "widgets_values": [
-        "Intensity -1.0",
-        "#FF0000",
-        "#FFFFFF",
-        "roboto_slab",
-        64,
-        "none",
-        "bottom_right",
-        -1,
-        0,
-        0
-      ]
+        "A woman with blue skin stands with arms crossed, wearing a white bandeau top and white shorts. Gold accents adorn the woman's arms, waist, and ankles. The waist is further embellished with a wide, ornate gold belt featuring blue jewels. The woman's hair is a voluminous, bright blue, styled into two high pigtails adorned with gold accessories, and it cascades down her back and sides in long, flowing strands. The background shows a wooden shelf filled with various bottles and jars, and a fireplace with flames. To the left, a tall, ornate gold urn emits white smoke. The floor appears to be a rough, textured surface."
+      ],
+      "color": "#232",
+      "bgcolor": "#353",
+      "shape": "box"
     },
     {
-      "id": 102,
-      "type": "ImageLabeler //ZImagePowerNodes",
-      "pos": [
-        3040,
-        -420
-      ],
-      "size": [
-        270,
-        274
-      ],
-      "flags": {},
-      "order": 56,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "image",
-          "type": "IMAGE",
-          "link": 171
-        },
-        {
-          "name": "font_size",
-          "type": "INT",
-          "widget": {
-            "name": "font_size"
-          },
-          "link": 215
-        }
-      ],
-      "outputs": [
-        {
-          "name": "IMAGE",
-          "type": "IMAGE",
-          "links": [
-            172
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "ImageLabeler //ZImagePowerNodes"
-      },
-      "widgets_values": [
-        "Intensity -0.5",
-        "#FF0000",
-        "#FFFFFF",
-        "roboto_slab",
-        64,
-        "none",
-        "bottom_right",
-        -1,
-        0,
-        0
-      ]
-    },
-    {
-      "id": 103,
-      "type": "ImageLabeler //ZImagePowerNodes",
-      "pos": [
-        3360,
-        -50
-      ],
-      "size": [
-        270,
-        274
-      ],
-      "flags": {},
-      "order": 57,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "image",
-          "type": "IMAGE",
-          "link": 184
-        },
-        {
-          "name": "font_size",
-          "type": "INT",
-          "widget": {
-            "name": "font_size"
-          },
-          "link": 218
-        }
-      ],
-      "outputs": [
-        {
-          "name": "IMAGE",
-          "type": "IMAGE",
-          "links": [
-            173
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "ImageLabeler //ZImagePowerNodes"
-      },
-      "widgets_values": [
-        "Intensity 0.0",
-        "#FF0000",
-        "#FFFFFF",
-        "roboto_slab",
-        64,
-        "none",
-        "bottom_right",
-        -1,
-        0,
-        0
-      ]
-    },
-    {
-      "id": 104,
-      "type": "ImageLabeler //ZImagePowerNodes",
-      "pos": [
-        3670,
-        330
-      ],
-      "size": [
-        270,
-        274
-      ],
-      "flags": {},
-      "order": 58,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "image",
-          "type": "IMAGE",
-          "link": 185
-        },
-        {
-          "name": "font_size",
-          "type": "INT",
-          "widget": {
-            "name": "font_size"
-          },
-          "link": 217
-        }
-      ],
-      "outputs": [
-        {
-          "name": "IMAGE",
-          "type": "IMAGE",
-          "links": [
-            174
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "ImageLabeler //ZImagePowerNodes"
-      },
-      "widgets_values": [
-        "Intensity +0.5",
-        "#FF0000",
-        "#FFFFFF",
-        "roboto_slab",
-        64,
-        "none",
-        "bottom_right",
-        -1,
-        0,
-        0
-      ]
-    },
-    {
-      "id": 105,
-      "type": "ImageLabeler //ZImagePowerNodes",
-      "pos": [
-        4010,
-        720
-      ],
-      "size": [
-        270,
-        274
-      ],
-      "flags": {},
-      "order": 59,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "image",
-          "type": "IMAGE",
-          "link": 186
-        },
-        {
-          "name": "font_size",
-          "type": "INT",
-          "widget": {
-            "name": "font_size"
-          },
-          "link": 216
-        }
-      ],
-      "outputs": [
-        {
-          "name": "IMAGE",
-          "type": "IMAGE",
-          "links": [
-            175
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "ImageLabeler //ZImagePowerNodes"
-      },
-      "widgets_values": [
-        "Intensity +1.0",
-        "#FF0000",
-        "#FFFFFF",
-        "roboto_slab",
-        64,
-        "none",
-        "bottom_right",
-        -1,
-        0,
-        0
-      ]
-    },
-    {
-      "id": 82,
+      "id": 64,
       "type": "ZSamplerTurbo2 //ZImagePowerNodes",
       "pos": [
-        3430,
-        720
+        2140,
+        -800
       ],
       "size": [
         310,
         750
       ],
       "flags": {},
-      "order": 49,
+      "order": 45,
       "mode": 0,
       "inputs": [
         {
           "name": "latent_input",
           "type": "LATENT",
-          "link": 145
+          "link": 117
         },
         {
           "name": "model",
           "type": "MODEL",
-          "link": 148
+          "link": 118
         },
         {
           "name": "positive",
           "type": "CONDITIONING",
-          "link": 151
+          "link": 119
         },
         {
           "name": "positive_stg2",
@@ -2150,7 +1950,7 @@
           "widget": {
             "name": "seed"
           },
-          "link": 180
+          "link": 160
         },
         {
           "name": "steps",
@@ -2158,7 +1958,7 @@
           "widget": {
             "name": "steps"
           },
-          "link": 183
+          "link": 161
         }
       ],
       "outputs": [
@@ -2166,7 +1966,7 @@
           "name": "latent_output",
           "type": "LATENT",
           "links": [
-            126
+            93
           ]
         }
       ],
@@ -2181,7 +1981,175 @@
         null,
         "full_size",
         null,
+        0.5,
+        -1,
+        "off"
+      ]
+    },
+    {
+      "id": 73,
+      "type": "ZSamplerTurbo2 //ZImagePowerNodes",
+      "pos": [
+        2460,
+        -430
+      ],
+      "size": [
+        310,
+        750
+      ],
+      "flags": {},
+      "order": 46,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "latent_input",
+          "type": "LATENT",
+          "link": 153
+        },
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 154
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 155
+        },
+        {
+          "name": "positive_stg2",
+          "shape": 7,
+          "type": "CONDITIONING",
+          "link": null
+        },
+        {
+          "name": "positive_stg3",
+          "shape": 7,
+          "type": "CONDITIONING",
+          "link": null
+        },
+        {
+          "name": "seed",
+          "type": "INT",
+          "widget": {
+            "name": "seed"
+          },
+          "link": 164
+        },
+        {
+          "name": "steps",
+          "type": "INT",
+          "widget": {
+            "name": "steps"
+          },
+          "link": 165
+        }
+      ],
+      "outputs": [
+        {
+          "name": "latent_output",
+          "type": "LATENT",
+          "links": [
+            120
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ZSamplerTurbo2 //ZImagePowerNodes"
+      },
+      "widgets_values": [
         1,
+        "fixed",
+        8,
+        1,
+        null,
+        "full_size",
+        null,
+        0.5,
+        -0.5,
+        "off"
+      ]
+    },
+    {
+      "id": 76,
+      "type": "ZSamplerTurbo2 //ZImagePowerNodes",
+      "pos": [
+        2780,
+        -50
+      ],
+      "size": [
+        310,
+        750
+      ],
+      "flags": {},
+      "order": 47,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "latent_input",
+          "type": "LATENT",
+          "link": 143
+        },
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 146
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 149
+        },
+        {
+          "name": "positive_stg2",
+          "shape": 7,
+          "type": "CONDITIONING",
+          "link": null
+        },
+        {
+          "name": "positive_stg3",
+          "shape": 7,
+          "type": "CONDITIONING",
+          "link": null
+        },
+        {
+          "name": "seed",
+          "type": "INT",
+          "widget": {
+            "name": "seed"
+          },
+          "link": 178
+        },
+        {
+          "name": "steps",
+          "type": "INT",
+          "widget": {
+            "name": "steps"
+          },
+          "link": 181
+        }
+      ],
+      "outputs": [
+        {
+          "name": "latent_output",
+          "type": "LATENT",
+          "links": [
+            122
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ZSamplerTurbo2 //ZImagePowerNodes"
+      },
+      "widgets_values": [
+        1,
+        "fixed",
+        8,
+        1,
+        null,
+        "full_size",
+        null,
+        0.5,
         0,
         "off"
       ]
@@ -2266,39 +2234,39 @@
         "full_size",
         null,
         0.5,
-        0,
+        0.5,
         "off"
       ]
     },
     {
-      "id": 76,
+      "id": 82,
       "type": "ZSamplerTurbo2 //ZImagePowerNodes",
       "pos": [
-        2780,
-        -50
+        3430,
+        720
       ],
       "size": [
         310,
         750
       ],
       "flags": {},
-      "order": 47,
+      "order": 49,
       "mode": 0,
       "inputs": [
         {
           "name": "latent_input",
           "type": "LATENT",
-          "link": 143
+          "link": 145
         },
         {
           "name": "model",
           "type": "MODEL",
-          "link": 146
+          "link": 148
         },
         {
           "name": "positive",
           "type": "CONDITIONING",
-          "link": 149
+          "link": 151
         },
         {
           "name": "positive_stg2",
@@ -2318,7 +2286,7 @@
           "widget": {
             "name": "seed"
           },
-          "link": 178
+          "link": 180
         },
         {
           "name": "steps",
@@ -2326,7 +2294,7 @@
           "widget": {
             "name": "steps"
           },
-          "link": 181
+          "link": 183
         }
       ],
       "outputs": [
@@ -2334,7 +2302,7 @@
           "name": "latent_output",
           "type": "LATENT",
           "links": [
-            122
+            126
           ]
         }
       ],
@@ -2349,254 +2317,286 @@
         null,
         "full_size",
         null,
-        false,
-        0,
+        0.5,
+        1,
         "off"
       ]
     },
     {
-      "id": 73,
-      "type": "ZSamplerTurbo2 //ZImagePowerNodes",
+      "id": 93,
+      "type": "ImageLabeler //ZImagePowerNodes",
       "pos": [
-        2460,
-        -430
-      ],
-      "size": [
-        310,
-        750
-      ],
-      "flags": {},
-      "order": 46,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "latent_input",
-          "type": "LATENT",
-          "link": 153
-        },
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 154
-        },
-        {
-          "name": "positive",
-          "type": "CONDITIONING",
-          "link": 155
-        },
-        {
-          "name": "positive_stg2",
-          "shape": 7,
-          "type": "CONDITIONING",
-          "link": null
-        },
-        {
-          "name": "positive_stg3",
-          "shape": 7,
-          "type": "CONDITIONING",
-          "link": null
-        },
-        {
-          "name": "seed",
-          "type": "INT",
-          "widget": {
-            "name": "seed"
-          },
-          "link": 164
-        },
-        {
-          "name": "steps",
-          "type": "INT",
-          "widget": {
-            "name": "steps"
-          },
-          "link": 165
-        }
-      ],
-      "outputs": [
-        {
-          "name": "latent_output",
-          "type": "LATENT",
-          "links": [
-            120
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "ZSamplerTurbo2 //ZImagePowerNodes"
-      },
-      "widgets_values": [
-        1,
-        "fixed",
-        8,
-        1,
-        null,
-        "full_size",
-        null,
-        -0.5,
-        0,
-        "off"
-      ]
-    },
-    {
-      "id": 64,
-      "type": "ZSamplerTurbo2 //ZImagePowerNodes",
-      "pos": [
-        2140,
-        -800
-      ],
-      "size": [
-        310,
-        750
-      ],
-      "flags": {},
-      "order": 45,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "latent_input",
-          "type": "LATENT",
-          "link": 117
-        },
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 118
-        },
-        {
-          "name": "positive",
-          "type": "CONDITIONING",
-          "link": 119
-        },
-        {
-          "name": "positive_stg2",
-          "shape": 7,
-          "type": "CONDITIONING",
-          "link": null
-        },
-        {
-          "name": "positive_stg3",
-          "shape": 7,
-          "type": "CONDITIONING",
-          "link": null
-        },
-        {
-          "name": "seed",
-          "type": "INT",
-          "widget": {
-            "name": "seed"
-          },
-          "link": 160
-        },
-        {
-          "name": "steps",
-          "type": "INT",
-          "widget": {
-            "name": "steps"
-          },
-          "link": 161
-        }
-      ],
-      "outputs": [
-        {
-          "name": "latent_output",
-          "type": "LATENT",
-          "links": [
-            93
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "ZSamplerTurbo2 //ZImagePowerNodes"
-      },
-      "widgets_values": [
-        1,
-        "fixed",
-        8,
-        1,
-        null,
-        "full_size",
-        null,
-        -1,
-        0,
-        "off"
-      ]
-    },
-    {
-      "id": 99,
-      "type": "PrimitiveInt",
-      "pos": [
-        600,
-        100
+        2720,
+        -790
       ],
       "size": [
         270,
-        90
+        274
       ],
       "flags": {},
-      "order": 6,
+      "order": 55,
       "mode": 0,
-      "inputs": [],
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 156
+        },
+        {
+          "name": "font_size",
+          "type": "INT",
+          "widget": {
+            "name": "font_size"
+          },
+          "link": 214
+        }
+      ],
       "outputs": [
         {
-          "name": "INT",
-          "type": "INT",
+          "name": "IMAGE",
+          "type": "IMAGE",
           "links": [
-            167
+            168
           ]
         }
       ],
-      "title": "STEPS",
       "properties": {
-        "Node name for S&R": "PrimitiveInt"
+        "Node name for S&R": "ImageLabeler //ZImagePowerNodes"
       },
       "widgets_values": [
-        8,
-        "fixed"
-      ],
-      "color": "#2a363b",
-      "bgcolor": "#3f5159"
+        "Intensity Bias  -1.0",
+        "#FF0000",
+        "#FFFFFF",
+        "roboto_slab",
+        64,
+        "none",
+        "bottom_right",
+        -1,
+        0,
+        0
+      ]
     },
     {
-      "id": 110,
-      "type": "PrimitiveStringMultiline",
+      "id": 102,
+      "type": "ImageLabeler //ZImagePowerNodes",
       "pos": [
-        600,
-        360
+        3040,
+        -420
       ],
       "size": [
-        600,
-        400
+        270,
+        274
       ],
       "flags": {},
-      "order": 7,
+      "order": 56,
       "mode": 0,
-      "inputs": [],
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 171
+        },
+        {
+          "name": "font_size",
+          "type": "INT",
+          "widget": {
+            "name": "font_size"
+          },
+          "link": 215
+        }
+      ],
       "outputs": [
         {
-          "name": "STRING",
-          "type": "STRING",
+          "name": "IMAGE",
+          "type": "IMAGE",
           "links": [
-            188,
-            195
+            172
           ]
         }
       ],
       "properties": {
-        "Node name for S&R": "PrimitiveStringMultiline"
+        "Node name for S&R": "ImageLabeler //ZImagePowerNodes"
       },
       "widgets_values": [
-        "A woman with blue skin stands with arms crossed, wearing a white bandeau top and white shorts. Gold accents adorn the woman's arms, waist, and ankles. The waist is further embellished with a wide, ornate gold belt featuring blue jewels. The woman's hair is a voluminous, bright blue, styled into two high pigtails adorned with gold accessories, and it cascades down her back and sides in long, flowing strands. The background shows a wooden shelf filled with various bottles and jars, and a fireplace with flames. To the left, a tall, ornate gold urn emits white smoke. The floor appears to be a rough, textured surface."
+        "Intensity Bias -0.5",
+        "#FF0000",
+        "#FFFFFF",
+        "roboto_slab",
+        64,
+        "none",
+        "bottom_right",
+        -1,
+        0,
+        0
+      ]
+    },
+    {
+      "id": 103,
+      "type": "ImageLabeler //ZImagePowerNodes",
+      "pos": [
+        3360,
+        -50
       ],
-      "color": "#232",
-      "bgcolor": "#353",
-      "shape": "box"
+      "size": [
+        270,
+        274
+      ],
+      "flags": {},
+      "order": 57,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 184
+        },
+        {
+          "name": "font_size",
+          "type": "INT",
+          "widget": {
+            "name": "font_size"
+          },
+          "link": 218
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            173
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ImageLabeler //ZImagePowerNodes"
+      },
+      "widgets_values": [
+        "Intensity Bias 0.0",
+        "#FF0000",
+        "#FFFFFF",
+        "roboto_slab",
+        64,
+        "none",
+        "bottom_right",
+        -1,
+        0,
+        0
+      ]
+    },
+    {
+      "id": 104,
+      "type": "ImageLabeler //ZImagePowerNodes",
+      "pos": [
+        3670,
+        330
+      ],
+      "size": [
+        270,
+        274
+      ],
+      "flags": {},
+      "order": 58,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 185
+        },
+        {
+          "name": "font_size",
+          "type": "INT",
+          "widget": {
+            "name": "font_size"
+          },
+          "link": 217
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            174
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ImageLabeler //ZImagePowerNodes"
+      },
+      "widgets_values": [
+        "Intensity Bias +0.5",
+        "#FF0000",
+        "#FFFFFF",
+        "roboto_slab",
+        64,
+        "none",
+        "bottom_right",
+        -1,
+        0,
+        0
+      ]
+    },
+    {
+      "id": 105,
+      "type": "ImageLabeler //ZImagePowerNodes",
+      "pos": [
+        4010,
+        720
+      ],
+      "size": [
+        270,
+        274
+      ],
+      "flags": {},
+      "order": 59,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 186
+        },
+        {
+          "name": "font_size",
+          "type": "INT",
+          "widget": {
+            "name": "font_size"
+          },
+          "link": 216
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            175
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ImageLabeler //ZImagePowerNodes"
+      },
+      "widgets_values": [
+        "Intensity Bias +1.0",
+        "#FF0000",
+        "#FFFFFF",
+        "roboto_slab",
+        64,
+        "none",
+        "bottom_right",
+        -1,
+        0,
+        0
+      ]
     },
     {
       "id": 67,
       "type": "Note",
       "pos": [
-        1210,
+        1220,
         370
       ],
       "size": [
@@ -2617,41 +2617,6 @@
       "bgcolor": "#653"
     },
     {
-      "id": 123,
-      "type": "PrimitiveInt",
-      "pos": [
-        1210,
-        680
-      ],
-      "size": [
-        270,
-        82
-      ],
-      "flags": {},
-      "order": 9,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "INT",
-          "type": "INT",
-          "links": [
-            211
-          ]
-        }
-      ],
-      "title": "FONT SIZE : label",
-      "properties": {
-        "Node name for S&R": "PrimitiveInt"
-      },
-      "widgets_values": [
-        104,
-        "fixed"
-      ],
-      "color": "#223",
-      "bgcolor": "#335"
-    },
-    {
       "id": 117,
       "type": "PrimitiveInt",
       "pos": [
@@ -2663,7 +2628,7 @@
         82
       ],
       "flags": {},
-      "order": 10,
+      "order": 9,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -2681,6 +2646,41 @@
       },
       "widgets_values": [
         28,
+        "fixed"
+      ],
+      "color": "#223",
+      "bgcolor": "#335"
+    },
+    {
+      "id": 123,
+      "type": "PrimitiveInt",
+      "pos": [
+        1210,
+        680
+      ],
+      "size": [
+        270,
+        82
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "INT",
+          "type": "INT",
+          "links": [
+            211
+          ]
+        }
+      ],
+      "title": "FONT SIZE : label",
+      "properties": {
+        "Node name for S&R": "PrimitiveInt"
+      },
+      "widgets_values": [
+        95,
         "fixed"
       ],
       "color": "#223",
@@ -3411,10 +3411,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.839054528882414,
+      "scale": 0.9229599817706564,
       "offset": [
-        -310.7407502972308,
-        234.83231040261612
+        -403.9570557749242,
+        160.93522923291818
       ]
     },
     "frontendVersion": "1.41.20",

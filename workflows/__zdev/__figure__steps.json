@@ -1,8 +1,8 @@
 {
-  "id": "718c8004-b83e-4ee1-8d1c-207b337236d5",
+  "id": "a532b148-4cad-4c68-a512-cbfa85c5f450",
   "revision": 0,
-  "last_node_id": 126,
-  "last_link_id": 218,
+  "last_node_id": 129,
+  "last_link_id": 229,
   "nodes": [
     {
       "id": 61,
@@ -226,88 +226,6 @@
       }
     },
     {
-      "id": 95,
-      "type": "Reroute",
-      "pos": [
-        1880,
-        -420
-      ],
-      "size": [
-        75,
-        26
-      ],
-      "flags": {},
-      "order": 27,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "",
-          "type": "*",
-          "widget": {
-            "name": "value"
-          },
-          "link": 163
-        }
-      ],
-      "outputs": [
-        {
-          "name": "",
-          "type": "INT",
-          "links": [
-            161,
-            165
-          ]
-        }
-      ],
-      "properties": {
-        "showOutputText": false,
-        "horizontal": false
-      }
-    },
-    {
-      "id": 8,
-      "type": "VAEDecode",
-      "pos": [
-        2470,
-        -790
-      ],
-      "size": [
-        230,
-        60
-      ],
-      "flags": {},
-      "order": 50,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "samples",
-          "type": "LATENT",
-          "link": 93
-        },
-        {
-          "name": "vae",
-          "type": "VAE",
-          "link": 116
-        }
-      ],
-      "outputs": [
-        {
-          "name": "IMAGE",
-          "type": "IMAGE",
-          "slot_index": 0,
-          "links": [
-            156
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "VAEDecode",
-        "cnr_id": "comfy-core",
-        "ver": "0.7.0"
-      },
-      "widgets_values": []
-    },
-    {
       "id": 74,
       "type": "VAEDecode",
       "pos": [
@@ -426,89 +344,6 @@
         "showOutputText": false,
         "horizontal": false
       }
-    },
-    {
-      "id": 107,
-      "type": "Reroute",
-      "pos": [
-        2290,
-        740
-      ],
-      "size": [
-        75,
-        26
-      ],
-      "flags": {},
-      "order": 28,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "",
-          "type": "*",
-          "widget": {
-            "name": "value"
-          },
-          "link": 177
-        }
-      ],
-      "outputs": [
-        {
-          "name": "",
-          "type": "INT",
-          "links": [
-            181,
-            182,
-            183
-          ]
-        }
-      ],
-      "properties": {
-        "showOutputText": false,
-        "horizontal": false
-      }
-    },
-    {
-      "id": 77,
-      "type": "VAEDecode",
-      "pos": [
-        3110,
-        -50
-      ],
-      "size": [
-        230,
-        60
-      ],
-      "flags": {},
-      "order": 52,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "samples",
-          "type": "LATENT",
-          "link": 122
-        },
-        {
-          "name": "vae",
-          "type": "VAE",
-          "link": 140
-        }
-      ],
-      "outputs": [
-        {
-          "name": "IMAGE",
-          "type": "IMAGE",
-          "slot_index": 0,
-          "links": [
-            184
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "VAEDecode",
-        "cnr_id": "comfy-core",
-        "ver": "0.7.0"
-      },
-      "widgets_values": []
     },
     {
       "id": 80,
@@ -967,83 +802,6 @@
       ]
     },
     {
-      "id": 97,
-      "type": "Reroute",
-      "pos": [
-        1510,
-        80
-      ],
-      "size": [
-        75,
-        26
-      ],
-      "flags": {},
-      "order": 16,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "",
-          "type": "*",
-          "widget": {
-            "name": "value"
-          },
-          "link": 167
-        }
-      ],
-      "outputs": [
-        {
-          "name": "",
-          "type": "INT",
-          "links": [
-            163,
-            177
-          ]
-        }
-      ],
-      "properties": {
-        "showOutputText": false,
-        "horizontal": false
-      }
-    },
-    {
-      "id": 122,
-      "type": "Reroute",
-      "pos": [
-        1280,
-        -30
-      ],
-      "size": [
-        75,
-        26
-      ],
-      "flags": {},
-      "order": 15,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "",
-          "type": "*",
-          "widget": {
-            "name": "value"
-          },
-          "link": 209
-        }
-      ],
-      "outputs": [
-        {
-          "name": "",
-          "type": "INT",
-          "links": [
-            210
-          ]
-        }
-      ],
-      "properties": {
-        "showOutputText": false,
-        "horizontal": false
-      }
-    },
-    {
       "id": 20,
       "type": "Reroute",
       "pos": [
@@ -1090,7 +848,7 @@
         26
       ],
       "flags": {},
-      "order": 26,
+      "order": 29,
       "mode": 0,
       "inputs": [
         {
@@ -1401,7 +1159,7 @@
         26
       ],
       "flags": {},
-      "order": 31,
+      "order": 32,
       "mode": 0,
       "inputs": [
         {
@@ -1441,7 +1199,7 @@
         26
       ],
       "flags": {},
-      "order": 30,
+      "order": 31,
       "mode": 0,
       "inputs": [
         {
@@ -1480,7 +1238,7 @@
         26
       ],
       "flags": {},
-      "order": 19,
+      "order": 20,
       "mode": 0,
       "inputs": [
         {
@@ -1519,7 +1277,7 @@
         26
       ],
       "flags": {},
-      "order": 18,
+      "order": 17,
       "mode": 0,
       "inputs": [
         {
@@ -1557,7 +1315,7 @@
         26
       ],
       "flags": {},
-      "order": 20,
+      "order": 19,
       "mode": 0,
       "inputs": [
         {
@@ -1595,7 +1353,7 @@
         26
       ],
       "flags": {},
-      "order": 29,
+      "order": 28,
       "mode": 0,
       "inputs": [
         {
@@ -1633,7 +1391,7 @@
         26
       ],
       "flags": {},
-      "order": 32,
+      "order": 30,
       "mode": 0,
       "inputs": [
         {
@@ -1660,15 +1418,553 @@
       }
     },
     {
-      "id": 98,
-      "type": "PrimitiveInt",
+      "id": 76,
+      "type": "ZSamplerTurbo2 //ZImagePowerNodes",
+      "pos": [
+        2780,
+        -50
+      ],
+      "size": [
+        310,
+        750
+      ],
+      "flags": {},
+      "order": 47,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "latent_input",
+          "type": "LATENT",
+          "link": 143
+        },
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 146
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 149
+        },
+        {
+          "name": "positive_stg2",
+          "shape": 7,
+          "type": "CONDITIONING",
+          "link": null
+        },
+        {
+          "name": "positive_stg3",
+          "shape": 7,
+          "type": "CONDITIONING",
+          "link": null
+        },
+        {
+          "name": "seed",
+          "type": "INT",
+          "widget": {
+            "name": "seed"
+          },
+          "link": 178
+        },
+        {
+          "name": "intensity",
+          "type": "FLOAT",
+          "widget": {
+            "name": "intensity"
+          },
+          "link": 223
+        }
+      ],
+      "outputs": [
+        {
+          "name": "latent_output",
+          "type": "LATENT",
+          "links": [
+            122
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ZSamplerTurbo2 //ZImagePowerNodes"
+      },
+      "widgets_values": [
+        1,
+        "fixed",
+        5,
+        1,
+        null,
+        "full_size",
+        null,
+        false,
+        0,
+        "off"
+      ]
+    },
+    {
+      "id": 82,
+      "type": "ZSamplerTurbo2 //ZImagePowerNodes",
+      "pos": [
+        3430,
+        720
+      ],
+      "size": [
+        310,
+        750
+      ],
+      "flags": {},
+      "order": 49,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "latent_input",
+          "type": "LATENT",
+          "link": 145
+        },
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 148
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 151
+        },
+        {
+          "name": "positive_stg2",
+          "shape": 7,
+          "type": "CONDITIONING",
+          "link": null
+        },
+        {
+          "name": "positive_stg3",
+          "shape": 7,
+          "type": "CONDITIONING",
+          "link": null
+        },
+        {
+          "name": "seed",
+          "type": "INT",
+          "widget": {
+            "name": "seed"
+          },
+          "link": 180
+        },
+        {
+          "name": "intensity",
+          "type": "FLOAT",
+          "widget": {
+            "name": "intensity"
+          },
+          "link": 221
+        }
+      ],
+      "outputs": [
+        {
+          "name": "latent_output",
+          "type": "LATENT",
+          "links": [
+            126
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ZSamplerTurbo2 //ZImagePowerNodes"
+      },
+      "widgets_values": [
+        1,
+        "fixed",
+        8,
+        1,
+        null,
+        "full_size",
+        null,
+        0,
+        0,
+        "off"
+      ]
+    },
+    {
+      "id": 79,
+      "type": "ZSamplerTurbo2 //ZImagePowerNodes",
+      "pos": [
+        3100,
+        330
+      ],
+      "size": [
+        310,
+        750
+      ],
+      "flags": {},
+      "order": 48,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "latent_input",
+          "type": "LATENT",
+          "link": 144
+        },
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 147
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 150
+        },
+        {
+          "name": "positive_stg2",
+          "shape": 7,
+          "type": "CONDITIONING",
+          "link": null
+        },
+        {
+          "name": "positive_stg3",
+          "shape": 7,
+          "type": "CONDITIONING",
+          "link": null
+        },
+        {
+          "name": "seed",
+          "type": "INT",
+          "widget": {
+            "name": "seed"
+          },
+          "link": 179
+        },
+        {
+          "name": "intensity",
+          "type": "FLOAT",
+          "widget": {
+            "name": "intensity"
+          },
+          "link": 222
+        }
+      ],
+      "outputs": [
+        {
+          "name": "latent_output",
+          "type": "LATENT",
+          "links": [
+            124
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ZSamplerTurbo2 //ZImagePowerNodes"
+      },
+      "widgets_values": [
+        1,
+        "fixed",
+        6,
+        1,
+        null,
+        "full_size",
+        null,
+        0,
+        0,
+        "off"
+      ]
+    },
+    {
+      "id": 107,
+      "type": "Reroute",
+      "pos": [
+        2290,
+        740
+      ],
+      "size": [
+        75,
+        26
+      ],
+      "flags": {},
+      "order": 27,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "",
+          "type": "*",
+          "widget": {
+            "name": "value"
+          },
+          "link": 177
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "FLOAT",
+          "links": [
+            221,
+            222,
+            223
+          ]
+        }
+      ],
+      "properties": {
+        "showOutputText": false,
+        "horizontal": false
+      }
+    },
+    {
+      "id": 64,
+      "type": "ZSamplerTurbo2 //ZImagePowerNodes",
+      "pos": [
+        2140,
+        -800
+      ],
+      "size": [
+        310,
+        750
+      ],
+      "flags": {},
+      "order": 45,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "latent_input",
+          "type": "LATENT",
+          "link": 117
+        },
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 118
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 119
+        },
+        {
+          "name": "positive_stg2",
+          "shape": 7,
+          "type": "CONDITIONING",
+          "link": null
+        },
+        {
+          "name": "positive_stg3",
+          "shape": 7,
+          "type": "CONDITIONING",
+          "link": null
+        },
+        {
+          "name": "seed",
+          "type": "INT",
+          "widget": {
+            "name": "seed"
+          },
+          "link": 160
+        },
+        {
+          "name": "intensity",
+          "type": "FLOAT",
+          "widget": {
+            "name": "intensity"
+          },
+          "link": 224
+        }
+      ],
+      "outputs": [
+        {
+          "name": "latent_output",
+          "type": "LATENT",
+          "links": [
+            93
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ZSamplerTurbo2 //ZImagePowerNodes"
+      },
+      "widgets_values": [
+        1,
+        "fixed",
+        3,
+        1,
+        null,
+        "full_size",
+        null,
+        0,
+        0,
+        "off"
+      ]
+    },
+    {
+      "id": 73,
+      "type": "ZSamplerTurbo2 //ZImagePowerNodes",
+      "pos": [
+        2460,
+        -430
+      ],
+      "size": [
+        310,
+        750
+      ],
+      "flags": {},
+      "order": 46,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "latent_input",
+          "type": "LATENT",
+          "link": 153
+        },
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 154
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 155
+        },
+        {
+          "name": "positive_stg2",
+          "shape": 7,
+          "type": "CONDITIONING",
+          "link": null
+        },
+        {
+          "name": "positive_stg3",
+          "shape": 7,
+          "type": "CONDITIONING",
+          "link": null
+        },
+        {
+          "name": "seed",
+          "type": "INT",
+          "widget": {
+            "name": "seed"
+          },
+          "link": 164
+        },
+        {
+          "name": "intensity",
+          "type": "FLOAT",
+          "widget": {
+            "name": "intensity"
+          },
+          "link": 225
+        }
+      ],
+      "outputs": [
+        {
+          "name": "latent_output",
+          "type": "LATENT",
+          "links": [
+            120
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ZSamplerTurbo2 //ZImagePowerNodes"
+      },
+      "widgets_values": [
+        1,
+        "fixed",
+        4,
+        1,
+        null,
+        "full_size",
+        null,
+        0,
+        0,
+        "off"
+      ]
+    },
+    {
+      "id": 95,
+      "type": "Reroute",
+      "pos": [
+        1880,
+        -420
+      ],
+      "size": [
+        75,
+        26
+      ],
+      "flags": {},
+      "order": 26,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "",
+          "type": "*",
+          "widget": {
+            "name": "value"
+          },
+          "link": 163
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "FLOAT",
+          "links": [
+            224,
+            225
+          ]
+        }
+      ],
+      "properties": {
+        "showOutputText": false,
+        "horizontal": false
+      }
+    },
+    {
+      "id": 97,
+      "type": "Reroute",
+      "pos": [
+        1510,
+        80
+      ],
+      "size": [
+        75,
+        26
+      ],
+      "flags": {},
+      "order": 15,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "",
+          "type": "*",
+          "widget": {
+            "name": "value"
+          },
+          "link": 226
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "FLOAT",
+          "links": [
+            163,
+            177
+          ]
+        }
+      ],
+      "properties": {
+        "showOutputText": false,
+        "horizontal": false
+      }
+    },
+    {
+      "id": 127,
+      "type": "PrimitiveFloat",
       "pos": [
         600,
-        -30
+        130
       ],
       "size": [
         270,
-        90
+        60
       ],
       "flags": {},
       "order": 5,
@@ -1676,23 +1972,408 @@
       "inputs": [],
       "outputs": [
         {
-          "name": "INT",
-          "type": "INT",
+          "name": "FLOAT",
+          "type": "FLOAT",
           "links": [
-            209
+            226
           ]
         }
       ],
-      "title": "SEED",
+      "title": "INTENSITY",
       "properties": {
-        "Node name for S&R": "PrimitiveInt"
+        "Node name for S&R": "PrimitiveFloat"
       },
       "widgets_values": [
-        1,
-        "fixed"
+        0
       ],
       "color": "#2a363b",
       "bgcolor": "#3f5159"
+    },
+    {
+      "id": 122,
+      "type": "Reroute",
+      "pos": [
+        1280,
+        0
+      ],
+      "size": [
+        75,
+        26
+      ],
+      "flags": {},
+      "order": 18,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "",
+          "type": "*",
+          "widget": {
+            "name": "value"
+          },
+          "link": 209
+        }
+      ],
+      "outputs": [
+        {
+          "name": "",
+          "type": "INT",
+          "links": [
+            210
+          ]
+        }
+      ],
+      "properties": {
+        "showOutputText": false,
+        "horizontal": false
+      }
+    },
+    {
+      "id": 105,
+      "type": "ImageLabeler //ZImagePowerNodes",
+      "pos": [
+        4010,
+        720
+      ],
+      "size": [
+        270,
+        274
+      ],
+      "flags": {},
+      "order": 59,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 186
+        },
+        {
+          "name": "font_size",
+          "type": "INT",
+          "widget": {
+            "name": "font_size"
+          },
+          "link": 216
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            175
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ImageLabeler //ZImagePowerNodes"
+      },
+      "widgets_values": [
+        "8 Steps",
+        "#FF0000",
+        "#FFFFFF",
+        "roboto_slab",
+        64,
+        "none",
+        "bottom_right",
+        -1,
+        0,
+        0
+      ]
+    },
+    {
+      "id": 103,
+      "type": "ImageLabeler //ZImagePowerNodes",
+      "pos": [
+        3360,
+        -50
+      ],
+      "size": [
+        270,
+        274
+      ],
+      "flags": {},
+      "order": 57,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 184
+        },
+        {
+          "name": "font_size",
+          "type": "INT",
+          "widget": {
+            "name": "font_size"
+          },
+          "link": 218
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            173
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ImageLabeler //ZImagePowerNodes"
+      },
+      "widgets_values": [
+        "5 Steps",
+        "#FF0000",
+        "#FFFFFF",
+        "roboto_slab",
+        64,
+        "none",
+        "bottom_right",
+        -1,
+        0,
+        0
+      ]
+    },
+    {
+      "id": 104,
+      "type": "ImageLabeler //ZImagePowerNodes",
+      "pos": [
+        3670,
+        330
+      ],
+      "size": [
+        270,
+        274
+      ],
+      "flags": {},
+      "order": 58,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 185
+        },
+        {
+          "name": "font_size",
+          "type": "INT",
+          "widget": {
+            "name": "font_size"
+          },
+          "link": 217
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            174
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ImageLabeler //ZImagePowerNodes"
+      },
+      "widgets_values": [
+        "6 Steps",
+        "#FF0000",
+        "#FFFFFF",
+        "roboto_slab",
+        64,
+        "none",
+        "bottom_right",
+        -1,
+        0,
+        0
+      ]
+    },
+    {
+      "id": 102,
+      "type": "ImageLabeler //ZImagePowerNodes",
+      "pos": [
+        3040,
+        -420
+      ],
+      "size": [
+        270,
+        274
+      ],
+      "flags": {},
+      "order": 56,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 171
+        },
+        {
+          "name": "font_size",
+          "type": "INT",
+          "widget": {
+            "name": "font_size"
+          },
+          "link": 215
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            172
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ImageLabeler //ZImagePowerNodes"
+      },
+      "widgets_values": [
+        "4 Steps",
+        "#FF0000",
+        "#FFFFFF",
+        "roboto_slab",
+        64,
+        "none",
+        "bottom_right",
+        -1,
+        0,
+        0
+      ]
+    },
+    {
+      "id": 93,
+      "type": "ImageLabeler //ZImagePowerNodes",
+      "pos": [
+        2720,
+        -790
+      ],
+      "size": [
+        270,
+        274
+      ],
+      "flags": {},
+      "order": 55,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "image",
+          "type": "IMAGE",
+          "link": 156
+        },
+        {
+          "name": "font_size",
+          "type": "INT",
+          "widget": {
+            "name": "font_size"
+          },
+          "link": 214
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            168
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ImageLabeler //ZImagePowerNodes"
+      },
+      "widgets_values": [
+        "3 Steps",
+        "#FF0000",
+        "#FFFFFF",
+        "roboto_slab",
+        64,
+        "none",
+        "bottom_right",
+        -1,
+        0,
+        0
+      ]
+    },
+    {
+      "id": 77,
+      "type": "VAEDecode",
+      "pos": [
+        3110,
+        -50
+      ],
+      "size": [
+        230,
+        60
+      ],
+      "flags": {},
+      "order": 52,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "samples",
+          "type": "LATENT",
+          "link": 122
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 140
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "slot_index": 0,
+          "links": [
+            184
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAEDecode",
+        "cnr_id": "comfy-core",
+        "ver": "0.7.0"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 110,
+      "type": "PrimitiveStringMultiline",
+      "pos": [
+        600,
+        360
+      ],
+      "size": [
+        600,
+        400
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "STRING",
+          "type": "STRING",
+          "links": [
+            188,
+            195
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PrimitiveStringMultiline"
+      },
+      "widgets_values": [
+        "The interior of a bar features an architecture of rounded, modular forms. A bar extends horizontally along the frame, displaying a strip of acrylic. To the left, an elegant black xenomorph, her biomechanical form glowing in a dim light, sits on a bar stool. She wears a tight crimson corset and a leather skirt, holding a tall glass in one hand, raised in a toast as she looks to the right. Her elongated, angular features are accentuated with a subtle bioluminescence. To the right, a cylindrical column supports a vertical neon panel that reads \"OPEN 24 HOURS.\" To the right, a man in his thirties stands at the bar, turning to look at the camera with a playful smile; his glass is reflected in the xenomorph's in a silent, interstellar toast. Behind the bar, in the center of the image, an imposing, octopus-like alien bartender twitches his tentacles, wearing smart black trousers, his octopus eyes glareing in displeasure. Behind the bartender, a mirrored wall reflects rows of liquor bottles with geometric labels. Above the bar floats a neon sign made of curved glass tubes that reads 'COSMIC LOUNGE' in tall, rounded letters, emitting light with a soft, glowing halo. An illuminated menu board reads 'SIGNATURE DRINKS' with three items: 'ORBITAL HIGHBALL,' 'NEBULA SOUR,' and 'ROCKET MARTINI,' each displayed on glowing horizontal bars. To the right, a cylindrical column features a vertical neon panel that reads 'OPEN 24 HOURS' in condensed letters within a translucent strip. To the left, a curved booth sits beneath a domed ceiling light. An illuminated sign reading 'GALAXY BAR SERVICE' encircles the inner rim of the dome in capitals and dominates the left side of the frame. Soft lighting reflects off the glass and acrylic surfaces, highlighting the structural design."
+      ],
+      "color": "#232",
+      "bgcolor": "#353",
+      "shape": "box"
     },
     {
       "id": 111,
@@ -1706,7 +2387,7 @@
         90
       ],
       "flags": {},
-      "order": 17,
+      "order": 16,
       "mode": 0,
       "inputs": [
         {
@@ -1728,11 +2409,89 @@
         "Node name for S&R": "StyleStringInjector2 //ZImagePowerNodes"
       },
       "widgets_values": [
-        "\"Unease Shadow Photo\"",
+        "\"Miniature Diorama\"",
         null
       ],
       "color": "#232",
       "bgcolor": "#353"
+    },
+    {
+      "id": 98,
+      "type": "PrimitiveInt",
+      "pos": [
+        600,
+        0
+      ],
+      "size": [
+        270,
+        90
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "INT",
+          "type": "INT",
+          "links": [
+            209
+          ]
+        }
+      ],
+      "title": "SEED",
+      "properties": {
+        "Node name for S&R": "PrimitiveInt"
+      },
+      "widgets_values": [
+        2,
+        "fixed"
+      ],
+      "color": "#2a363b",
+      "bgcolor": "#3f5159"
+    },
+    {
+      "id": 8,
+      "type": "VAEDecode",
+      "pos": [
+        2470,
+        -790
+      ],
+      "size": [
+        230,
+        60
+      ],
+      "flags": {},
+      "order": 50,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "samples",
+          "type": "LATENT",
+          "link": 93
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 116
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "slot_index": 0,
+          "links": [
+            156
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VAEDecode",
+        "cnr_id": "comfy-core",
+        "ver": "0.7.0"
+      },
+      "widgets_values": []
     },
     {
       "id": 100,
@@ -1833,771 +2592,11 @@
       ]
     },
     {
-      "id": 93,
-      "type": "ImageLabeler //ZImagePowerNodes",
-      "pos": [
-        2720,
-        -790
-      ],
-      "size": [
-        270,
-        274
-      ],
-      "flags": {},
-      "order": 55,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "image",
-          "type": "IMAGE",
-          "link": 156
-        },
-        {
-          "name": "font_size",
-          "type": "INT",
-          "widget": {
-            "name": "font_size"
-          },
-          "link": 214
-        }
-      ],
-      "outputs": [
-        {
-          "name": "IMAGE",
-          "type": "IMAGE",
-          "links": [
-            168
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "ImageLabeler //ZImagePowerNodes"
-      },
-      "widgets_values": [
-        "Intensity -1.0",
-        "#FF0000",
-        "#FFFFFF",
-        "roboto_slab",
-        64,
-        "none",
-        "bottom_right",
-        -1,
-        0,
-        0
-      ]
-    },
-    {
-      "id": 102,
-      "type": "ImageLabeler //ZImagePowerNodes",
-      "pos": [
-        3040,
-        -420
-      ],
-      "size": [
-        270,
-        274
-      ],
-      "flags": {},
-      "order": 56,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "image",
-          "type": "IMAGE",
-          "link": 171
-        },
-        {
-          "name": "font_size",
-          "type": "INT",
-          "widget": {
-            "name": "font_size"
-          },
-          "link": 215
-        }
-      ],
-      "outputs": [
-        {
-          "name": "IMAGE",
-          "type": "IMAGE",
-          "links": [
-            172
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "ImageLabeler //ZImagePowerNodes"
-      },
-      "widgets_values": [
-        "Intensity -0.5",
-        "#FF0000",
-        "#FFFFFF",
-        "roboto_slab",
-        64,
-        "none",
-        "bottom_right",
-        -1,
-        0,
-        0
-      ]
-    },
-    {
-      "id": 103,
-      "type": "ImageLabeler //ZImagePowerNodes",
-      "pos": [
-        3360,
-        -50
-      ],
-      "size": [
-        270,
-        274
-      ],
-      "flags": {},
-      "order": 57,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "image",
-          "type": "IMAGE",
-          "link": 184
-        },
-        {
-          "name": "font_size",
-          "type": "INT",
-          "widget": {
-            "name": "font_size"
-          },
-          "link": 218
-        }
-      ],
-      "outputs": [
-        {
-          "name": "IMAGE",
-          "type": "IMAGE",
-          "links": [
-            173
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "ImageLabeler //ZImagePowerNodes"
-      },
-      "widgets_values": [
-        "Intensity 0.0",
-        "#FF0000",
-        "#FFFFFF",
-        "roboto_slab",
-        64,
-        "none",
-        "bottom_right",
-        -1,
-        0,
-        0
-      ]
-    },
-    {
-      "id": 104,
-      "type": "ImageLabeler //ZImagePowerNodes",
-      "pos": [
-        3670,
-        330
-      ],
-      "size": [
-        270,
-        274
-      ],
-      "flags": {},
-      "order": 58,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "image",
-          "type": "IMAGE",
-          "link": 185
-        },
-        {
-          "name": "font_size",
-          "type": "INT",
-          "widget": {
-            "name": "font_size"
-          },
-          "link": 217
-        }
-      ],
-      "outputs": [
-        {
-          "name": "IMAGE",
-          "type": "IMAGE",
-          "links": [
-            174
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "ImageLabeler //ZImagePowerNodes"
-      },
-      "widgets_values": [
-        "Intensity +0.5",
-        "#FF0000",
-        "#FFFFFF",
-        "roboto_slab",
-        64,
-        "none",
-        "bottom_right",
-        -1,
-        0,
-        0
-      ]
-    },
-    {
-      "id": 105,
-      "type": "ImageLabeler //ZImagePowerNodes",
-      "pos": [
-        4010,
-        720
-      ],
-      "size": [
-        270,
-        274
-      ],
-      "flags": {},
-      "order": 59,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "image",
-          "type": "IMAGE",
-          "link": 186
-        },
-        {
-          "name": "font_size",
-          "type": "INT",
-          "widget": {
-            "name": "font_size"
-          },
-          "link": 216
-        }
-      ],
-      "outputs": [
-        {
-          "name": "IMAGE",
-          "type": "IMAGE",
-          "links": [
-            175
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "ImageLabeler //ZImagePowerNodes"
-      },
-      "widgets_values": [
-        "Intensity +1.0",
-        "#FF0000",
-        "#FFFFFF",
-        "roboto_slab",
-        64,
-        "none",
-        "bottom_right",
-        -1,
-        0,
-        0
-      ]
-    },
-    {
-      "id": 82,
-      "type": "ZSamplerTurbo2 //ZImagePowerNodes",
-      "pos": [
-        3430,
-        720
-      ],
-      "size": [
-        310,
-        750
-      ],
-      "flags": {},
-      "order": 49,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "latent_input",
-          "type": "LATENT",
-          "link": 145
-        },
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 148
-        },
-        {
-          "name": "positive",
-          "type": "CONDITIONING",
-          "link": 151
-        },
-        {
-          "name": "positive_stg2",
-          "shape": 7,
-          "type": "CONDITIONING",
-          "link": null
-        },
-        {
-          "name": "positive_stg3",
-          "shape": 7,
-          "type": "CONDITIONING",
-          "link": null
-        },
-        {
-          "name": "seed",
-          "type": "INT",
-          "widget": {
-            "name": "seed"
-          },
-          "link": 180
-        },
-        {
-          "name": "steps",
-          "type": "INT",
-          "widget": {
-            "name": "steps"
-          },
-          "link": 183
-        }
-      ],
-      "outputs": [
-        {
-          "name": "latent_output",
-          "type": "LATENT",
-          "links": [
-            126
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "ZSamplerTurbo2 //ZImagePowerNodes"
-      },
-      "widgets_values": [
-        1,
-        "fixed",
-        8,
-        1,
-        null,
-        "full_size",
-        null,
-        1,
-        0,
-        "off"
-      ]
-    },
-    {
-      "id": 79,
-      "type": "ZSamplerTurbo2 //ZImagePowerNodes",
-      "pos": [
-        3100,
-        330
-      ],
-      "size": [
-        310,
-        750
-      ],
-      "flags": {},
-      "order": 48,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "latent_input",
-          "type": "LATENT",
-          "link": 144
-        },
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 147
-        },
-        {
-          "name": "positive",
-          "type": "CONDITIONING",
-          "link": 150
-        },
-        {
-          "name": "positive_stg2",
-          "shape": 7,
-          "type": "CONDITIONING",
-          "link": null
-        },
-        {
-          "name": "positive_stg3",
-          "shape": 7,
-          "type": "CONDITIONING",
-          "link": null
-        },
-        {
-          "name": "seed",
-          "type": "INT",
-          "widget": {
-            "name": "seed"
-          },
-          "link": 179
-        },
-        {
-          "name": "steps",
-          "type": "INT",
-          "widget": {
-            "name": "steps"
-          },
-          "link": 182
-        }
-      ],
-      "outputs": [
-        {
-          "name": "latent_output",
-          "type": "LATENT",
-          "links": [
-            124
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "ZSamplerTurbo2 //ZImagePowerNodes"
-      },
-      "widgets_values": [
-        1,
-        "fixed",
-        8,
-        1,
-        null,
-        "full_size",
-        null,
-        0.5,
-        0,
-        "off"
-      ]
-    },
-    {
-      "id": 76,
-      "type": "ZSamplerTurbo2 //ZImagePowerNodes",
-      "pos": [
-        2780,
-        -50
-      ],
-      "size": [
-        310,
-        750
-      ],
-      "flags": {},
-      "order": 47,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "latent_input",
-          "type": "LATENT",
-          "link": 143
-        },
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 146
-        },
-        {
-          "name": "positive",
-          "type": "CONDITIONING",
-          "link": 149
-        },
-        {
-          "name": "positive_stg2",
-          "shape": 7,
-          "type": "CONDITIONING",
-          "link": null
-        },
-        {
-          "name": "positive_stg3",
-          "shape": 7,
-          "type": "CONDITIONING",
-          "link": null
-        },
-        {
-          "name": "seed",
-          "type": "INT",
-          "widget": {
-            "name": "seed"
-          },
-          "link": 178
-        },
-        {
-          "name": "steps",
-          "type": "INT",
-          "widget": {
-            "name": "steps"
-          },
-          "link": 181
-        }
-      ],
-      "outputs": [
-        {
-          "name": "latent_output",
-          "type": "LATENT",
-          "links": [
-            122
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "ZSamplerTurbo2 //ZImagePowerNodes"
-      },
-      "widgets_values": [
-        1,
-        "fixed",
-        8,
-        1,
-        null,
-        "full_size",
-        null,
-        false,
-        0,
-        "off"
-      ]
-    },
-    {
-      "id": 73,
-      "type": "ZSamplerTurbo2 //ZImagePowerNodes",
-      "pos": [
-        2460,
-        -430
-      ],
-      "size": [
-        310,
-        750
-      ],
-      "flags": {},
-      "order": 46,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "latent_input",
-          "type": "LATENT",
-          "link": 153
-        },
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 154
-        },
-        {
-          "name": "positive",
-          "type": "CONDITIONING",
-          "link": 155
-        },
-        {
-          "name": "positive_stg2",
-          "shape": 7,
-          "type": "CONDITIONING",
-          "link": null
-        },
-        {
-          "name": "positive_stg3",
-          "shape": 7,
-          "type": "CONDITIONING",
-          "link": null
-        },
-        {
-          "name": "seed",
-          "type": "INT",
-          "widget": {
-            "name": "seed"
-          },
-          "link": 164
-        },
-        {
-          "name": "steps",
-          "type": "INT",
-          "widget": {
-            "name": "steps"
-          },
-          "link": 165
-        }
-      ],
-      "outputs": [
-        {
-          "name": "latent_output",
-          "type": "LATENT",
-          "links": [
-            120
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "ZSamplerTurbo2 //ZImagePowerNodes"
-      },
-      "widgets_values": [
-        1,
-        "fixed",
-        8,
-        1,
-        null,
-        "full_size",
-        null,
-        -0.5,
-        0,
-        "off"
-      ]
-    },
-    {
-      "id": 64,
-      "type": "ZSamplerTurbo2 //ZImagePowerNodes",
-      "pos": [
-        2140,
-        -800
-      ],
-      "size": [
-        310,
-        750
-      ],
-      "flags": {},
-      "order": 45,
-      "mode": 0,
-      "inputs": [
-        {
-          "name": "latent_input",
-          "type": "LATENT",
-          "link": 117
-        },
-        {
-          "name": "model",
-          "type": "MODEL",
-          "link": 118
-        },
-        {
-          "name": "positive",
-          "type": "CONDITIONING",
-          "link": 119
-        },
-        {
-          "name": "positive_stg2",
-          "shape": 7,
-          "type": "CONDITIONING",
-          "link": null
-        },
-        {
-          "name": "positive_stg3",
-          "shape": 7,
-          "type": "CONDITIONING",
-          "link": null
-        },
-        {
-          "name": "seed",
-          "type": "INT",
-          "widget": {
-            "name": "seed"
-          },
-          "link": 160
-        },
-        {
-          "name": "steps",
-          "type": "INT",
-          "widget": {
-            "name": "steps"
-          },
-          "link": 161
-        }
-      ],
-      "outputs": [
-        {
-          "name": "latent_output",
-          "type": "LATENT",
-          "links": [
-            93
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "ZSamplerTurbo2 //ZImagePowerNodes"
-      },
-      "widgets_values": [
-        1,
-        "fixed",
-        8,
-        1,
-        null,
-        "full_size",
-        null,
-        -1,
-        0,
-        "off"
-      ]
-    },
-    {
-      "id": 99,
-      "type": "PrimitiveInt",
-      "pos": [
-        600,
-        100
-      ],
-      "size": [
-        270,
-        90
-      ],
-      "flags": {},
-      "order": 6,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "INT",
-          "type": "INT",
-          "links": [
-            167
-          ]
-        }
-      ],
-      "title": "STEPS",
-      "properties": {
-        "Node name for S&R": "PrimitiveInt"
-      },
-      "widgets_values": [
-        8,
-        "fixed"
-      ],
-      "color": "#2a363b",
-      "bgcolor": "#3f5159"
-    },
-    {
-      "id": 110,
-      "type": "PrimitiveStringMultiline",
-      "pos": [
-        600,
-        360
-      ],
-      "size": [
-        600,
-        400
-      ],
-      "flags": {},
-      "order": 7,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "STRING",
-          "type": "STRING",
-          "links": [
-            188,
-            195
-          ]
-        }
-      ],
-      "properties": {
-        "Node name for S&R": "PrimitiveStringMultiline"
-      },
-      "widgets_values": [
-        "A woman with blue skin stands with arms crossed, wearing a white bandeau top and white shorts. Gold accents adorn the woman's arms, waist, and ankles. The waist is further embellished with a wide, ornate gold belt featuring blue jewels. The woman's hair is a voluminous, bright blue, styled into two high pigtails adorned with gold accessories, and it cascades down her back and sides in long, flowing strands. The background shows a wooden shelf filled with various bottles and jars, and a fireplace with flames. To the left, a tall, ornate gold urn emits white smoke. The floor appears to be a rough, textured surface."
-      ],
-      "color": "#232",
-      "bgcolor": "#353",
-      "shape": "box"
-    },
-    {
       "id": 67,
       "type": "Note",
       "pos": [
-        1210,
-        370
+        1220,
+        360
       ],
       "size": [
         420,
@@ -2611,17 +2610,17 @@
       "title": "README",
       "properties": {},
       "widgets_values": [
-        "This workflow generates a 5-step 'intensity' showcase to demonstrate how this parameter tweaks the contrast and saturation of the final image. I use this figure in the README so you can see at a glance how adjusting the intensity changes the look and feel of your output."
+        "This workflow generates a sampling steps progression to demonstrate how the number of iterations affects the refinement of the final image. By using a sequence from 3 to 8 steps, it shows how the image evolves and gains detail. I use this figure in the README so you can see at a glance how choosing different step counts impacts the overall quality and coherence of the output."
       ],
       "color": "#432",
       "bgcolor": "#653"
     },
     {
-      "id": 123,
+      "id": 117,
       "type": "PrimitiveInt",
       "pos": [
         1210,
-        680
+        550
       ],
       "size": [
         270,
@@ -2629,6 +2628,41 @@
       ],
       "flags": {},
       "order": 9,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "INT",
+          "type": "INT",
+          "links": [
+            201
+          ]
+        }
+      ],
+      "title": "FONT SIZE : text",
+      "properties": {
+        "Node name for S&R": "PrimitiveInt"
+      },
+      "widgets_values": [
+        18,
+        "fixed"
+      ],
+      "color": "#223",
+      "bgcolor": "#335"
+    },
+    {
+      "id": 123,
+      "type": "PrimitiveInt",
+      "pos": [
+        1210,
+        670
+      ],
+      "size": [
+        270,
+        82
+      ],
+      "flags": {},
+      "order": 10,
       "mode": 0,
       "inputs": [],
       "outputs": [
@@ -2646,41 +2680,6 @@
       },
       "widgets_values": [
         104,
-        "fixed"
-      ],
-      "color": "#223",
-      "bgcolor": "#335"
-    },
-    {
-      "id": 117,
-      "type": "PrimitiveInt",
-      "pos": [
-        1210,
-        560
-      ],
-      "size": [
-        270,
-        82
-      ],
-      "flags": {},
-      "order": 10,
-      "mode": 0,
-      "inputs": [],
-      "outputs": [
-        {
-          "name": "INT",
-          "type": "INT",
-          "links": [
-            201
-          ]
-        }
-      ],
-      "title": "FONT SIZE : text",
-      "properties": {
-        "Node name for S&R": "PrimitiveInt"
-      },
-      "widgets_values": [
-        28,
         "fixed"
       ],
       "color": "#223",
@@ -3001,14 +3000,6 @@
       "INT"
     ],
     [
-      161,
-      95,
-      0,
-      64,
-      6,
-      "INT"
-    ],
-    [
       162,
       96,
       0,
@@ -3030,22 +3021,6 @@
       0,
       73,
       5,
-      "INT"
-    ],
-    [
-      165,
-      95,
-      0,
-      73,
-      6,
-      "INT"
-    ],
-    [
-      167,
-      99,
-      0,
-      97,
-      0,
       "INT"
     ],
     [
@@ -3134,30 +3109,6 @@
       0,
       82,
       5,
-      "INT"
-    ],
-    [
-      181,
-      107,
-      0,
-      76,
-      6,
-      "INT"
-    ],
-    [
-      182,
-      107,
-      0,
-      79,
-      6,
-      "INT"
-    ],
-    [
-      183,
-      107,
-      0,
-      82,
-      6,
       "INT"
     ],
     [
@@ -3391,6 +3342,54 @@
       103,
       1,
       "INT"
+    ],
+    [
+      221,
+      107,
+      0,
+      82,
+      6,
+      "FLOAT"
+    ],
+    [
+      222,
+      107,
+      0,
+      79,
+      6,
+      "FLOAT"
+    ],
+    [
+      223,
+      107,
+      0,
+      76,
+      6,
+      "FLOAT"
+    ],
+    [
+      224,
+      95,
+      0,
+      64,
+      6,
+      "FLOAT"
+    ],
+    [
+      225,
+      95,
+      0,
+      73,
+      6,
+      "FLOAT"
+    ],
+    [
+      226,
+      127,
+      0,
+      97,
+      0,
+      "FLOAT"
     ]
   ],
   "groups": [
@@ -3411,10 +3410,10 @@
   "config": {},
   "extra": {
     "ds": {
-      "scale": 0.839054528882414,
+      "scale": 0.9229599817706596,
       "offset": [
-        -310.7407502972308,
-        234.83231040261612
+        -384.51530229224477,
+        117.90806444691326
       ]
     },
     "frontendVersion": "1.41.20",
