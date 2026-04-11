@@ -336,17 +336,13 @@ def execute_3_stage_denoising(comfy_latent: ComfyLatent,
     """
     SIGMA_START = 1.0
 
-    # if positive cond for stage 2 pre-processing is not provided, it will be the same as main conditioning
-    if _is_empty_conditioning(positive_stg2_preproc):
-        positive_stg2_preproc = positive
-
-    # if positive cond for stage 2 is not provided, it will be the same as main conditioning
-    if _is_empty_conditioning(positive_stg2):
-        positive_stg2 = positive
-
-    # if positive cond for stage 3 is not provided, it will be the same as the second stage
-    if _is_empty_conditioning(positive_stg3):
-        positive_stg3 = positive_stg2
+    # force all conditioning to be valid
+    #  - if positive cond for stage-2-preprocessing is not provided, it will be the same as main conditioning
+    #  - if positive cond for stage-2 is not provided, it will be the same as main conditioning
+    #  - if positive cond for stage-3 is not provided, it will be the same as the stage-2
+    positive_stg2_preproc = _valid_conditioning(positive_stg2_preproc, default=positive)
+    positive_stg2         = _valid_conditioning(positive_stg2        , default=positive)
+    positive_stg3         = _valid_conditioning(positive_stg3        , default=positive_stg2)
 
     # force each `sigma` to be a tensor
     if isinstance(sigmas1, (list,tuple)):
@@ -1324,6 +1320,22 @@ def _merge_sigmas(sigmas1: torch.Tensor | None,
 def _num_steps(sigmas: torch.Tensor | None) -> int:
     """Returns the number of sampling steps represented in the sigmas tensor."""
     return sigmas.shape[-1]-1 if sigmas is not None else 0
+
+
+def _valid_conditioning(conditioning: ComfyConditioning | None, *,
+                        default     : ComfyConditioning
+                        ) -> ComfyConditioning:
+    """
+    Returns the provided comfyui conditioning if it is valid, otherwise returns the default.
+    Args:
+        conditioning        : The conditioning to be validated.
+        default_conditioning: The fallback conditioning to use if the provided one is invalid.
+    Returns:
+        A valid comfyui conditioning, either from the input or the default.
+    """
+    if isinstance(conditioning,(list,tuple)) and len(conditioning) > 0:
+        return conditioning
+    return default
 
 
 def _is_empty_conditioning(comfy_conditioning: ComfyConditioning | None) -> bool:
