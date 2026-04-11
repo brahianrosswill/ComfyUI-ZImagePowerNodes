@@ -32,7 +32,7 @@ There are several ways to do so:
 
 ### Visual Styles
 
-A library of over 100 predefined visual styles is included in the "Style & Prompt Encoder" node. When you select a style, the node automatically adds the required text to your prompt, making it easy to change the artistic direction of your output. You can browse the styles through a searchable gallery with thumbnails to preview how each one looks. This feature helps you achieve a consistent aesthetic without having to write complex prompts, all while keeping your original subject and composition intact.
+The "Style & Prompt Encoder" node comes with a library of over 100 predefined styles. Just pick one, and the node automatically handles the prompting to shift your image's artistic direction. You can browse them all via a searchable gallery with thumbnails for quick previews. It's the perfect way to nail a consistent look without wrestling with complex prompts, all while keeping your original subject and composition intact.
 
 <img src="workflows/_z_/__figure__styles.jpg" width="90%"></img>
 
