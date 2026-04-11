@@ -1375,11 +1375,11 @@ BRAVO_SIGMA_PRESET = (
     ),(#4steps
         (0.991, 0.920),                             #< +1 step
         (0.935, 0.789, 0.000),                      #< +2 steps | = 3 generation steps
-        (0.500, 0.000),                             #< +1 step  | + 1 refiner step
+        (0.710, 0.000),                             #< +1 step  | + 1 refiner step
     ),(#5steps
         (0.991, 0.920),                             #< +1 step
-        (0.935, 0.770, 0.690, 0.000),               #< +4 steps | = 4 generation steps
-        (0.280, 0.000),                             #< +1 step  | + 1 refiner step
+        (0.935, 0.789, 0.000),                      #< +2 steps | = 3 generation steps
+        (0.658, 0.302, 0.000),                      #< +2 steps | + 2 refiner steps
     ),(#6steps
         (0.991, 0.920),                             #< +1 step
         (0.935, 0.770, 0.690, 0.000),               #< +3 steps | = 4 generation steps
