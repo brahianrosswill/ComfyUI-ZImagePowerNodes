@@ -396,6 +396,15 @@ def execute_3_stage_denoising(comfy_latent: ComfyLatent,
         stage3_start_from_beginning = bool( sigmas3[0] == original_sigmas3[0] )
 
 
+    # verify if inpainting is being performed by checking if the maximum value
+    # in `sigma_limits` is less than 1.0
+    # if inpainting is detected, combine stage1 and stage2 into stage1.
+    # this action eliminates all stage2 processes including turbo creativity
+    if isinstance(sigma_limits, (list,tuple)) and max(sigma_limits[0],sigma_limits[1]) < 1.0:
+        sigmas1 = _merge_sigmas(sigmas1, sigmas2)
+        sigmas2 = None
+
+
     # calculate the progress level for each step
     progE = 0
     prog1 = progE + 1
@@ -1283,6 +1292,31 @@ def refine_sigma_sequence(sigmas: list[float] | None, insert_count: int) -> list
         sigmas = new_sequence
 
     return sigmas
+
+def _merge_sigmas(sigmas1: torch.Tensor | None, 
+                  sigmas2: torch.Tensor | None
+                  ) -> torch.Tensor | None:
+    """
+    Merges two descendingly ordered sigma tensors, removing overlapping values.
+    Args:
+        sigmas1: First tensor of sigmas.
+        sigmas2: Second tensor of sigmas.
+    Returns:
+        Combined tensor with overlapping values removed and maintained in descending order.
+        If both tensors are None, returns None.
+    """
+    if sigmas1 is None:
+        return sigmas2
+    if sigmas2 is None:
+        return sigmas1
+
+    # ensure tensors are on the same device and data type for concatenation
+    sigmas2 = sigmas2.to(device=sigmas1.device, dtype=sigmas1.dtype)
+
+    # find the cut-off point where elements in sigmas1 are
+    # strictly greater than the first element of sigmas2
+    cut = (sigmas1 > sigmas2[0]).sum()
+    return torch.cat((sigmas1[:cut], sigmas2))
 
 
 #================================= HELPERS =================================#
