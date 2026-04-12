@@ -44,7 +44,7 @@ The "Z-Sampler Turbo" node maintains image consistency from 3 steps onwards. Sin
 
 ### Intensity Control
 
-__Intensity__ is a parameter within the "Z-Sampler Turbo" node that tweaks the amplitude of the initial noise to give your images more contrast and saturation. Values above 1.0 boost contrast and sharpen edges, resulting in a more defined and vibrant look. On the flip side, values below 1.0 yield a softer, more "washed-out" look with less micro-detail.
+__Intensity__ is a parameter within the "Z-Sampler Turbo" node that tweaks the amplitude of the initial noise to give your images more contrast and saturation. Values above 0.0 (positives) boost contrast and sharpen edges, resulting in a more defined and vibrant look. On the flip side, values below 0.0 (negatives) yield a softer, more "washed-out" look with less micro-detail.
 
 Just keep in mind that the final result depends a lot on your prompt and the specific style you're using. It's not a hard rule, but lower values usually complement photographic styles better, while higher values tend to work well for illustrations.
 
