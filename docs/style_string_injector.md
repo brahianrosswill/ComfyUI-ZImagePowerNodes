@@ -1,5 +1,5 @@
 # Style String Injector
-![text](/docs/style_string_injector.jpg)
+![text](style_string_injector.jpg)
 
 Injects a selected style into your prompt. This node takes an input string containing
 the raw prompt (composition, characters, etc.) and modifies it by adding the chosen style.

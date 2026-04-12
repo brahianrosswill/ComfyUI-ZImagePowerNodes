@@ -2,14 +2,24 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify/lib/themes/vue.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify-themeable/dist/css/theme-simple-dark.css">
+<style>
+  :root {
+    --sidebar-width: 400px;
+  }
+  .markdown-section {
+    margin: 0 !important; /* << remove automatic centering */
+    max-width: 900px;
+  }
+</style>
 </head>
 <body>
   <div id="app"></div>
   <script>
     window.$docsify = {
-      name: 'Nombre de tu Proyecto',
-      repo: 'https://github.com'
+      name: '⚡ Z-Image Power Nodes',
+      repo: 'https://github.com/martin-rizzo/ComfyUI-ZImagePowerNodes',
+      auto2top: true
     }
   </script>
   <script src="//cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>

@@ -1,6 +1,6 @@
 # Z-Sampler Turbo
 
-![z-sampler turbo node](/docs/zsampler_turbo.jpg)
+![z-sampler turbo node](zsampler_turbo.jpg)
 
 The distinctive feature of this sampler is that it divides the number of steps into three stages: composition, details, and refinement. The sigmas are calculated to keep the image stable from 4 to 9 steps. Naturally, with fewer steps, the final quality decreases, but the resulting images remain quite similar.
 
@@ -63,7 +63,7 @@ For illustrations that are pure line art without realistic elements, a calibrati
 If the illustration includes texture or softer color edges (e.g., weathered or vintage-looking drawings, or semi-realistic illustrations with textures), a lower value might be preferable to preserve those characteristics.
 
 **[Workflow](https://raw.githubusercontent.com/martin-rizzo/ComfyUI-ZImagePowerNodes/refs/heads/master/docs/calibration_examples/illustration.json)**
-![illustration example](/docs/calibration_examples/illustration.jpg)
+![illustration example](calibration_examples/illustration.jpg)
 
 ### Photographs
 
@@ -72,12 +72,12 @@ For photographs, a higher INC percentage (e.g., 100%) can make them appear sligh
 For photos requiring an overall very dark or light tone, activating the calibration with a high percentage is usually necessary, as without it such images tend towards an average gray tone.  (This example uses the "Noir Photo" style, which might better suit the darker illumination of the left image).
 
 **[Workflow](https://raw.githubusercontent.com/martin-rizzo/ComfyUI-ZImagePowerNodes/refs/heads/master/docs/calibration_examples/photo.json)**
-![photo example](/docs/calibration_examples/photo.jpg)
+![photo example](calibration_examples/photo.jpg)
 
 ### Other Styles
 
 The need for calibration varies greatly depending on the image style and prompt. Images requiring fine texture details rather than intense colors or high contrast may perform better with INC disabled, as demonstrated in this "Stamp" style example.
 
 **[Workflow](https://raw.githubusercontent.com/martin-rizzo/ComfyUI-ZImagePowerNodes/refs/heads/master/docs/calibration_examples/stamp.json)**
-![stamp example](/docs/calibration_examples/stamp.jpg)
+![stamp example](calibration_examples/stamp.jpg)
 
