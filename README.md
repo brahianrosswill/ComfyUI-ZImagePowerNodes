@@ -65,19 +65,19 @@ Currently, it only affects composition (like posing, framing, and object placeme
 
 ## Power Nodes Documentation
 
-* __[⚡Z-Sampler Turbo](docs/zsampler_turbo.md)__  
+* __[⚡Z-Sampler Turbo](https://martin-rizzo.github.io/ComfyUI-ZImagePowerNodes/#/zsampler_turbo)__  
 <sub>A specialized sampler designed to Z-Image Turbo that achieves sufficient quality to eliminate the need for further post-processing.</sub>
-* __[⚡Style Prompt Encoder](docs/style_prompt_encoder.md)__  
+* __[⚡Style Prompt Encoder](https://martin-rizzo.github.io/ComfyUI-ZImagePowerNodes/#/style_prompt_encoder)__  
 <sub>Applies a selected visual styles to your prompt and encodes both of them using a text-encoder model (clip).
-* __[⚡Style String Injector](docs/style_string_injector.md)__  
+* __[⚡Style String Injector](https://martin-rizzo.github.io/ComfyUI-ZImagePowerNodes/#/style_string_injector)__  
 <sub>Seamlessly integrates a chosen style into your prompt text. It accepts a string as input and modifies it based on the selected style.</sub>
-* __[⚡My Top-10 Styles](docs/my_top_10_styles.md)__  
+* __[⚡My Top-10 Styles](https://martin-rizzo.github.io/ComfyUI-ZImagePowerNodes/#/my_top_10_styles)__  
 <sub>Allows you to create a list of favorite styles for quick selection of your most used ones.</sub>
-* __[⚡VAE Encode (for Soft Inpainting)](docs/vae_encode_for_soft_inpainting.md)__  
+* __[⚡VAE Encode (for Soft Inpainting)](https://martin-rizzo.github.io/ComfyUI-ZImagePowerNodes/#/vae_encode_for_soft_inpainting)__  
 <sub>Encodes images into a latent representation, embedding the mask that indicates where inpainting will be applied.</sub>
-* __[⚡Save Image](docs/save_image.md)__  
+* __[⚡Save Image](https://martin-rizzo.github.io/ComfyUI-ZImagePowerNodes/#/save_image)__  
 <sub>Saves generated images with the option to embed CivitAI-compatible metadata, making it easy to share generation parameters through that platform.</sub>
-* __[⚡Empty Z-Image Latent Image](docs/empty_zimage_latent_image.md)__  
+* __[⚡Empty Z-Image Latent Image](https://martin-rizzo.github.io/ComfyUI-ZImagePowerNodes/#/empty_zimage_latent_image)__  
 <sub>Creates an empty latent image of the appropriate size for Z-Image, selecting aspect ratio, scale, and orientation.</sub>
 
 
