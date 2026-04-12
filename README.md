@@ -50,9 +50,9 @@ __Intensity Bias__ is a companion parameter that lets you calibrate the bias of 
 
 ### Turbo Creativity
 
-__Turbo Creativity__ is a toggle in the "Z-Sampler Turbo" node that enables latent shuffling during the sampling process to increase variety without compromising the overall visual style or prompt instructions. This feature attempts to address the inherent limitations of Z-Image Turbo regarding image variability across different seeds.
+__Turbo Creativity__ is an option in the "Z-Sampler Turbo" node that uses latent scrambling to increase variety without messing up the visual style or prompt. This feature attempts to improve the limited image variability seen across different seeds in Z-Image Turbo.
 
-Currently, Turbo Creativity exclusively influences compositional elements (such as object placement, posing, and framing) while maintaining consistency in color palettes and image style. Because of how it is implemented, this process may introduce hallucinations; these can be mitigated by increasing the "Consistency Extra Steps" parameter to further refine the process.
+Currently, it only affects composition (like posing, framing, and object placement) while keeping colors and style consistent. Because this process can lead to hallucinations, I've added "refined" options that throw in some extra sampling steps to keep the image coherent. Note that using these refined options will increase the total generation time.
 
 <img src="workflows/_z_/__figure__turbo_creativity.jpg" width="90%"></img>
 
