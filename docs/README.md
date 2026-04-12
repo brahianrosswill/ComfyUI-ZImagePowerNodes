@@ -16,7 +16,7 @@ Welcome to the official documentation for **Z-Image Power Nodes**. This collecti
 
 Select a node to view detailed information and usage:
 
-* [⚡ **Z-Sampler Turbo**](zsampler_turbo.md)
+* [⚡ **Z-Sampler Turbo ^G2**](zsampler_turbo_2.md)
 * [⚡ **Style Prompt Encoder**](style_prompt_encoder.md)
 * [⚡ **Style String Injector**](style_string_injector.md)
 * [⚡ **My Top-10 Styles**](my_top_10_styles.md)

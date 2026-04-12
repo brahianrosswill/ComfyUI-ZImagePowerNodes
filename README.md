@@ -65,8 +65,8 @@ Currently, it only affects composition (like posing, framing, and object placeme
 
 ## Power Nodes Documentation
 
-* __[⚡Z-Sampler Turbo](https://martin-rizzo.github.io/ComfyUI-ZImagePowerNodes/#/zsampler_turbo)__  
-<sub>A specialized sampler designed to Z-Image Turbo that achieves sufficient quality to eliminate the need for further post-processing.</sub>
+* __[⚡Z-Sampler Turbo ^G2](https://martin-rizzo.github.io/ComfyUI-ZImagePowerNodes/#/zsampler_turbo_2)__  
+<sub>A specialized sampler designed for high-quality image generation, allowing you more control over the final result.</sub>
 * __[⚡Style Prompt Encoder](https://martin-rizzo.github.io/ComfyUI-ZImagePowerNodes/#/style_prompt_encoder)__  
 <sub>Applies a selected visual styles to your prompt and encodes both of them using a text-encoder model (clip).
 * __[⚡Style String Injector](https://martin-rizzo.github.io/ComfyUI-ZImagePowerNodes/#/style_string_injector)__  
