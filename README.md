@@ -22,11 +22,12 @@ There are several ways to do so:
 
 
 ## Table of Contents
-1. [Nodes](#nodes)
-2. [Examples](#examples)
-3. [Installation](#installation)
-4. [Recommended Checkpoints](#recommended-checkpoints)
-5. [License](#license)
+1. [Features](#features)
+2. [Documentation](#power-nodes-documentation)
+3. [Examples](#examples)
+4. [Installation](#installation)
+5. [Recommended Checkpoints](#recommended-checkpoints)
+6. [License](#license)
 
 ## Features
 
