@@ -36,6 +36,12 @@ The "Style & Prompt Encoder" node comes with a library of over 100 predefined st
 
 <img src="workflows/_z_/__figure__styles.jpg" width="90%"></img>
 
+### Consistency with Low Steps
+
+The "Z-Sampler Turbo" node maintains image consistency from 3 steps onwards. Since there are minimal variations in composition, you can quickly test prompt changes with just a few steps and then crank them up later for a high-quality version. Along those lines, the sampler produces a more than acceptable result with only 5 steps, and once you hit 7 or more, the quality is high enough that you won't even need any further post-processing.
+
+<img src="workflows/_z_/__figure__steps.jpg" width="90%"></img>
+
 ### Intensity Control
 
 __Intensity__ is a parameter within the "Z-Sampler Turbo" node that tweaks the amplitude of the initial noise to give your images more contrast and saturation. Values above 1.0 boost contrast and sharpen edges, resulting in a more defined and vibrant look. On the flip side, values below 1.0 yield a softer, more "washed-out" look with less micro-detail.
@@ -55,10 +61,6 @@ __Turbo Creativity__ is an option in the "Z-Sampler Turbo" node that uses latent
 Currently, it only affects composition (like posing, framing, and object placement) while keeping colors and style consistent. Because this process can lead to hallucinations, I've added "refined" options that throw in some extra sampling steps to keep the image coherent. Note that using these refined options will increase the total generation time.
 
 <img src="workflows/_z_/__figure__turbo_creativity.jpg" width="90%"></img>
-
-### Steps
-
-<img src="workflows/_z_/__figure__steps.jpg" width="90%"></img>
 
 
 ## Power Nodes Documentation
