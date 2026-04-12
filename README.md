@@ -62,6 +62,10 @@ Currently, it only affects composition (like posing, framing, and object placeme
 
 <img src="workflows/_z_/__figure__turbo_creativity.jpg" width="90%"></img>
 
+### Other Extras
+
+I've also included some smaller utility nodes to make things easier. There's a VAE encoder for inpainting with Z-Image-specific parameters, a node with one-click activation for your 10 most-used styles, a node to save images with CivitAI-compatible metadata, and a few other bits and pieces.
+
 
 ## Power Nodes Documentation
 
