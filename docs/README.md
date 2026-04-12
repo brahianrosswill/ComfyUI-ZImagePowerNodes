@@ -1,34 +1,18 @@
+<div align="center">
+
 # Z-Image Power Nodes
 
-> Pushing the best image generation model to its limits!
+__Pushing the best image generation model to its limits!__
+
+  <img src="https://raw.githubusercontent.com/martin-rizzo/ComfyUI-ZImagePowerNodes/refs/heads/master/banner_readme.jpg" width="100%" alt="Z-Image Power Nodes Banner">
+
+</div>
 
 Welcome to the official documentation for **Z-Image Power Nodes**. This collection of nodes is designed specifically for the [Z-Image / Z-Image Turbo model](https://github.com), based on the discoveries made during the development of the Amazing Z-Image Workflow.
 
-<div align="center">
-  <img src="banner_readme.jpg" width="100%" alt="Z-Image Power Nodes Banner">
-</div>
 
----
 
-## 🌟 Key Features
-
-### Visual Styles
-The **Style & Prompt Encoder** node includes a library of over 100 predefined styles. It handles the prompting automatically to shift artistic direction while keeping your original subject intact.
-
-### Consistency with Low Steps
-The **Z-Sampler Turbo** maintains image consistency starting from just 3 steps. You can quickly iterate on prompts and then increase steps for high-quality final versions.
-
-### Intensity Control
-Fine-tune your images with **Intensity** and **Intensity Bias**. 
-* **Higher Intensity**: Boosts contrast and sharpens edges.
-* **Lower Intensity**: Produces a softer, "washed-out" photographic look.
-
-### Turbo Creativity
-Increase variety without breaking your style. This feature uses latent scrambling to improve composition variability (posing, framing) across different seeds.
-
----
-
-## 📚 Nodes Documentation
+## Nodes Documentation
 
 Select a node to view detailed information and usage:
 
@@ -40,9 +24,8 @@ Select a node to view detailed information and usage:
 * [⚡ **Save Image**](save_image.md)
 * [⚡ **Empty Z-Image Latent Image**](empty_zimage_latent_image.md)
 
----
 
-## 🚀 Getting Started
+## Getting Started
 
 To install **Z-Image Power Nodes** in your ComfyUI setup:
 
@@ -51,7 +34,6 @@ To install **Z-Image Power Nodes** in your ComfyUI setup:
 3. Search for `Z-Image Power Nodes`.
 4. Click **Install** and restart ComfyUI.
 
----
 
 ## ❤️ Support the Project
 
