@@ -1,10 +1,11 @@
 <!-- _sidebar.md -->
 
-* [🏠 Home](/)
-* [⚡ **Z-Sampler Turbo ^G2**](zsampler_turbo_2.md)
-* [⚡ **Style Prompt Encoder**](style_prompt_encoder.md)
-* [⚡ **Style String Injector**](style_string_injector.md)
-* [⚡ **My Top-10 Styles**](my_top_10_styles.md)
-* [⚡ **VAE Encode (Soft Inpainting)**](vae_encode_for_soft_inpainting.md)
-* [⚡ **Save Image**](save_image.md)
-* [⚡ **Empty Z-Image Latent Image**](empty_zimage_latent_image.md)
+ * [Documentation](/)
+ __Nodes__
+ * [__⚡| Z-Sampler Turbo ^G2__](zsampler_turbo_2.md)
+ * [__⚡| Style Prompt Encoder__](style_prompt_encoder.md)
+ * [__⚡| Style String Injector__](style_string_injector.md)
+ * [__⚡| My Top-10 Styles__](my_top_10_styles.md)
+ * [__⚡| VAE Encode (Soft Inpainting)__](vae_encode_for_soft_inpainting.md)
+ * [__⚡| Save Image__](save_image.md)
+ * [__⚡| Empty Z-Image Latent Image__](empty_zimage_latent_image.md)
