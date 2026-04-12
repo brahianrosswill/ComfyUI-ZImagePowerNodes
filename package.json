@@ -5,10 +5,10 @@
   "license": "MIT",
   "homepage": "https://github.com/martin-rizzo/ComfyUI-ZImagePowerNodes#readme",
   "browserslist": [
-      "last 5 years",
-      "> 0.5%",
-      "not dead",
-      "not ie 11"
+    "last 5 years",
+    "> 0.5%",
+    "not dead",
+    "not ie 11"
   ],
   "main": "index.js",
   "devDependencies": {
@@ -16,5 +16,8 @@
     "eslint": "^9.39.2",
     "eslint-plugin-compat": "^6.1.0",
     "globals": "^17.3.0"
+  },
+  "dependencies": {
+    "docsify-cli": "^4.4.4"
   }
 }
