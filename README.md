@@ -35,13 +35,13 @@ There are several ways to do so:
 
 The "Style & Prompt Encoder" node comes with a library of over 100 predefined styles. Just pick one, and the node automatically handles the prompting to shift your image's artistic direction. You can browse them all via a searchable gallery with thumbnails for quick previews. It's the perfect way to nail a consistent look without wrestling with complex prompts, all while keeping your original subject and composition intact.
 
-<img src="workflows/_z_/__figure__styles.jpg" width="90%"></img>
+<img src="docs/figures/__figure__styles.jpg" width="90%"></img>
 
 ### Consistency with Low Steps
 
 The "Z-Sampler Turbo" node maintains image consistency from 3 steps onwards. Since there are minimal variations in composition, you can quickly test prompt changes with just a few steps and then crank them up later for a high-quality version. Along those lines, the sampler produces a more than acceptable result with only 5 steps, and once you hit 7 or more, the quality is high enough that you won't even need any further post-processing.
 
-<img src="workflows/_z_/__figure__steps.jpg" width="90%"></img>
+<img src="docs/figures/__figure__steps.jpg" width="90%"></img>
 
 ### Intensity Control
 
@@ -49,11 +49,11 @@ __Intensity__ is a parameter within the "Z-Sampler Turbo" node that tweaks the a
 
 Just keep in mind that the final result depends a lot on your prompt and the specific style you're using. It's not a hard rule, but lower values usually complement photographic styles better, while higher values tend to work well for illustrations.
 
-<img src="workflows/_z_/__figure__intensity.jpg" width="90%"></img>
+<img src="docs/figures/__figure__intensity.jpg" width="90%"></img>
 
 __Intensity Bias__ is a companion parameter that lets you calibrate the bias of the initial noise. You'll usually want to keep this at 0.0. You could think of it as adjusting the "brightness". Since its effect depends heavily on the prompt and image style, it doesn't always act as a simple brightness control. In some cases, it can even affect how in-focus the image looks. Just tweak it within the positive or negative range until it looks right to you.
 
-<img src="workflows/_z_/__figure__intensity_bias.jpg" width="90%"></img>
+<img src="docs/figures/__figure__intensity_bias.jpg" width="90%"></img>
 
 ### Turbo Creativity
 
@@ -61,7 +61,7 @@ __Turbo Creativity__ is an option in the "Z-Sampler Turbo" node that uses latent
 
 Currently, it only affects composition (like posing, framing, and object placement) while keeping colors and style consistent. Because this process can lead to hallucinations, I've added "refined" options that throw in some extra sampling steps to keep the image coherent. Note that using these refined options will increase the total generation time.
 
-<img src="workflows/_z_/__figure__turbo_creativity.jpg" width="90%"></img>
+<img src="docs/figures/__figure__turbo_creativity.jpg" width="90%"></img>
 
 ### Other Extras
 
