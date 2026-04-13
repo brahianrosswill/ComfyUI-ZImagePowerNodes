@@ -12,9 +12,7 @@ Welcome to the official documentation for **Z-Image Power Nodes**. This collecti
 
 
 
-## Nodes Documentation
-
-Select a node to view detailed information and usage:
+## Nodes
 
 * [⚡ **Z-Sampler Turbo ^G2**](zsampler_turbo_2.md)
 * [⚡ **Style Prompt Encoder**](style_prompt_encoder.md)
@@ -35,12 +33,7 @@ To install **Z-Image Power Nodes** in your ComfyUI setup:
 4. Click **Install** and restart ComfyUI.
 
 
-## ❤️ Support the Project
-
-If you find these nodes useful, please consider supporting the research and development:
-
-* **Star the repo:** Help us reach our 500 stars goal!
-* **Ko-fi:** [Support Martin Rizzo on Ko-fi](https://ko-fi.com)
 
 ---
-*Maintained by [Martin Rizzo](https://github.com). Detailed examples can be found in the `/workflows` folder of the main repository.*
+*Maintained by [Martin Rizzo](https://github.com/martin-rizzo).  
+Detailed examples can be found in the [__workflows folder__](https://github.com/martin-rizzo/ComfyUI-ZImagePowerNodes/tree/master/workflows) of the main repository.*

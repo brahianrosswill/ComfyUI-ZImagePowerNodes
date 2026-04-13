@@ -1,6 +1,6 @@
 <!-- _sidebar.md -->
 
- * [Documentation](/)
+ * [Home](/)
  __Nodes__
  * [__⚡| Z-Sampler Turbo ^G2__](zsampler_turbo_2.md)
  * [__⚡| Style Prompt Encoder__](style_prompt_encoder.md)
