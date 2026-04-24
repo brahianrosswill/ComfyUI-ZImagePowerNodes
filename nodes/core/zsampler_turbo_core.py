@@ -22,7 +22,7 @@ from .progress_bar  import ProgressPreview
 ComfyLatent      : TypeAlias = dict[str, Any]
 ComfyModel       : TypeAlias = Any
 ComfyConditioning: TypeAlias = list[ tuple[torch.Tensor,dict] ]
-_DEFAULT_INJECT_NOISE_FREQS     = ( 32,  64, 512)
+_DEFAULT_INJECT_NOISE_FREQS     = (  0,   0,   0)
 _DEFAULT_INJECT_NOISE_SCALES    = (0.0, 0.0, 0.0)
 _SCRAMBLE_COUNTS_DISABLED       = ( 0,  0,  0,  0)
 _SCRAMBLE_COUNTS_DEFAULT        = ( 1,  0,  1,  0)
@@ -52,8 +52,8 @@ def zsampler_turbo_core(latent_input             : ComfyLatent,
                         stage2_scramble          : bool                                    = False,
                         stage2_scramble_counts   : tuple[int,int,int,int] | None           = None,
                         stage2_preproc_steps     : int                                     = 0,
-                        extra_noise_freqs        : tuple[int  ,int  ,int  ] | None         = None,
-                        extra_noise_scales       : tuple[float,float,float] | None         = None,
+                        extra_noise_freqs        : tuple[int  ,...] | None                 = None,
+                        extra_noise_scales       : tuple[float,...] | None                 = None,
                         use_dynamic_noise        : tuple[bool, bool, bool]                 = (False, False, False),
                         progress_preview         : ProgressPreview
                         ) -> dict[str, Any]:
@@ -108,13 +108,16 @@ def zsampler_turbo_core(latent_input             : ComfyLatent,
                                    This can improve coherence and reduce hallucinations.
                                    If zero (default), no preprocessing is performed.
         extra_noise_freqs       : Optional frequencies at which additional noise is injected into the latent image
-                                   during each stage. These frequencies determine the granularity of noise injection.
+                                   during each stage. The first two values correspond to stage1 and stage2, while all
+                                   following values correspond to stage3. If `None` (default), no extra noise is injected.
+                                   These frequencies determine the granularity of noise injection.
                                    For example, a value of 1024 means noise is injected into every pixel, while a
                                    value of 512 means noise is injected every second pixel, with intermediate pixels
                                    being interpolated. Lower frequency values result in smoother noise transitions
                                    across the image.
         extra_noise_scales      : Optional scales for extra noise injected into the latent image in each stage.
-                                   If `None` (default), no extra noise is injected.
+                                   The first two values correspond to stage1 and stage2, while all following
+                                   values correspond to stage3. If `None` (default), no extra noise is injected.
         use_dynamic_noise       : Optional tuple with three booleans that control whether each of the three stages
                                    updates its noise at every denoising step. When a value is `True` the sampler
                                    switches from a pure euler to a simulated euler-ancestral for that stage,
@@ -136,11 +139,11 @@ def zsampler_turbo_core(latent_input             : ComfyLatent,
 
     # validate `inject_noise_freqs/scales`
     if extra_noise_freqs is not None:
-        if not isinstance(extra_noise_freqs,tuple) or len(extra_noise_freqs) != 3:
-            raise ValueError("`inject_noise_freqs` must be None or a tuple of 3 integers")
+        if not isinstance(extra_noise_freqs,tuple) or len(extra_noise_freqs) < 3:
+            raise ValueError("`inject_noise_freqs` must be None or a tuple of at least 3 ints.")
     if extra_noise_scales is not None:
-        if not isinstance(extra_noise_scales,tuple) or len(extra_noise_scales) != 3:
-            raise ValueError("`inject_noise_scales` must be None or a tuple of 3 floats")
+        if not isinstance(extra_noise_scales,tuple) or len(extra_noise_scales) < 3:
+            raise ValueError("`inject_noise_scales` must be None or a tuple of at least 3 floats")
 
     # validate `stage2_scramble_counts`
     if stage2_scramble_counts is not None:
@@ -260,8 +263,8 @@ def execute_3_stage_denoising(comfy_latent: ComfyLatent,
                               initial_noise_bias_level: float                                   = 0.0,
                               initial_noise_overdose  : float                                   = 0.0,
                               noise_est_sample_size   : tuple[int,int] | int | None             = None,
-                              extra_noise_freqs       : tuple[int  , int  , int  ]              = (0, 0, 0),
-                              extra_noise_scales      : tuple[float, float, float]              = (0.0, 0.0, 0.0),
+                              extra_noise_freqs       : tuple[int  ,...]                        = (  0,   0,   0),
+                              extra_noise_scales      : tuple[float,...]                        = (0.0, 0.0, 0.0),
                               stage2_scramble_counts  : tuple[int,int,int,int]                  = (0,0,0,0),
                               stage2_preproc_steps    : int                                     = 0,
                               use_dynamic_noise       : tuple[bool, bool, bool]                 = (False, False, False),
@@ -309,14 +312,16 @@ def execute_3_stage_denoising(comfy_latent: ComfyLatent,
                                    Can be a tuple (width, height) or integer for square sizes.
                                    If `None`, the size of the latent input will be used.
         extra_noise_freqs       : Optional frequencies at which additional noise is injected into the latent image
-                                   during each stage. These frequencies determine the granularity of noise injection.
+                                   during each stage. The first two values correspond to stage1 and stage2, while all
+                                   following values correspond to stage3.
+                                   These frequencies determine the granularity of noise injection.
                                    For example, a value of 1024 means noise is injected into every pixel, while a
                                    value of 512 means noise is injected every second pixel, with intermediate pixels
                                    being interpolated. Lower frequency values result in smoother noise transitions
-                                   across the image. A value of zero in the tuple means no noise is injected in the
-                                   corresponding stage.
-        extra_noise_scales      : Optional scales of the extra noise injected into the latent image in each stage.
-                                   A value of 0.0 in the tuple means no noise is injected in the corresponding stage.
+                                   across the image.
+        extra_noise_scales      : Optional scales for extra noise injected into the latent image in each stage.
+                                   The first two values correspond to stage1 and stage2, while all following
+                                   values correspond to stage3.
         stage2_scramble_counts  : Optional tuple of four signed integers (left, top, right, bottom) that determine
                                    the amount of steps for the latent scrambling. Zero values mean "skip that side",
                                    positive values add normal fragments from that side, while negative values add
@@ -454,8 +459,8 @@ def execute_3_stage_denoising(comfy_latent: ComfyLatent,
                         noise_seed          = seed,
                         noise_scale         = initial_noise_scale,
                         noise_bias          = initial_noise_bias,
-                        extra_noise_freq    = extra_noise_freqs [0],
-                        extra_noise_scale   = extra_noise_scales[0],
+                        extra_noise_freqs   = extra_noise_freqs [0],
+                        extra_noise_scales  = extra_noise_scales[0],
                         progress_preview = ProgressPreview( 100,
                             parent=(progress_preview, 100*prog1//total, 100*prog2//total)),
                         )
@@ -472,8 +477,8 @@ def execute_3_stage_denoising(comfy_latent: ComfyLatent,
                         noise_seed          = seed+16,
                         noise_scale         = initial_noise_scale,
                         noise_bias          = initial_noise_bias,
-                        extra_noise_freq    = extra_noise_freqs [1],
-                        extra_noise_scale   = extra_noise_scales[1],
+                        extra_noise_freqs   = extra_noise_freqs [1],
+                        extra_noise_scales  = extra_noise_scales[1],
                         scramble_counts     = stage2_scramble_counts if is_stg2_scramble_enabled else (0,0,0,0),
                         preproc_steps       = stage2_preproc_steps  if is_stg2_preproc_enabled else 0,
                         preproc_positive    = positive_stg2_preproc,
@@ -494,8 +499,8 @@ def execute_3_stage_denoising(comfy_latent: ComfyLatent,
                         noise_seed          = 696969,
                         noise_scale         = 1.0,
                         noise_bias          = 0,
-                        extra_noise_freq    = extra_noise_freqs [2],
-                        extra_noise_scale   = extra_noise_scales[2],
+                        extra_noise_freqs   = extra_noise_freqs [2:],
+                        extra_noise_scales  = extra_noise_scales[2:],
                         use_dynamic_noise   = use_dynamic_noise[2],
                         progress_preview = ProgressPreview( 100,
                             parent=(progress_preview, 100*prog3//total, 100*total//total)),
@@ -518,9 +523,9 @@ def _stage1_core(comfy_latent : ComfyLatent,
                  noise_seed          : int,
                  noise_scale         : torch.Tensor | float | int = 1.0,
                  noise_bias          : torch.Tensor | float | int = 0.0,
-                 extra_noise_freq    : int                          = 0,
-                 extra_noise_scale   : float                        = 0,
-                 progress_preview    : ProgressPreview | None       = None,
+                 extra_noise_freqs   : tuple[int,...  ] | int     = 0,
+                 extra_noise_scales  : tuple[float,...] | float   = 0,
+                 progress_preview    : ProgressPreview | None     = None,
                  ) -> ComfyLatent:
 
     latents       : torch.Tensor        = comfy_latent["samples"]
@@ -536,8 +541,8 @@ def _stage1_core(comfy_latent : ComfyLatent,
                                    noise_mask          = noise_mask,
                                    noise_seed          = noise_seed,
                                    batch_subseeds      = batch_subseeds,
-                                   extra_noise_freq    = extra_noise_freq,
-                                   extra_noise_scale   = extra_noise_scale,
+                                   extra_noise_freqs   = extra_noise_freqs,
+                                   extra_noise_scales  = extra_noise_scales,
                                    fix_empty_latent    = True,
                                    keep_masked_area    = True,
                                    force_final_denoise = force_final_denoise,
@@ -562,8 +567,8 @@ def _stage2_core(comfy_latent : ComfyLatent,
                  noise_seed          : int,
                  noise_scale         : torch.Tensor | float | int = 1.0,
                  noise_bias          : torch.Tensor | float | int = 0.0,
-                 extra_noise_freq    : int                        = 0,
-                 extra_noise_scale   : float                      = 0,
+                 extra_noise_freqs   : tuple[int,...  ] | int     = 0,
+                 extra_noise_scales  : tuple[float,...] | float   = 0,
                  scramble_counts     : tuple[int,int,int,int]     = (0, 0, 0, 0),
                  preproc_steps       : int                        = 0,
                  preproc_positive    : ComfyConditioning | None   = None,
@@ -607,8 +612,10 @@ def _stage2_core(comfy_latent : ComfyLatent,
                                        noise_mask          = noise_mask,
                                        noise_seed          = noise_seed + i,
                                        batch_subseeds      = batch_subseeds,
-                                       extra_noise_freq    = 1024,  # 64
-                                       extra_noise_scale   = 0.8,   # 4.0
+                                       extra_noise_freqs   = 1024 if i==0 else 0,
+                                       extra_noise_scales  =  0.8 if i==0 else 0,
+                                       #extra_noise_freqs   = 64
+                                       #extra_noise_scales  = 4.0
                                        fix_empty_latent    = True,
                                        keep_masked_area    = True,
                                        force_final_denoise = True,
@@ -636,8 +643,8 @@ def _stage2_core(comfy_latent : ComfyLatent,
                                        noise_mask          = noise_mask,
                                        noise_seed          = noise_seed + preproc_steps + i,
                                        batch_subseeds      = batch_subseeds,
-                                       extra_noise_freq    = extra_noise_freq,
-                                       extra_noise_scale   = extra_noise_scale,
+                                       extra_noise_freqs   = extra_noise_freqs  if i==0 else 0,
+                                       extra_noise_scales  = extra_noise_scales if i==0 else 0,
                                        fix_empty_latent    = True,
                                        keep_masked_area    = True,
                                        force_final_denoise = _force_final_denoise,
@@ -662,10 +669,10 @@ def _stage3_core(comfy_latent : ComfyLatent,
                  noise_seed          : int,
                  noise_scale         : torch.Tensor | float | int = 1.0,
                  noise_bias          : torch.Tensor | float | int = 0.0,
-                 extra_noise_freq    : int                          = 0,
-                 extra_noise_scale   : float                        = 0,
-                 use_dynamic_noise   : bool                         = False,
-                 progress_preview    : ProgressPreview | None       = None,
+                 extra_noise_freqs   : tuple[int,...  ] | int     = 0,
+                 extra_noise_scales  : tuple[float,...] | float   = 0,
+                 use_dynamic_noise   : bool                       = False,
+                 progress_preview    : ProgressPreview | None     = None,
                  ) -> ComfyLatent:
 
     latents       : torch.Tensor        = comfy_latent["samples"]
@@ -685,8 +692,8 @@ def _stage3_core(comfy_latent : ComfyLatent,
                                        noise_mask          = noise_mask,
                                        noise_seed          = noise_seed + i,
                                        batch_subseeds      = batch_subseeds,
-                                       extra_noise_freq    = extra_noise_freq,
-                                       extra_noise_scale   = extra_noise_scale,
+                                       extra_noise_freqs   = extra_noise_freqs  if i==0 else 0,
+                                       extra_noise_scales  = extra_noise_scales if i==0 else 0,
                                        fix_empty_latent    = False,
                                        keep_masked_area    = True,
                                        force_final_denoise = force_final_denoise_,
@@ -710,8 +717,8 @@ def _iterative_denoising(latents     : torch.Tensor,
                          noise_mask          : torch.Tensor | None               = None,
                          noise_seed          : int,
                          batch_subseeds      : list[int] | None                  = None,
-                         extra_noise_freq    : int                               = 0,
-                         extra_noise_scale   : float                             = 0,
+                         extra_noise_freqs   : tuple[int,...] | int              = 0,
+                         extra_noise_scales  : tuple[float,...] | float          = 0,
                          fix_empty_latent    : bool                              = True,
                          keep_masked_area    : bool                              = False,
                          force_final_denoise : bool                              = False,
@@ -800,11 +807,12 @@ def _iterative_denoising(latents     : torch.Tensor,
     original_mask    : torch.Tensor | None = noise_mask
 
     # apply extra noise injection if it was required
-    if extra_noise_scale and extra_noise_freq:
+    if extra_noise_scales and extra_noise_freqs:
         latents = _inject_freq_noise(latents,
-                                     seed        = noise_seed,
-                                     noise_scale = extra_noise_scale,
-                                     noise_freq  = extra_noise_freq)
+                                     seed         = noise_seed,
+                                     noise_freqs  = extra_noise_freqs,
+                                     noise_scales = extra_noise_scales,
+                                     )
 
     # force a full denoising (with the last sigma to zero) if it was required
     if force_final_denoise and sigmas[-1] != 0:
@@ -1118,50 +1126,63 @@ def generate_noise_(generator      : torch.Generator,
 def _inject_freq_noise(x    : torch.Tensor,
                        seed : int,
                        *,
-                       noise_scale : float = 1.0,
-                       noise_freq  : int   = 1024,
+                       noise_freqs : int   | tuple[int,...]   = 1024,
+                       noise_scales: float | tuple[float,...] = 1.0,
                        ) -> torch.Tensor:
     """
-    Injects noise at a specified "frequency" into the input tensor `x`.
+    Injects noise at specified "frequencies" into the input tensor `x`.
 
-    This function generates noise at a lower resolution based on the specified
-    frequency, resulting in a smoother (low-frequency) noise effect when applied
+    This function generates noise at different resolutions based on the provided
+    frequencies, resulting in a range of low-frequency noise effects when applied
     to the input tensor.
 
     Args:
-        x           : Input tensor to which noise will be added.
-        seed        : Seed for random noise generation to ensure reproducibility.
-        noise_scale : Scale factor for the noise intensity. Default is 1.0.
-                       A 0.0 value disables noise injection.
-        noise_freq  : Frequency factor that determines the resolution at which
-                       noise is generated. A lower value results in smoother noise.
-                       For example, a noise_freq of 1024 means noise is injected
-                       into every pixel, while a noise_freq of 512 means noise is
-                       injected every second pixel, with intermediate pixels being
-                       interpolated.
+        x            : Input tensor to which noise will be added.
+        seed         : Seed for random noise generation to ensure reproducibility.
+        noise_freqs  : Frequency factors that determine the resolutions at which
+                       noise is generated. Multiple frequencies can be specified as a tuple,
+                       resulting in multiple layers of noise with varying smoothness.
+                       A lower value results in smoother noise. For example, a noise_freq of 1024
+                       means noise is injected into every pixel, while a noise_freq of 512 means
+                       noise is injected every second pixel, with intermediate pixels being interpolated.
+        noise_scales : Scale factors for the noise intensities corresponding to each frequency.
+                       Multiple scales can be specified as a tuple. Default is 1.0.
+                       A 0.0 value disables noise injection for that particular scale and frequency pair.
+
     Returns:
-        The input tensor x with low-frequency noise injected.
+        The input tensor x with low-frequency noise injected according to
+        the provided frequencies and scales.
     """
     h, w  = x.shape[-2:]
-    if noise_scale <= 0.0  or  noise_freq < (1024/h)  or  noise_freq < (1024/w):
-        return x
 
-    low_res_shape = ( *x.shape[:-2], (h * noise_freq) // 1024, (w * noise_freq) // 1024 )
+    # force `freqs` and `scales` to be tuples
+    freqs : tuple[int, ...]   = noise_freqs  if isinstance(noise_freqs , tuple) else (noise_freqs,)
+    scales: tuple[float, ...] = noise_scales if isinstance(noise_scales, tuple) else (noise_scales,)
+    if len(freqs) != len(scales):
+        raise ValueError("noise_freqs and noise_scales must have the same length")
 
-    noise = generate_noise(seed,
-                           noise_scale = noise_scale,
-                           shape       = low_res_shape,
-                           dtype       = x.dtype,
-                           layout      = x.layout,
-                           device      = x.device,
-                           )
+    # iterate over pairs of frequency/scale injecting the corresponding noise
+    for freq, scale in zip(freqs, scales):
+        if scale <= 0.0  or  freq < (1024/h)  or  freq < (1024/w):
+            continue
 
-    # inject the low frequency noise into the input tensor x and return
-    return x + F.interpolate(noise,
-                             size = (h, w),
-                             mode = 'bilinear',
-                             align_corners = False,
-                             )
+        # generate a small size noise
+        low_res_shape = ( *x.shape[:-2], (h * freq) // 1024, (w * freq) // 1024 )
+        seed += 1
+        noise = generate_noise(seed,
+                               noise_scale = scale,
+                               shape       = low_res_shape,
+                               dtype       = x.dtype,
+                               layout      = x.layout,
+                               device      = x.device)
+
+        # inject the noise, interpolating it to the input tensor size
+        x = x + F.interpolate(noise,
+                              size          = (h, w),
+                              mode          = 'bilinear',
+                              align_corners = False)
+
+    return x
 
 
 #============================ SIGMA OPERATIONS =============================#
