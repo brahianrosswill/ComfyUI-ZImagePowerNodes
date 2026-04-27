@@ -145,10 +145,6 @@ class ZSamplerTurbo2Advanced(io.ComfyNode):
                                               "steps to try to correct the hallucinations and bring coherence to the "
                                               "image ",
                                      ),
-                # io.Boolean.Input     ("smooth",
-                #                       default=False, label_on="yes", label_off="no",
-                #                       tooltip="Unused parameter. ",
-                #                      ),
             ],
             outputs=[
                 io.Latent.Output(display_name="latent_output",
@@ -177,7 +173,6 @@ class ZSamplerTurbo2Advanced(io.ComfyNode):
                 *,
                 positive_stg2         : list | None = None,
                 positive_stg3         : list | None = None,
-                smooth                : bool = False,
                 **kwargs
                 ) -> io.NodeOutput:
 
@@ -227,7 +222,6 @@ class ZSamplerTurbo2Advanced(io.ComfyNode):
                                             positive_stg3             = positive_stg3,
                                             stage2_scramble           = stage2_scramble,
                                             stage2_preproc_steps      = stage2_preproc_steps,
-                                            use_dynamic_noise         = (False,False,smooth),
                                             progress_preview = ProgressPreview.from_model( model ),
                                             )
 

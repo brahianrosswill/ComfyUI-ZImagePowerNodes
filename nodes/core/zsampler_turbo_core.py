@@ -17,6 +17,7 @@ import comfy.utils
 import comfy.sample
 import comfy.samplers
 import comfy.sampler_helpers
+from comfy.samplers import KSAMPLER, sampler_object
 from typing         import Any, TypeAlias
 from .progress_bar  import ProgressPreview
 ComfyLatent      : TypeAlias = dict[str, Any]
@@ -54,7 +55,7 @@ def zsampler_turbo_core(latent_input             : ComfyLatent,
                         stage2_preproc_steps     : int                                     = 0,
                         extra_noise_freqs        : tuple[int  ,...] | None                 = None,
                         extra_noise_scales       : tuple[float,...] | None                 = None,
-                        use_dynamic_noise        : tuple[bool, bool, bool]                 = (False, False, False),
+                        sampler_names            : tuple[KSAMPLER|str, ...] | None         = None,
                         progress_preview         : ProgressPreview
                         ) -> dict[str, Any]:
     """
@@ -118,24 +119,26 @@ def zsampler_turbo_core(latent_input             : ComfyLatent,
         extra_noise_scales      : Optional scales for extra noise injected into the latent image in each stage.
                                    The first two values correspond to stage1 and stage2, while all following
                                    values correspond to stage3. If `None` (default), no extra noise is injected.
-        use_dynamic_noise       : Optional tuple with three booleans that control whether each of the three stages
-                                   updates its noise at every denoising step. When a value is `True` the sampler
-                                   switches from a pure euler to a simulated euler-ancestral for that stage,
-                                   mutating the noise continuously in each step. I'm not using it because I thought
-                                   it would boost generation, but the final effect isn't very good.
+        sampler_names           : Optional tuple of strings with the names of the samplers to be used in each stage.
+                                   If `None` (default) then "euler" is used in all stages.
         progress_preview        : A `ProgressPreview` object for displaying progress during the denoising process.
 
     Returns:
         A ComfyUI LATENT object with the denoised latent output.
     """
-    # only "euler" sampler has been tested with this technique
-    sampler_name = "euler"
-    sampler = comfy.samplers.sampler_object(sampler_name)
 
     # z-image turbo is a cfg-distilled model requiring CFG=1.0, which discard
     # negative conditioning, here we set it to `positive` for simplicity
     negative = positive
 
+    # if no sampler was specified, we use "euler" in each stage
+    if sampler_names is None:
+        sampler_names = ("euler", "euler", "euler")
+    samplers = tuple( sampler_object(name) for name in sampler_names if isinstance(name,str) )
+
+    # validate that at least three samplers are selected (one for each stage)
+    if len(samplers) < 3:
+        raise ValueError("If `sampler_names` parameter is specified, it should contain at least three samplers.")
 
     # validate `inject_noise_freqs/scales`
     if extra_noise_freqs is not None:
@@ -169,8 +172,8 @@ def zsampler_turbo_core(latent_input             : ComfyLatent,
         stage2_scramble_counts = _SCRAMBLE_COUNTS_DISABLED
     elif stage2_scramble_counts is None:
         stage2_scramble_counts = _SCRAMBLE_COUNTS_MULTIPLE_OF_10 if (seed % 10) == 0 else \
-                                _SCRAMBLE_COUNTS_EVEN_SEED      if (seed %  2) == 0 else \
-                                _SCRAMBLE_COUNTS_DEFAULT
+                                 _SCRAMBLE_COUNTS_EVEN_SEED      if (seed %  2) == 0 else \
+                                 _SCRAMBLE_COUNTS_DEFAULT
 
 
     # get the sigmas for the 3 stages from the preset name ("alpha" or "bravo")
@@ -219,7 +222,7 @@ def zsampler_turbo_core(latent_input             : ComfyLatent,
     return execute_3_stage_denoising(latent_input, model, positive, negative,
                                      seed                     = seed,
                                      cfg                      = 1.0,
-                                     sampler                  = sampler,
+                                     samplers                 = samplers,
                                      sigmas1                  = sigmas1,
                                      sigmas2                  = sigmas2,
                                      sigmas3                  = sigmas3,
@@ -237,7 +240,6 @@ def zsampler_turbo_core(latent_input             : ComfyLatent,
                                      extra_noise_freqs        = extra_noise_freqs,
                                      stage2_scramble_counts   = stage2_scramble_counts,
                                      stage2_preproc_steps     = stage2_preproc_steps,
-                                     use_dynamic_noise        = use_dynamic_noise,
                                      progress_preview = progress_preview,
                                      )
 
@@ -249,7 +251,7 @@ def execute_3_stage_denoising(comfy_latent: ComfyLatent,
                               *,
                               seed                    : int,
                               cfg                     : float,
-                              sampler                 : comfy.samplers.KSAMPLER,
+                              samplers                : tuple[KSAMPLER, ...],
                               sigmas1                 : torch.Tensor | list | tuple | None,
                               sigmas2                 : torch.Tensor | list | tuple | None,
                               sigmas3                 : torch.Tensor | list | tuple | None,
@@ -267,7 +269,6 @@ def execute_3_stage_denoising(comfy_latent: ComfyLatent,
                               extra_noise_scales      : tuple[float,...]                        = (0.0, 0.0, 0.0),
                               stage2_scramble_counts  : tuple[int,int,int,int]                  = (0,0,0,0),
                               stage2_preproc_steps    : int                                     = 0,
-                              use_dynamic_noise       : tuple[bool, bool, bool]                 = (False, False, False),
                               progress_preview        : ProgressPreview,
                               ):
     """
@@ -330,16 +331,12 @@ def execute_3_stage_denoising(comfy_latent: ComfyLatent,
         stage2_preproc_steps    : Optional number of steps to be performed as preprocessing in the second stage.
                                    This can improve coherence and reduce hallucinations.
                                    If zero (default), no preprocessing is performed.
-        use_dynamic_noise       : Optional tuple with three booleans that control whether each of the three stages
-                                   updates its noise at every denoising step. When a value is `True` the sampler
-                                   switches from a pure euler to a simulated euler-ancestral for that stage,
-                                   mutating the noise continuously in each step. I'm not using it because I thought
-                                   it would boost generation, but the final effect isn't very good.
         progress_preview        : A `ProgressPreview` object for displaying progress during the denoising process.
     Returns:
         A dictionary with the updated latent image data after all three denoising stages.
     """
-    SIGMA_START = 1.0
+    SIGMA_START     = 1.0
+    DEFAULT_SAMPLER = samplers[0] #<< should `DEFAULT_SAMPLER` be fixed to euler?
 
     # force all conditioning to be valid
     #  - if positive cond for stage-2-preprocessing is not provided, it will be the same as main conditioning
@@ -435,7 +432,7 @@ def execute_3_stage_denoising(comfy_latent: ComfyLatent,
             bias, scale = estimate_initial_noise_features(
                             comfy_latent, model, positive, negative,
                             seed         = seed,
-                            sampler      = sampler,
+                            sampler      = samplers[0] if len(samplers) > 0 else DEFAULT_SAMPLER,
                             sigmas       = [SIGMA_START, sigmas1[0]],
                             sample_size  = noise_est_sample_size,
                             sample_bias  = 0.0,
@@ -453,7 +450,7 @@ def execute_3_stage_denoising(comfy_latent: ComfyLatent,
         comfy_latent = _stage1_core(comfy_latent, model, positive, negative,
                         cfg                 = cfg,
                         sigmas              = sigmas1,
-                        sampler             = sampler,
+                        sampler             = samplers[0] if len(samplers) > 0 else DEFAULT_SAMPLER,
                         add_noise           = (is_first_stage and start_with_noise),
                         force_final_denoise = (is_last_stage  and end_with_denoise) or force_denoise_stg1_stg2,
                         noise_seed          = seed,
@@ -471,7 +468,7 @@ def execute_3_stage_denoising(comfy_latent: ComfyLatent,
         comfy_latent = _stage2_core(comfy_latent, model, positive_stg2, negative,
                         cfg                 = cfg,
                         sigmas              = sigmas2,
-                        sampler             = sampler,
+                        sampler             = samplers[1] if len(samplers) > 1 else DEFAULT_SAMPLER,
                         add_noise           = (is_first_stage and start_with_noise) or force_denoise_stg1_stg2,
                         force_final_denoise = (is_last_stage  and end_with_denoise),
                         noise_seed          = seed+16,
@@ -482,7 +479,6 @@ def execute_3_stage_denoising(comfy_latent: ComfyLatent,
                         scramble_counts     = stage2_scramble_counts if is_stg2_scramble_enabled else (0,0,0,0),
                         preproc_steps       = stage2_preproc_steps  if is_stg2_preproc_enabled else 0,
                         preproc_positive    = positive_stg2_preproc,
-                        use_dynamic_noise   = use_dynamic_noise[1],
                         progress_preview = ProgressPreview( 100,
                             parent=(progress_preview, 100*prog2//total, 100*prog3//total)),
                         )
@@ -493,7 +489,7 @@ def execute_3_stage_denoising(comfy_latent: ComfyLatent,
         comfy_latent = _stage3_core(comfy_latent, model, positive_stg3, negative,
                         cfg                 = cfg,
                         sigmas              = sigmas3,
-                        sampler             = sampler,
+                        sampler             = samplers[2] if len(samplers) > 2 else DEFAULT_SAMPLER,
                         add_noise           = (is_first_stage and start_with_noise) or stage3_start_from_beginning,
                         force_final_denoise = (is_last_stage  and end_with_denoise),
                         noise_seed          = 696969,
@@ -501,7 +497,6 @@ def execute_3_stage_denoising(comfy_latent: ComfyLatent,
                         noise_bias          = 0,
                         extra_noise_freqs   = extra_noise_freqs [2:],
                         extra_noise_scales  = extra_noise_scales[2:],
-                        use_dynamic_noise   = use_dynamic_noise[2],
                         progress_preview = ProgressPreview( 100,
                             parent=(progress_preview, 100*prog3//total, 100*total//total)),
                         )
@@ -573,7 +568,6 @@ def _stage2_core(comfy_latent : ComfyLatent,
                  preproc_steps       : int                        = 0,
                  preproc_positive    : ComfyConditioning | None   = None,
                  preproc_negative    : ComfyConditioning | None   = None,
-                 use_dynamic_noise   : bool                       = False,
                  progress_preview    : ProgressPreview | None     = None,
                  ) -> ComfyLatent:
 
@@ -600,22 +594,20 @@ def _stage2_core(comfy_latent : ComfyLatent,
         latents = _scramble_tensor(latents, scramble_counts, seed=noise_seed)
 
     # == PRE-PROCESSING 2 ==
-    # if requested, run extra sampling steps with high sigmas (0.949)
+    # if requested, run preprocess sampling steps with high sigmas (0.949)
     # to try and give more coherence to the image
     for i in range(preproc_steps):
         latents = _iterative_denoising(latents, model, preproc_positive, preproc_negative,
                                        cfg                 = cfg,
-                                       sigmas              = sigmas[:2] if i!=0 else torch.tensor( (0.949, 0.000 ) ), #sigmas[:2],
+                                       sigmas              = torch.tensor( (0.949, 0.000 ) ) if i==0 else sigmas[:2],
                                        sampler             = sampler,
                                        noise_scale         = original_noise_scale if add_noise else 0,
                                        noise_bias          = original_noise_bias  if add_noise else 0,
                                        noise_mask          = noise_mask,
                                        noise_seed          = noise_seed + i,
                                        batch_subseeds      = batch_subseeds,
-                                       extra_noise_freqs   = 1024 if i==0 else 0,
-                                       extra_noise_scales  =  0.8 if i==0 else 0,
-                                       #extra_noise_freqs   = 64
-                                       #extra_noise_scales  = 4.0
+                                       extra_noise_freqs   = 1024 if i==0 else 0,  # 64
+                                       extra_noise_scales  =  0.8 if i==0 else 0,  # 4.0
                                        fix_empty_latent    = True,
                                        keep_masked_area    = True,
                                        force_final_denoise = True,
@@ -630,27 +622,23 @@ def _stage2_core(comfy_latent : ComfyLatent,
 
     # == DEFAULT SAMPLING ==
     # always run the sampler using the original sigmas
-    segments = _num_steps(sigmas) if use_dynamic_noise else 1
-    for i in range(segments):
-        _add_noise           = add_noise           if i==0 else True
-        _force_final_denoise = force_final_denoise if i==(segments-1) else True
-        latents = _iterative_denoising(latents, model, positive, negative,
-                                       cfg                 = cfg,
-                                       sigmas              = sigmas[i:i+2] if segments>1 else sigmas,
-                                       sampler             = sampler,
-                                       noise_scale         = noise_scale if _add_noise else 0,
-                                       noise_bias          = noise_bias  if _add_noise else 0,
-                                       noise_mask          = noise_mask,
-                                       noise_seed          = noise_seed + preproc_steps + i,
-                                       batch_subseeds      = batch_subseeds,
-                                       extra_noise_freqs   = extra_noise_freqs  if i==0 else 0,
-                                       extra_noise_scales  = extra_noise_scales if i==0 else 0,
-                                       fix_empty_latent    = True,
-                                       keep_masked_area    = True,
-                                       force_final_denoise = _force_final_denoise,
-                                       progress_preview    = ProgressPreview(100,
-                                               parent=(progress_preview, 100*prog[-2]/total, 100*prog[-1]/total))
-                                       )
+    latents = _iterative_denoising(latents, model, positive, negative,
+                                    cfg                 = cfg,
+                                    sigmas              = sigmas,
+                                    sampler             = sampler,
+                                    noise_scale         = noise_scale if add_noise else 0,
+                                    noise_bias          = noise_bias  if add_noise else 0,
+                                    noise_mask          = noise_mask,
+                                    noise_seed          = noise_seed + preproc_steps,
+                                    batch_subseeds      = batch_subseeds,
+                                    extra_noise_freqs   = extra_noise_freqs,
+                                    extra_noise_scales  = extra_noise_scales,
+                                    fix_empty_latent    = True,
+                                    keep_masked_area    = True,
+                                    force_final_denoise = force_final_denoise,
+                                    progress_preview    = ProgressPreview(100,
+                                            parent=(progress_preview, 100*prog[-2]/total, 100*prog[-1]/total))
+                                    )
     out = comfy_latent.copy()
     out["samples"] = latents
     return out
@@ -671,34 +659,29 @@ def _stage3_core(comfy_latent : ComfyLatent,
                  noise_bias          : torch.Tensor | float | int = 0.0,
                  extra_noise_freqs   : tuple[int,...  ] | int     = 0,
                  extra_noise_scales  : tuple[float,...] | float   = 0,
-                 use_dynamic_noise   : bool                       = False,
                  progress_preview    : ProgressPreview | None     = None,
                  ) -> ComfyLatent:
 
     latents       : torch.Tensor        = comfy_latent["samples"]
     noise_mask    : torch.Tensor | None = comfy_latent.get("noise_mask")
-    batch_subseeds: list[int]| None     = comfy_latent.get("batch_index")
+    batch_subseeds: list[int] | None    = comfy_latent.get("batch_index")
 
-    segments = _num_steps(sigmas) if use_dynamic_noise else 1
-    for i in range(segments):
-        add_noise_           = add_noise           if i==0 else True
-        force_final_denoise_ = force_final_denoise if i==(segments-1) else True
-        latents = _iterative_denoising(latents, model, positive, negative,
-                                       cfg                 = cfg,
-                                       sigmas              = sigmas[i:i+2] if segments>1 else sigmas,
-                                       sampler             = sampler,
-                                       noise_scale         = noise_scale if add_noise_ else 0,
-                                       noise_bias          = noise_bias  if add_noise_ else 0,
-                                       noise_mask          = noise_mask,
-                                       noise_seed          = noise_seed + i,
-                                       batch_subseeds      = batch_subseeds,
-                                       extra_noise_freqs   = extra_noise_freqs  if i==0 else 0,
-                                       extra_noise_scales  = extra_noise_scales if i==0 else 0,
-                                       fix_empty_latent    = False,
-                                       keep_masked_area    = True,
-                                       force_final_denoise = force_final_denoise_,
-                                       progress_preview = progress_preview
-                                       )
+    latents = _iterative_denoising(latents, model, positive, negative,
+                                   cfg                 = cfg,
+                                   sigmas              = sigmas,
+                                   sampler             = sampler,
+                                   noise_scale         = noise_scale if add_noise else 0,
+                                   noise_bias          = noise_bias  if add_noise else 0,
+                                   noise_mask          = noise_mask,
+                                   noise_seed          = noise_seed,
+                                   batch_subseeds      = batch_subseeds,
+                                   extra_noise_freqs   = extra_noise_freqs,
+                                   extra_noise_scales  = extra_noise_scales,
+                                   fix_empty_latent    = False,
+                                   keep_masked_area    = True,
+                                   force_final_denoise = force_final_denoise,
+                                   progress_preview = progress_preview
+                                   )
     comfy_latent = comfy_latent.copy()
     comfy_latent["samples"] = latents
     return comfy_latent
