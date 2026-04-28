@@ -115,6 +115,9 @@ class ZImagePowerNodesExtension(ComfyExtension):
         #-- ROOT --------------------------------
         subcategory = ""
 
+        from .nodes.zsampler_turbo_2_simple import ZSamplerTurbo2Simple
+        _register_node( ZSamplerTurbo2Simple, nodes, subcategory )
+
         from .nodes.zsampler_turbo_2 import ZSamplerTurbo2
         _register_node( ZSamplerTurbo2, nodes, subcategory )
 

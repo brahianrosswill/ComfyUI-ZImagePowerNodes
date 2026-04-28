@@ -37,6 +37,10 @@ SCALES_BY_NAME = {
     "medium (recommended)" : 1.3,
     "large"                : 1.6,
 }
+ORIENTATION_LABELS = {
+    True : "horizontal",
+    False: "vertical"
+}
 
 DEFAULT_ASPECT_RATIO = "3:2  (photo)"
 DEFAULT_SCALE        = "medium (recommended)"
@@ -60,16 +64,20 @@ class EmptyZImageLatentImage(io.ComfyNode):
                 "Create a new batch of empty latent images to be used as a starting point for denoising with the Z-Image model."
             ),
             inputs=[
-                io.Boolean.Input("landscape", default=False,
-                                 tooltip="Set to True for landscape images. Set to False for portrait images.",
+                io.Boolean.Input("orientation",
+                                 default=False, label_on=ORIENTATION_LABELS[True], label_off=ORIENTATION_LABELS[False],
+                                 tooltip="Sets the orientation of the image. ",
                                 ),
-                io.Combo.Input  ("ratio", options=cls.ratios(), default=DEFAULT_ASPECT_RATIO,
+                io.Combo.Input  ("ratio",
+                                 default=DEFAULT_ASPECT_RATIO, options=cls.ratios(),
                                  tooltip="The aspect ratio of the image.",
                                 ),
-                io.Combo.Input  ("size", options=cls.sizes(), default=DEFAULT_SCALE,
+                io.Combo.Input  ("size",
+                                 default=DEFAULT_SCALE, options=cls.sizes(),
                                  tooltip="The relative size for the image.",
                                 ),
-                io.Int.Input    ("batch_size", default=1, min=1, max=4096,
+                io.Int.Input    ("batch_size",
+                                 default=1, min=1, max=4096,
                                  tooltip="The number of images to generate in a single batch.",
                                 ),
             ],
@@ -80,15 +88,16 @@ class EmptyZImageLatentImage(io.ComfyNode):
 
     #__ FUNCTION __________________________________________
     @classmethod
-    def execute(cls, landscape: bool, ratio: str, size: str, batch_size: int) -> io.NodeOutput:
+    def execute(cls, orientation: bool, ratio: str, size: str, batch_size: int) -> io.NodeOutput:
         GRID_SIZE         = 32
         LATENT_CHANNELS   = 16  #< z-image latent has 16 channels
         LATENT_BLOCK_SIZE =  8  #< 8x8 pixels per latent block
+        selected_orientation = ORIENTATION_LABELS[orientation]
 
         scale                         = SCALES_BY_NAME.get(size, 1.0)
         desired_width, desired_height = LANDSCAPE_SIZES_BY_ASPECT_RATIO.get(ratio, (1024, 1024))
         desired_width, desired_height = desired_width * scale, desired_height * scale
-        if not landscape:
+        if selected_orientation == "vertical":
             desired_width, desired_height = desired_height, desired_width
 
         # fix image size to be divisible by the grid

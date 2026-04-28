@@ -33,7 +33,7 @@ TURBO_CREATIVITY = {
 
 
 class ZSamplerTurbo2(io.ComfyNode):
-    xTITLE         = "Z-Sampler Turbo ^G2"
+    xTITLE         = "Z-Sampler Turbo ^G2 (Extended)"
     xCATEGORY      = ""
     xCOMFY_NODE_ID = ""
     xDEPRECATED    = False
