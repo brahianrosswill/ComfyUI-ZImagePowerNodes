@@ -158,9 +158,9 @@ The easiest way to install the nodes is through [ComfyUI-Manager](https://github
 
 ## Recommended Checkpoints
 
-The workflows in the [/workflows directory](/workflows) are preconfigured for these checkpoints. The BF16 version is the heaviest and is the one used by ComfyUI in their example workflows. Between FP8 and GGUF, I can tell you that FP8 is a bit faster and ComfyUI has native support for safetensors, but generally, I think GGUF has the best quality for its size, even if it's slower. If it weren't for the speed and native support, I'd recommend GGUF without a second thought.
+The workflows in the [/workflows directory](/workflows) are preconfigured for these checkpoints. The BF16 version is the heaviest and is the one used by ComfyUI in their example workflows. Between FP8 and GGUF, I can tell you that FP8 is a bit faster since ComfyUI has native support for safetensors. However, generally speaking, GGUF offers better quality for its size, even though it's slower. If speed and native support weren't factors, I'd recommend GGUF without hesitation.
 
-Note: if you're going to use FP8 checkpoints other than the ones recommended here, test them carefully because most of the FP8 ones I've tried give pretty bad results, mainly because they use naive truncation to FP8 which significantly reduces precision (instead of using scaling and mixing in higher-precision data types).
+Note: If you plan to use FP8 checkpoints other than the ones recommended here, be sure to test them carefully as most FP8 models I've tried give poor results due to naive truncation to FP8, which significantly reduces precision (instead of using scaling and mixing in higher-precision data types).
 
 ### GGUF (Q8/Q5)
 
