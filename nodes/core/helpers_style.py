@@ -1,5 +1,5 @@
 """
-File    : style_helpers.py
+File    : helpers_style.py
 Purpose : Functions to help with styles and style templates
 Author  : Martin Rizzo | <martinrizzo@gmail.com>
 Date    : Feb 2, 2026

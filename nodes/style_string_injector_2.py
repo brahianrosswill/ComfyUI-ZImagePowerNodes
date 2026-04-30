@@ -17,7 +17,7 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 from functools                   import cache
 from comfy_api.latest            import io
 from .core.style_group           import StyleGroup
-from .core.style_helpers         import get_style_names, get_style_template
+from .core.helpers_style         import get_style_names, get_style_template
 from ..styles.predefined_styles  import PREDEFINED_STYLE_GROUPS
 
 

@@ -1,5 +1,5 @@
 """
-File    : node_helpers.py
+File    : helpers_node.py
 Purpose : Functions to help with ComfyUI nodes data extraction.
 Author  : Martin Rizzo | <martinrizzo@gmail.com>
 Date    : Jan 24, 2026
