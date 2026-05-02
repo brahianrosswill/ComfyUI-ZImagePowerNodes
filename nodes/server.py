@@ -20,18 +20,20 @@ from aiohttp                     import web
 from functools                   import cache
 from server                      import PromptServer
 from aiohttp                     import web
-from ..styles.predefined_styles  import PREDEFINED_STYLE_GROUPS, STYLE_GROUPS_BY_VERSION
+from .core.style                 import StyleSet
+from .core.predefined_styles     import PREDEFINED_STYLES
 from .core.helpers               import get_project_root
-from .core.style_group           import StyleGroup
 routes = PromptServer.instance.routes
 
 
 
-def _style_list(style_groups: list[StyleGroup]):
+def _style_data(styles: StyleSet, add_none=False):
     """
-    Generates a list of style data for all styles in the given style groups.
+    Generates a list of style data for all styles in the given set.
+
     Args:
-        style_groups (list[StyleGroup]): A list of StyleGroup objects.
+        styles: The `StyleSet` object containing the styles to be processed.
+
     Returns:
         list[list[str]]: A nested list where each inner list contains the style information:
             [0] name        (str): The name of the style.
@@ -40,28 +42,26 @@ def _style_list(style_groups: list[StyleGroup]):
             [3] tags        (str): Tags associated with the style, comma-separated
             [4] thumbnail   (str): The filename of the thumbnail image (e.g. "casual_photo.jpg")
     """
-    styles = []
-    for style_group in style_groups:
-        category = style_group.category
-        for name in style_group.get_names():
-            style = style_group.get_style(name)
-            if not style: continue
-            thumbnail   = f"{style.slug}.jpg"
-            description = style.description
-            tags        = style.comma_separated_tags
-            style_data : list[str] = [
-                name,         # 0: name
-                category,     # 1: category
-                description,  # 2: description
-                tags,         # 3: tags (comma-separated)
-                thumbnail,    # 4: thumbnail filename (e.g. "casual_photo.jpg")
-            ]
-            styles.append(style_data)
-    return styles
+    result = []
+
+    # add "none" option if requested
+    if add_none:
+        result.append(["none", "", "", "", "none.jpg"])
+
+    for style in styles:
+        style_data : list[str] = [
+            style.name,                  # 0: name
+            style.category,              # 1: category
+            style.description,           # 2: description
+            style.comma_separated_tags,  # 3: tags (comma-separated)
+            f"{style.slug}.jpg",         # 4: thumbnail filename (e.g. "casual_photo.jpg")
+        ]
+        result.append(style_data)
+    return result
 
 
 @cache
-def _cached_last_version_styles() -> list[list[str]]:
+def _last_version_style_data() -> list[list[str]]:
     """
     Returns a cached list of style data for the last version of predefined styles.
 
@@ -75,7 +75,7 @@ def _cached_last_version_styles() -> list[list[str]]:
             [3] tags        (str): Tags associated with the style, comma-separated
             [4] thumbnail   (str): The filename of the thumbnail image (e.g. "casual_photo.jpg")
     """
-    return _style_list( PREDEFINED_STYLE_GROUPS )
+    return _style_data( PREDEFINED_STYLES.by_version("1.0.0"), add_none=True )
 
 
 def _sanitize_filename(filename: str) -> str:
@@ -99,19 +99,29 @@ def _sanitize_filename(filename: str) -> str:
     return f"{safe_name}.{safe_ext}" if safe_ext else safe_name
 
 
+
 #============================== SERVER ROUTES ==============================#
 
 @routes.get("/zi_power/styles/last_version")
 async def get_last_version_styles(_) -> web.StreamResponse:
-    return web.json_response( _cached_last_version_styles() )
+    return web.json_response( _last_version_style_data() )
 
 
 @routes.get("/zi_power/styles/by_version")
 async def get_styles_by_version(request: web.Request) -> web.StreamResponse:
+
+    # try to get the version from query parameters
     version = request.query.get("v") or request.query.get("version")
-    if not version or version not in STYLE_GROUPS_BY_VERSION:
+    if not version:
         return web.Response(status=400)
-    return web.json_response( _style_list( STYLE_GROUPS_BY_VERSION[version] ) )
+
+    # try to get all styles from the version
+    styles = PREDEFINED_STYLES.by_version(version)
+    if not styles:
+        return web.Response(status=400)
+
+    return web.json_response( _style_data(styles) )
+
 
 
 @routes.get("/zi_power/styles/samples")

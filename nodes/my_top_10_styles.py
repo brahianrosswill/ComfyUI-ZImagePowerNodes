@@ -14,9 +14,11 @@ The V3 schema documentation can be found here:
  - https://docs.comfy.org/custom-nodes/v3_migration
 
 """
-from comfy_api.latest            import io
-from .core.helpers_style         import get_style_template, append_style_to_text, remove_style_from_text
-from ..styles.predefined_styles  import PREDEFINED_STYLE_GROUPS
+from typing                   import Final
+from comfy_api.latest         import io
+from .core.style              import append_style_to_text, remove_style_from_text
+from .core.predefined_styles  import PREDEFINED_STYLES
+_STL_VERSION: Final[str] = "1.0.0" #< the version of style definitions this node uses
 
 
 class MyTop10Styles(io.ComfyNode):
@@ -81,10 +83,10 @@ class MyTop10Styles(io.ComfyNode):
         selected_name = top_styles[selected_index] if 0 <= selected_index < len(top_styles) else ""
 
         # adds the selected style template to the input text
-        style_template = get_style_template(PREDEFINED_STYLE_GROUPS, selected_name)
-        if style_template:
+        style = PREDEFINED_STYLES.by_version(_STL_VERSION).get(selected_name)
+        if style:
             text = remove_style_from_text(text, f"Custom {channel}")
-            text = append_style_to_text  (text, f"Custom {channel}", style_template)
+            text = append_style_to_text  (text, f"Custom {channel}", style.template)
         return io.NodeOutput( text )
 
 

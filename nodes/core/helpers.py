@@ -176,6 +176,11 @@ def normalize_images(images: torch.Tensor,
 
 
 @cache
+def get_project_root() -> Path:
+    return Path(__file__).parent.parent.parent.absolute()
+
+
+@cache
 def get_project_version() -> str:
     """
     Retrieve the project version from "pyproject.toml".
@@ -187,10 +192,10 @@ def get_project_version() -> str:
         - If pyproject.toml is not found, returns the DEFAULT_ERROR_VERSION.
         - Tries to use tomllib for parsing pyproject.toml if available.
         - Fallbacks to manual reading of pyproject.toml for Python 3.10 compatibility.
-        - Returns DEFAULT_ERROR_VERSION if all methods fail.
+        - Returns DEFAULT_ERROR_VERSION if all methods fail."predefined_styles_0_8"
     """
     DEFAULT_ERROR_VERSION = "0.0.1"
-    pyproject_path = Path(__file__).parent.parent.parent / "pyproject.toml"
+    pyproject_path = get_project_root() / "pyproject.toml"
     if not pyproject_path.exists():
         return DEFAULT_ERROR_VERSION
 
@@ -217,6 +222,3 @@ def get_project_version() -> str:
     return DEFAULT_ERROR_VERSION
 
 
-@cache
-def get_project_root() -> Path:
-    return Path(__file__).parent.parent.parent.resolve()

@@ -14,12 +14,12 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
  - https://docs.comfy.org/custom-nodes/v3_migration
 
 """
-from functools                   import cache
-from comfy_api.latest            import io
-from .core.system                import logger
-from .core.style_group           import Style, StyleGroup
-from .core.helpers_style         import get_style_names, get_style_template
-from ..styles.predefined_styles  import PREDEFINED_STYLE_GROUPS
+from typing                   import Final
+from functools                import cache
+from comfy_api.latest         import io
+from .core.style              import StyleSet
+from .core.predefined_styles  import PREDEFINED_STYLES
+_STL_VERSION: Final[str] = "1.0.0" #< the version of style definitions this node uses
 
 
 class StylePromptEncoder2(io.ComfyNode):
@@ -79,28 +79,29 @@ class StylePromptEncoder2(io.ComfyNode):
                 customization : str = "",
                 **kwargs
                 ) -> io.NodeOutput:
-        custom_styles   = StyleGroup.from_string(customization)
-        custom_template = custom_styles.get_style_template(style) if Style.is_valid_name(style) else None
+        prompt        = text
+        custom_styles = StyleSet.from_string(customization)
 
-        # if user did not define a custom template for this style, then use the predefined one
-        template = custom_template if custom_template else cls.predefined_style_template(style)
+        # try to find the definition of the style selected by the user,
+        # first search inside the custom styles that the user has defined (if any),
+        # if not found, then try to find it in the predefined styles
+        style_obj = custom_styles.get(style)
+        if not style_obj:
+            style_obj = PREDEFINED_STYLES.by_version(_STL_VERSION).get(style)
 
         # apply the style template to the prompt
-        prompt = text
-        if template:
-            prompt = StyleGroup.apply_style_template(prompt, template, spicy_impact_booster=False)
+        if style_obj:
+            prompt = style_obj.apply_to_prompt(prompt, spicy_impact_booster=False)
 
         # encode the prompt using the provided text encoder (clip)
-        if clip is None:
-            raise RuntimeError("ERROR: clip input is invalid: None\n\nIf the clip is from a checkpoint loader node your checkpoint does not contain a valid clip or text encoder model.")
         tokens = clip.tokenize(prompt)
         return io.NodeOutput( clip.encode_from_tokens_scheduled(tokens), prompt )
+
 
     #__ VALIDATION ________________________________________
     @classmethod
     def validate_inputs(cls, **kwargs) -> bool | str:
         return True
-
 
 
     #__ internal functions ________________________________
@@ -109,12 +110,9 @@ class StylePromptEncoder2(io.ComfyNode):
     @cache
     def style_names() -> list[str]:
         """Returns all available style names."""
-        names = get_style_names( PREDEFINED_STYLE_GROUPS, quoted = True )
-        return names
+        return (
+            ["none"]
+            + list( PREDEFINED_STYLES.by_version(_STL_VERSION).quoted_names() )
+        )
 
-
-    @staticmethod
-    def predefined_style_template(name: str) -> str:
-        """Returns the predefined template for the given style."""
-        return get_style_template( PREDEFINED_STYLE_GROUPS, name, default="" )
 

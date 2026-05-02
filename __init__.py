@@ -32,10 +32,10 @@ License : MIT
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 """
 import os
-from comfy_api.latest          import ComfyExtension, io
-from .nodes.server             import *
-from .nodes.core.helpers       import get_project_version
-from .styles.predefined_styles import number_of_predefined_styles
+from comfy_api.latest              import ComfyExtension, io
+from .nodes.server                 import *
+from .nodes.core.helpers           import get_project_version
+from .nodes.core.predefined_styles import PREDEFINED_STYLES
 __PROJECT_EMOJI = "⚡"                 #< emoji that identifies the project
 __PROJECT_MENU  = "Z-Image"            #< name of the menu where all the nodes will be
 __PROJECT_ID    = "//ZImagePowerNodes" #< used to identify the project in the ComfyUI node registry.
@@ -196,7 +196,8 @@ class ZImagePowerNodesExtension(ComfyExtension):
 
         logger.info(f"Version: {version}")
         logger.info(f"This package includes {num_of_nodes} nodes{and_deprecated}.")
-        logger.info(f"It also features {number_of_predefined_styles()} predefined styles.")
+        logger.info(f"It also features {len(PREDEFINED_STYLES.by_version("1.0.0"))} predefined styles.")
+        print(">>### 1.0.0:", PREDEFINED_STYLES.by_version("1.0.0") )
         return nodes
 
 

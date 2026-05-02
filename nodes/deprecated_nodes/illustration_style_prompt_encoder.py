@@ -15,11 +15,12 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
     - https://docs.comfy.org/custom-nodes/v3_migration
 
 """
-from comfy_api.latest                 import io
-from ..core.system                    import logger
-from ..core.style_group               import StyleGroup
-from ...styles.predefined_styles_0_8  import PREDEFINED_STYLE_GROUPS_0_8 as PREDEFINED_STYLE_GROUPS
-ILLUSTRATION_STYLES = next((style_group for style_group in PREDEFINED_STYLE_GROUPS if style_group.category == "illustration"))
+from typing                   import Final
+from functools                import cache
+from comfy_api.latest         import io
+from ..core.style             import StyleSet
+from ..core.predefined_styles import PREDEFINED_STYLES
+_STL_VERSION: Final[str] = "0.8.0" #< the version of style definitions this node uses
 
 
 class IllustrationStylePromptEncoder(io.ComfyNode):
@@ -70,19 +71,19 @@ class IllustrationStylePromptEncoder(io.ComfyNode):
     @classmethod
     def execute(cls, clip, style_to_apply: str, text: str, customization: str = "") -> io.NodeOutput:
         prompt        = text
-        style_name    = style_to_apply if isinstance(style_to_apply, str) else "none"
-        custom_styles = StyleGroup.from_string(customization)
+        style         = style_to_apply if isinstance(style_to_apply, str) else "none"
+        custom_styles = StyleSet.from_string(customization)
 
         # try to find the definition of the style selected by the user,
         # first search inside the custom styles that the user has defined (if any),
         # if not found, then try to find it in the predefined styles
-        style = custom_styles.get_style_template(style_name) if style_name != "none" else None
-        if not style:
-            style = ILLUSTRATION_STYLES.get_style_template(style_name)
+        style_obj = custom_styles.get(style)
+        if not style_obj:
+            style_obj = PREDEFINED_STYLES.by_version(_STL_VERSION).get(style)
 
-        # if the style was found, apply it to the prompt
-        if style:
-            prompt = StyleGroup.apply_style_template(prompt, style, spicy_impact_booster=False)
+        # apply the style template to the prompt
+        if style_obj:
+            prompt = style_obj.apply_to_prompt(prompt, spicy_impact_booster=False)
 
         # generate the embeddings and output them
         tokens = clip.tokenize(prompt)
@@ -90,6 +91,10 @@ class IllustrationStylePromptEncoder(io.ComfyNode):
 
 
     @classmethod
+    @cache
     def style_names(cls) -> list[str]:
-        return ["none"] + ILLUSTRATION_STYLES.get_names()
+        return (
+            ["none"]
+            + list( PREDEFINED_STYLES.by_version(_STL_VERSION).by_category("illustration").names() )
+        )
 

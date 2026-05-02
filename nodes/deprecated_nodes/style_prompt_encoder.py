@@ -14,11 +14,12 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
  - https://docs.comfy.org/custom-nodes/v3_migration
 
 """
-from functools                        import cache
-from comfy_api.latest                 import io
-from ..core.system                    import logger
-from ..core.style_group               import StyleGroup
-from ...styles.predefined_styles_0_9  import PREDEFINED_STYLE_GROUPS_0_9 as PREDEFINED_STYLE_GROUPS
+from typing                    import Final
+from functools                 import cache
+from comfy_api.latest          import io
+from ..core.style              import StyleSet
+from ..core.predefined_styles  import PREDEFINED_STYLES
+_STL_VERSION: Final[str] = "0.9.0" #< the version of style definitions this node uses
 
 
 class StylePromptEncoder(io.ComfyNode):
@@ -52,7 +53,7 @@ class StylePromptEncoder(io.ComfyNode):
                                   'its description on the next lines. The description should incorporate "{$@}" where the '
                                   'main text prompt will be inserted.'),
                                ),
-                io.Combo.Input ("category", options=cls.category_names(), default=cls.default_category_name(),
+                io.Combo.Input ("category", options=cls.category_names(),
                                 tooltip="The category of styles you want to select from.",
                                ),
                 io.Combo.Input ("style", options=cls.style_names(), default=cls.default_style_name(),
@@ -73,29 +74,28 @@ class StylePromptEncoder(io.ComfyNode):
     def execute(cls,
                 clip,
                 category      : str,
-                style: str,
+                style         : str,
                 text          : str,
                 customization : str = ""
                 ) -> io.NodeOutput:
-        template      = None
         prompt        = text
-        custom_styles = StyleGroup.from_string(customization)
+        custom_styles = StyleSet.from_string(customization)
 
-        if isinstance(style, str) and style != "none":
-            # first search inside the custom styles that the user has defined,
-            # if not found, search inside the predefined styles
-            template = custom_styles.get_style_template(style)
-            if not template:
-                template = cls.get_predefined_style_template(style)
+        # try to find the definition of the style selected by the user,
+        # first search inside the custom styles that the user has defined (if any),
+        # if not found, then try to find it in the predefined styles
+        style_obj = custom_styles.get(style)
+        if not style_obj:
+            style_obj = PREDEFINED_STYLES.by_version(_STL_VERSION).get(style)
 
-        # if a style template was found, apply it to the prompt
-        if template:
-            prompt = StyleGroup.apply_style_template(prompt, template, spicy_impact_booster=False)
+        # apply the style template to the prompt
+        if style_obj:
+            prompt = style_obj.apply_to_prompt(prompt, spicy_impact_booster=False)
 
-        if clip is None:
-            raise RuntimeError("ERROR: clip input is invalid: None\n\nIf the clip is from a checkpoint loader node your checkpoint does not contain a valid clip or text encoder model.")
+        # encode the prompt using the provided text encoder (clip)
         tokens = clip.tokenize(prompt)
         return io.NodeOutput( clip.encode_from_tokens_scheduled(tokens), prompt )
+
 
     #__ VALIDATION ________________________________________
     @classmethod
@@ -112,37 +112,23 @@ class StylePromptEncoder(io.ComfyNode):
     @cache
     def category_names() -> list[str]:
         """Returns all available category names."""
-        return [ group.category for group in PREDEFINED_STYLE_GROUPS if group.category ]
+        return PREDEFINED_STYLES.by_version(_STL_VERSION).categories()
 
 
     @staticmethod
     @cache
     def style_names() -> list[str]:
         """Returns all available style names."""
-        names = ["none"]
-        for style_group in PREDEFINED_STYLE_GROUPS:
-            names.extend( style_group.get_names(quoted=True) )
-        return names
-
-
-    @staticmethod
-    @cache
-    def default_category_name() -> str:
-        return PREDEFINED_STYLE_GROUPS[0].category
+        return (
+            ["none"]
+            + list( PREDEFINED_STYLES.by_version(_STL_VERSION).quoted_names() )
+        )
 
 
     @staticmethod
     @cache
     def default_style_name() -> str:
-        return PREDEFINED_STYLE_GROUPS[0].get_names(quoted=True)[0]
-
-
-    @staticmethod
-    def get_predefined_style_template(style_name: str) -> str:
-        """Returns a predefined style template by its name, searching inside all category groups."""
-        for style_group in PREDEFINED_STYLE_GROUPS:
-            style = style_group.get_style_template(style_name)
-            if style:
-                return style
-        return ""
+        """Returns the default style name (the first one that is not 'none')."""
+        style_names = StylePromptEncoder.style_names()
+        return style_names[1 if len(style_names)>1 else 0]
 

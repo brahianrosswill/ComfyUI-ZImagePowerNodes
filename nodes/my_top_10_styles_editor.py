@@ -14,11 +14,11 @@ The V3 schema documentation can be found here:
  - https://docs.comfy.org/custom-nodes/v3_migration
 
 """
-from functools                   import cache
-from comfy_api.latest            import io
-from .core.helpers_style         import normalize_style_name
-from ..styles.predefined_styles  import PREDEFINED_STYLE_GROUPS
-
+from typing                   import Final
+from functools                import cache
+from comfy_api.latest         import io
+from .core.predefined_styles  import PREDEFINED_STYLES
+_STL_VERSION: Final[str] = "1.0.0" #< the version of style definitions this node uses
 
 
 class MyTop10StylesEditor(io.ComfyNode):
@@ -42,34 +42,34 @@ class MyTop10StylesEditor(io.ComfyNode):
                 "and utilize your preferred styles."
             ),
             inputs=[
-                io.Combo.Input( "style_1" , options=cls.all_style_names(), ),
+                io.Combo.Input( "style_1" , options=cls.style_names(), ),
                 io.Custom("ZIPN_STYLE_GALLERY").Input("gallery_1"),
                 io.Custom("ZIPN_SPACER").Input("spacer_1"),
-                io.Combo.Input( "style_2" , options=cls.all_style_names(), ),
+                io.Combo.Input( "style_2" , options=cls.style_names(), ),
                 io.Custom("ZIPN_STYLE_GALLERY").Input("gallery_2"),
                 io.Custom("ZIPN_SPACER").Input("spacer_2"),
-                io.Combo.Input( "style_3" , options=cls.all_style_names(), ),
+                io.Combo.Input( "style_3" , options=cls.style_names(), ),
                 io.Custom("ZIPN_STYLE_GALLERY").Input("gallery_3"),
                 io.Custom("ZIPN_SPACER").Input("spacer_3"),
-                io.Combo.Input( "style_4" , options=cls.all_style_names(), ),
+                io.Combo.Input( "style_4" , options=cls.style_names(), ),
                 io.Custom("ZIPN_STYLE_GALLERY").Input("gallery_4"),
                 io.Custom("ZIPN_SPACER").Input("spacer_4"),
-                io.Combo.Input( "style_5" , options=cls.all_style_names(), ),
+                io.Combo.Input( "style_5" , options=cls.style_names(), ),
                 io.Custom("ZIPN_STYLE_GALLERY").Input("gallery_5"),
                 io.Custom("ZIPN_SPACER").Input("spacer_5"),
-                io.Combo.Input( "style_6" , options=cls.all_style_names(), ),
+                io.Combo.Input( "style_6" , options=cls.style_names(), ),
                 io.Custom("ZIPN_STYLE_GALLERY").Input("gallery_6"),
                 io.Custom("ZIPN_SPACER").Input("spacer_6"),
-                io.Combo.Input( "style_7" , options=cls.all_style_names(), ),
+                io.Combo.Input( "style_7" , options=cls.style_names(), ),
                 io.Custom("ZIPN_STYLE_GALLERY").Input("gallery_7"),
                 io.Custom("ZIPN_SPACER").Input("spacer_7"),
-                io.Combo.Input( "style_8" , options=cls.all_style_names(), ),
+                io.Combo.Input( "style_8" , options=cls.style_names(), ),
                 io.Custom("ZIPN_STYLE_GALLERY").Input("gallery_8"),
                 io.Custom("ZIPN_SPACER").Input("spacer_8"),
-                io.Combo.Input( "style_9" , options=cls.all_style_names(), ),
+                io.Combo.Input( "style_9" , options=cls.style_names(), ),
                 io.Custom("ZIPN_STYLE_GALLERY").Input("gallery_9"),
                 io.Custom("ZIPN_SPACER").Input("spacer_9"),
-                io.Combo.Input( "style_10", options=cls.all_style_names(), ),
+                io.Combo.Input( "style_10", options=cls.style_names(), ),
                 io.Custom("ZIPN_STYLE_GALLERY").Input("gallery_10"),
             ],
             outputs=[
@@ -86,10 +86,24 @@ class MyTop10StylesEditor(io.ComfyNode):
         # collect the top styles selected by the user
         top_styles = []
         for i in range(0, 100):
+
+            # build the name of the input widget
             input_id = f"style_{i+1}"
             if input_id not in kwargs:
                 break
-            top_styles.append( normalize_style_name(kwargs[input_id]) )
+
+            # get the name of the selected style
+            style_name = kwargs[input_id]
+            if not isinstance(style_name,str):
+                continue
+
+            # remove quotes from the style name
+            if style_name.startswith('"') and style_name.endswith('"'):
+                style_name = style_name[1:-1]
+
+            # add the style name to the top-10 styles array
+            top_styles.append( style_name )
+
 
         # output the top styles as a array of strings
         return io.NodeOutput( top_styles )
@@ -107,10 +121,11 @@ class MyTop10StylesEditor(io.ComfyNode):
 
     @staticmethod
     @cache
-    def all_style_names() -> list[str]:
+    def style_names() -> list[str]:
         """Returns all available style names."""
-        names = ["none"]
-        for style_group in PREDEFINED_STYLE_GROUPS:
-            names.extend( style_group.get_names(quoted=True) )
-        return names
+        return (
+            ["none"]
+            + list( PREDEFINED_STYLES.by_version(_STL_VERSION).quoted_names() )
+        )
+
 

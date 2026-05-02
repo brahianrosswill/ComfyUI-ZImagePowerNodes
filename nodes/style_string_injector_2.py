@@ -14,11 +14,11 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
  - https://docs.comfy.org/custom-nodes/v3_migration
 
 """
-from functools                   import cache
-from comfy_api.latest            import io
-from .core.style_group           import StyleGroup
-from .core.helpers_style         import get_style_names, get_style_template
-from ..styles.predefined_styles  import PREDEFINED_STYLE_GROUPS
+from typing                   import Final
+from functools                import cache
+from comfy_api.latest         import io
+from .core.predefined_styles  import PREDEFINED_STYLES
+_STL_VERSION: Final[str] = "1.0.0" #< the version of style definitions this node uses
 
 
 class StyleStringInjector2(io.ComfyNode):
@@ -58,12 +58,12 @@ class StyleStringInjector2(io.ComfyNode):
     #__ FUNCTION __________________________________________
     @classmethod
     def execute(cls, style: str, string: str, **kwargs) -> io.NodeOutput:
-        template = cls.predefined_style_template(style)
+        style_obj = PREDEFINED_STYLES.by_version(_STL_VERSION).get(style)
 
         # apply the style template to the prompt
         prompt = string
-        if template:
-            prompt = StyleGroup.apply_style_template(prompt, template, spicy_impact_booster=False)
+        if style_obj:
+            prompt = style_obj.apply_to_prompt(prompt, spicy_impact_booster=False)
 
         return io.NodeOutput( prompt )
 
@@ -81,11 +81,6 @@ class StyleStringInjector2(io.ComfyNode):
     @cache
     def style_names() -> list[str]:
         """Returns all available style names."""
-        return get_style_names( PREDEFINED_STYLE_GROUPS, quoted = True )
+        return PREDEFINED_STYLES.by_version(_STL_VERSION).quoted_names()
 
-
-    @staticmethod
-    def predefined_style_template(name: str) -> str:
-        """Returns the predefined template for the given style."""
-        return get_style_template( PREDEFINED_STYLE_GROUPS, name, default="" )
 

@@ -14,9 +14,11 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
  - https://docs.comfy.org/custom-nodes/v3_migration
 
 """
-from comfy_api.latest                 import io
-from ..core.style_group               import StyleGroup
-from ...styles.predefined_styles_0_9  import PREDEFINED_STYLE_GROUPS_0_9 as PREDEFINED_STYLE_GROUPS
+from typing                    import Final
+from functools                 import cache
+from comfy_api.latest          import io
+from ..core.predefined_styles  import PREDEFINED_STYLES
+_STL_VERSION: Final[str] = "0.9.0" #< the version of style definitions this node uses
 
 
 class StyleStringInjector(io.ComfyNode):
@@ -38,7 +40,7 @@ class StyleStringInjector(io.ComfyNode):
                 "according to the selected style"
             ),
             inputs=[
-                io.Combo.Input ("category", options=cls.category_names(), default=cls.default_category_name(),
+                io.Combo.Input ("category", options=cls.category_names(),
                                 tooltip="The category of styles you want to select from.",
                                ),
                 io.Combo.Input ("style", options=cls.style_names(), default=cls.default_style_name(),
@@ -60,15 +62,12 @@ class StyleStringInjector(io.ComfyNode):
                 style         : str,
                 string        : str,
                 ) -> io.NodeOutput:
-        style_to_apply = None
-        prompt         = string
+        prompt    = string
+        style_obj = PREDEFINED_STYLES.by_version(_STL_VERSION).get(style)
 
-        if isinstance(style, str) and style != "none":
-            style_to_apply = cls.get_predefined_style(style)
-
-        # if the style was found, apply it to the prompt
-        if style_to_apply:
-            prompt = StyleGroup.apply_style_template(prompt, style_to_apply, spicy_impact_booster=False)
+        # apply the style template to the prompt
+        if style_obj:
+            prompt = style_obj.apply_to_prompt(prompt, spicy_impact_booster=False)
 
         return io.NodeOutput( prompt )
 
@@ -84,37 +83,27 @@ class StyleStringInjector(io.ComfyNode):
 
     #__ internal functions ________________________________
 
-    @classmethod
-    def category_names(cls) -> list[str]:
+    @staticmethod
+    @cache
+    def category_names() -> list[str]:
         """Returns all available category names."""
-        return [ group.category for group in PREDEFINED_STYLE_GROUPS if group.category ]
+        return PREDEFINED_STYLES.by_version(_STL_VERSION).categories()
 
 
-    @classmethod
-    def style_names(cls) -> list[str]:
+    @staticmethod
+    @cache
+    def style_names() -> list[str]:
         """Returns all available style names."""
-        names = []
-        for style_group in PREDEFINED_STYLE_GROUPS:
-            names.extend( style_group.get_names(quoted=True) )
-        return names
+        return (
+            ["none"]
+            + list( PREDEFINED_STYLES.by_version(_STL_VERSION).quoted_names() )
+        )
 
 
-    @classmethod
-    def default_category_name(cls) -> str:
-        return PREDEFINED_STYLE_GROUPS[0].category
-
-
-    @classmethod
-    def default_style_name(cls) -> str:
-        return PREDEFINED_STYLE_GROUPS[0].get_names(quoted=True)[0]
-
-
-    @classmethod
-    def get_predefined_style(cls, style_name: str) -> str:
-        """Returns a predefined style content by its name, searching inside all category groups."""
-        for style_group in PREDEFINED_STYLE_GROUPS:
-            style = style_group.get_style_template(style_name)
-            if style:
-                return style
-        return ""
+    @staticmethod
+    @cache
+    def default_style_name() -> str:
+        """Returns the default style name (the first one that is not 'none')."""
+        style_names = StyleStringInjector.style_names()
+        return style_names[1 if len(style_names)>1 else 0]
 
