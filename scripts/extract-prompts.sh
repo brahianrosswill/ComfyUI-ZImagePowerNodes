@@ -9,9 +9,10 @@
 #                          ComfyUI-ZImagePowerNodes
 #         ComfyUI nodes designed specifically for the "Z-Image" model.
 #_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-SCRIPT_NAME=$(basename "${BASH_SOURCE[0]}" .sh)           # script name without extension
-SCRIPT_DIR=$(realpath "$(dirname "${BASH_SOURCE[0]}")")   # script directory
-PYTHON_SCRIPT="${SCRIPT_DIR}/${SCRIPT_NAME}.py"           # path to python script to run
+REAL_SOURCE=$(readlink -f "${BASH_SOURCE[0]}")
+SCRIPT_NAME=$(basename "$REAL_SOURCE" .sh)          # script name without extension
+SCRIPT_DIR=$(dirname "$REAL_SOURCE")                # script directory
+PYTHON_SCRIPT="${SCRIPT_DIR}/${SCRIPT_NAME}.py"     # path to python script to run
 
 # Environment variables
 # PYTHON  : specifies the path to the Python interpreter; default is `python3`
