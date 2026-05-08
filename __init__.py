@@ -33,7 +33,7 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 """
 import os
 from comfy_api.latest              import ComfyExtension, io
-from .nodes.server                 import *
+from .nodes                        import server
 from .nodes.core.helpers           import get_project_version
 from .nodes.core.predefined_styles import PREDEFINED_STYLES
 __PROJECT_EMOJI = "⚡"                 #< emoji that identifies the project
@@ -194,10 +194,13 @@ class ZImagePowerNodesExtension(ComfyExtension):
         num_of_nodes      = len(nodes) - num_of_deprecated
         and_deprecated    = f" and {num_of_deprecated} deprecated ones" if num_of_deprecated>0 else ""
 
+        # count the number of pre-defined styles that are not custom styles
+        canonical_names          = PREDEFINED_STYLES.by_version("1.0.0").canonical_names()
+        num_of_predefined_styles = sum(1 for name in canonical_names if not name.startswith("custom"))
+
         logger.info(f"Version: {version}")
-        logger.info(f"This package includes {num_of_nodes} nodes{and_deprecated}.")
-        logger.info(f"It also features {len(PREDEFINED_STYLES.by_version("1.0.0"))} predefined styles.")
-        print(">>### 1.0.0:", PREDEFINED_STYLES.by_version("1.0.0") )
+        logger.info(f"This package includes {num_of_nodes} active nodes{and_deprecated}.")
+        logger.info(f"It also features {num_of_predefined_styles} predefined visual styles.")
         return nodes
 
 

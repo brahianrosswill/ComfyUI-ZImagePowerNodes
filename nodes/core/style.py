@@ -12,8 +12,9 @@ License : MIT
          ComfyUI nodes designed specifically for the "Z-Image" model.
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 """
-from __future__ import annotations
-from typing     import Iterator
+from __future__      import annotations
+from typing          import Iterator
+from collections.abc import KeysView, ValuesView
 import re
 import unicodedata
 
@@ -254,8 +255,8 @@ class StyleSet:
                     or None to start with an empty set.
         """
         self._styles_by_canonical: dict[str, Style]   = {}
-        self._sorted_styles      : list[Style] | None = None
-        self._sequence_index       : int  = 0
+        self._sorted_list        : list[Style] | None = None
+        self._sequence_index     : int                = 0
 
         if styles is None:
             pass
@@ -263,23 +264,23 @@ class StyleSet:
         elif isinstance(styles, StyleSet):
             # copy the internal dictionary directly (it always is canonicalized)
             self._styles_by_canonical = dict(styles._styles_by_canonical)
-            self._sorted_styles       = list(styles._sorted_styles) if styles._sorted_styles is not None else None
+            self._sorted_list         = list(styles._sorted_list) if styles._sorted_list is not None else None
 
         else:
             raise TypeError("Invalid type for styles argument.")
 
 
     @property
-    def priority_list(self) -> list[Style]:
+    def sorted_list(self) -> list[Style]:
         """
         Returns a list of styles sorted by its order property.
         """
-        if  self._sorted_styles is None:
-            self._sorted_styles = sorted(
+        if  self._sorted_list is None:
+            self._sorted_list = sorted(
                 self._styles_by_canonical.values(),
                 key = lambda style: style.order
                 )
-        return self._sorted_styles
+        return self._sorted_list
 
 
     @classmethod
@@ -446,8 +447,8 @@ class StyleSet:
             style.order = (category_order, self._sequence_index)
         self._styles_by_canonical[canonical_name] = style
 
-        # reset sorted cache and increment the sequence index
-        self._sorted_styles = None
+        # reset sorted list cache and increment the sequence index
+        self._sorted_list = None
         self._sequence_index += 1
         return True
 
@@ -521,18 +522,53 @@ class StyleSet:
 
     def names(self) -> list[str]:
         """
-        Returns a list of all style names stored in the set.
+        Return a list of all style names stored in the set.
 
-        Example usage: `for name in style_set.names():`
+        Returns:
+            A list of style names sorted by the style order attribute.
+
+        Example:
+            >>> for name in style_set.names():
+            ...     print(name)
         """
-        return [style.name for style in self._styles_by_canonical.values()]
+        return [style.name for style in self.sorted_list]
 
 
     def quoted_names(self) -> list[str]:
         """
-        Returns a list of all style names (quoted) stored in the set.
+        Return a list of all quoted style names stored in the set.
+
+        Returns:
+            A list of quoted style names sorted by the style order attribute.
+
+        Example:
+            >>> for quoted_name in style_set.quoted_names():
+            ...     print(quoted_name)
         """
-        return [style.quoted_name for style in self._styles_by_canonical.values()]
+        return [style.quoted_name for style in self.sorted_list]
+
+
+    def canonical_names(self) -> KeysView[str]:
+        """
+        Return a dynamic view of all canonical style names stored in the set.
+
+        Canonical names are normalized versions of the style names.
+        They are converted to lowercase with:
+          - spaces replaced by underscores
+          - accent marks removed
+          - rare characters converted to 'x'
+
+        Important:
+            The returned view is **NOT** sorted by style order attribute.
+
+        Returns:
+            A view object containing all canonical style names.
+
+        Example:
+            >>> for canonical_name in style_set.canonical_names():
+            ...     print(canonical_name)
+        """
+        return self._styles_by_canonical.keys()
 
 
     def categories(self) -> list[str]:
@@ -598,7 +634,7 @@ class StyleSet:
 
         Example usage: `for style in style_set:`
         """
-        return iter(self.priority_list)
+        return iter(self.sorted_list)
 
 
     def __repr__(self) -> str:
