@@ -160,6 +160,11 @@ function setupCardHoverListeners(containerEl, cardSelector, onCardEnter, onCardL
         leave: hasPointer ? 'pointerleave' : 'mouseleave'
     };
 
+    // ensure parameters are of the correct type
+    if (!(containerEl instanceof HTMLElement)) {
+        throw new TypeError('`containerEl` must be an instance of `HTMLElement`.');
+    }
+
     containerEl.addEventListener(events.over, (e) => {
         const card = e.target.closest(cardSelector);
         if( card && !card.contains(e.relatedTarget) ) { onCardEnter?.(card, e); }
