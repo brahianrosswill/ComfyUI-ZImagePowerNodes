@@ -34,7 +34,7 @@ const TITLE_ID  = 'zipn-style-gallery-title';  //< ID of the DOM element where t
  * to provide the data source for the gallery.
  *
  * @example
- * class MyDataProvider extends GalleryDialogDataProvider {
+ * class MyDataProvider extends GalleryDialog.DataProvider {
  *     async fetchDataArray(callback) {
  *         const data = [{ id: 0, name: "Example", thumbnail: "url/to/img.png", ... }];
  *         callback(data);
@@ -62,14 +62,39 @@ class GalleryDialogDataProvider {
      *
      * @returns {Promise<void>}
      */
-    async fetchDataArray(callback)
-    {
+    async fetchDataArray(callback) {
+        throw new Error(`Method fetchDataArray(callback: ${typeof callback}) must be implemented.`);
     }
 
+    /**
+     * Returns an array of category definitions used for filtering the gallery items.
+     *
+     * When implemented, this method provides the categories used in the
+     * gallery's filtering UI. Each category definition is an array of
+     * three strings: [category, displayName, description].
+     *
+     * If not overridden, there will be no filtering available in the gallery.
+     *
+     * @returns {Array<Array<string>>}
+     *   An array of category definitions where each item contains:
+     *     - category    (string): The value used for matching gallery items (must match the "category" property in items)
+     *     - displayName (string): The visible name shown in the UI
+     *     - description (string): Tooltip description for screen readers/accessibility
+     *
+     * @example
+     * class MyDataProvider extends GalleryDialog.DataProvider {
+     *   getCategories() {
+     *     return [
+     *       ['images'   , 'Images'   , 'View all image files'   ],
+     *       ['videos'   , 'Videos'   , 'View all video files'   ],
+     *       ['documents', 'Documents', 'View all document files']
+     *     ];
+     *   }
+     * }
+     */
     getCategories() {
         return null;
     }
-
 
 }
 
