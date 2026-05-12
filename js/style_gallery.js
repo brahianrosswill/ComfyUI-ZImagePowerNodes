@@ -10,11 +10,8 @@
  *       ComfyUI nodes designed specifically for the "Z-Image" model.
  *_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 */
-import { app }                      from "../../../scripts/app.js";
-import { api } from "../../../scripts/api.js";
-
-// import { ComfyDialog, $el as html } from "../../../scripts/ui.js"; //< deprecated ?
-// import { makeCustomDialog, setupCardHoverListeners } from "./common_dialog.js";
+import { app }           from "../../../scripts/app.js";
+import { api }           from "../../../scripts/api.js";
 import { GalleryDialog } from "./gallery_dialog.js";
 const ENABLED = true;
 
