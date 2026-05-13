@@ -17,6 +17,7 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 """
 from typing                       import Any
 from comfy_api.latest             import io
+from ..custom_widgets             import Separator
 from ..core.progress_bar          import ProgressPreview
 from ..core.zsampler_turbo_legacy import zsampler_turbo_legacy
 
@@ -60,7 +61,10 @@ class ZSamplerTurbo(io.ComfyNode):
                 io.Float.Input       ("denoise", default=1.0, min=0.00, max=1.00, step=0.01,
                                       tooltip="The amount of denoising applied, lower values will maintain the structure of the initial image allowing for image to image sampling.",
                                      ),
-                io.Custom            ("ZIPN_DIVIDER").Input("divider"),
+
+                Separator.Input("divider", mode="divider"),#=======================================
+
+
                 io.Combo.Input       ("initial_noise_calibration", default="off", options=["100%", "75%", "50%", "25%", "off"],
                                        tooltip="The amount of adjustment applied to the initial noise. "
                                                "This typically enhances image contrast and saturation, "

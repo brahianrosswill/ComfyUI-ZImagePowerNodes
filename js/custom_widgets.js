@@ -121,41 +121,6 @@ function createSeparatorWidget(node, inputName, inputData, _app) {
 }
 
 
-/*============================ DIVIDER WIDGET =============================*/
-
-/**
- * Creates a divider widget to visually separate UI elements.
- * @param {LGraphNode}  node - The node where the widget is added.
- * @param {string} inputName - The name of the input associated with this widget.
- * @returns {{widget: object}} An object containing the created widget.
- */
-function createDividerWidget( node, inputName ) {
-
-    const w = node.addCustomWidget({
-        type      : "ui_spacer",
-        name      : inputName,
-        serialize : false,
-
-        draw: function(ctx, node, widget_width, y, widget_height) {
-            ctx.save();
-            ctx.strokeStyle = "#555"; 
-            ctx.beginPath();
-            ctx.moveTo(10, y + widget_height / 2);
-            ctx.lineTo(widget_width - 10, y + widget_height / 2);
-            ctx.stroke();
-            ctx.restore();
-        },
-
-        // computeSize: function(widgetWidth) {
-        // }
-
-    });
-    w.serialize      = true;
-    w.serializeValue = () => null;
-    return { widget: w };
-}
-
-
 //#=========================================================================#
 //#////////////////////////// REGISTER EXTENSION ///////////////////////////#
 //#=========================================================================#
@@ -173,7 +138,6 @@ app.registerExtension({
     getCustomWidgets() {
         if (!ENABLED) return {};
         return {
-            "ZIPN_DIVIDER"  : createDividerWidget,
             "ZIPN_SEPARATOR": createSeparatorWidget,
         };
     },

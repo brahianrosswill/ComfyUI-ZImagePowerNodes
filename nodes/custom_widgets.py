@@ -81,5 +81,3 @@ class Separator:
             super().__init__(**kwargs)
 
 
-
-Divider = io.Custom("ZIPN_DIVIDER")

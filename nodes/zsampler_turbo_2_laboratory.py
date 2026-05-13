@@ -17,10 +17,9 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 """
 from typing                     import Any
 from comfy_api.latest           import io
+from .custom_widgets            import Separator
 from .core.progress_bar         import ProgressPreview
 from .core.zsampler_turbo_core  import zsampler_turbo_core
-def io_Divider(id: str):
-    return io.Custom("ZIPN_DIVIDER").Input(id = id)
 
 
 class ZSamplerTurbo2Laboratory(io.ComfyNode):
@@ -62,7 +61,7 @@ class ZSamplerTurbo2Laboratory(io.ComfyNode):
                                       tooltip="The amount of denoising applied, lower values will maintain the structure of the initial image allowing for image to image sampling.",
                                      ),
 
-                io_Divider("divider1"),#=====================================
+                Separator.Input("divider1", mode="divider"),#======================================
 
                 io.Float.Input       ("initial_noise_bias_level", default=1.0, min=0.0, max=10.0, step=0.2,
                                       tooltip="The level of adjustament from the calculated noise bias "
@@ -78,7 +77,7 @@ class ZSamplerTurbo2Laboratory(io.ComfyNode):
                                               "The smaller the image size, the faster the calculation of the first step. "
                                      ),
 
-                io_Divider("divider2"),#=====================================
+                Separator.Input("divider2", mode="divider"),#======================================
 
                 io.Int.Input         ("extra_noise_freq1", default=32, min=0, max=1024,
                                       tooltip="The frequency at which extra noise is injected into the latent during "
@@ -111,7 +110,7 @@ class ZSamplerTurbo2Laboratory(io.ComfyNode):
                                               "third stage. A value of 0 means that no noise will be injected. ",
                                      ),
 
-                io_Divider("divider3"),#=====================================
+                Separator.Input("divider3", mode="divider"),#======================================
 
                 io.Int.Input         ("scramble_left_count", default=0, min=-16, max=16,
                                       tooltip="Number of times to scramble the latent image with left side fragments. "
@@ -138,7 +137,7 @@ class ZSamplerTurbo2Laboratory(io.ComfyNode):
                                               "this can improve coherence and reduce hallucination. "
                                      ),
 
-                io_Divider("divider4"),#=====================================
+                Separator.Input("divider4", mode="divider"),#======================================
 
                 io.Combo.Input       ("sigma_preset_name", default="bravo", options=["alpha", "bravo", "charlie"],
                                       tooltip="The set of predefined sigma values that are used during the denoise process. "

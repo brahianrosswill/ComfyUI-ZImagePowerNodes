@@ -18,10 +18,9 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 """
 from typing                     import Any
 from comfy_api.latest           import io
+from .custom_widgets            import Separator
 from .core.progress_bar         import ProgressPreview
 from .core.zsampler_turbo_core  import zsampler_turbo_core
-def Divider(id: str):
-    return io.Custom("ZIPN_DIVIDER").Input(id = id)
 TURBO_CREATIVITY = {
     "off"              : (False, 0),
     "scrambled"        : (True , 0),
@@ -109,7 +108,7 @@ class ZSamplerTurbo2Advanced(io.ComfyNode):
                                               "process in a sampler chain. ",
                                      ),
 
-                Divider("divider"),#=========================================
+                Separator.Input("divider", mode="divider"),#=======================================
 
                 io.Combo.Input       ("initial_sample_size",
                                       default="full_size",
@@ -119,8 +118,7 @@ class ZSamplerTurbo2Advanced(io.ComfyNode):
                                               "step, they can lead to a less accurate correction",
                                      ),
 
-
-                Divider("divider2"),#=========================================
+                Separator.Input("divider2", mode="divider"),#======================================
 
                 io.Float.Input       ("intensity",
                                       default=0.0, min=-1.0, max=1.0, step=0.1,
