@@ -83,4 +83,3 @@ class Separator:
 
 
 Divider = io.Custom("ZIPN_DIVIDER")
-Spacer  = io.Custom("ZIPN_SPACER")

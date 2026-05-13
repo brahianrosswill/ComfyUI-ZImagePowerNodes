@@ -17,6 +17,7 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 from typing                   import Final
 from functools                import cache
 from comfy_api.latest         import io
+from .custom_widgets          import Separator
 from .core.style              import StyleSet
 from .core.predefined_styles  import PREDEFINED_STYLES
 _STL_VERSION: Final[str] = "1.0.0" #< the version of style definitions this node uses
@@ -46,21 +47,27 @@ class StylePromptEncoder2(io.ComfyNode):
                 io.Clip.Input  ("clip",
                                 tooltip="The CLIP model used for encoding the text."
                                ),
-                io.String.Input("customization", optional=True, multiline=True, force_input=True,
-                                tooltip=(
-                                  'An optional multi-line string to customize existing styles. '
-                                  'Each style definition must start with ">>>" followed by the style name, and then include '
-                                  'its description on the next lines. The description should incorporate "{$@}" where the '
-                                  'main text prompt will be inserted.'),
+                io.String.Input("customization",
+                                optional=True, multiline=True, force_input=True,
+                                tooltip="An optional multi-line string to customize existing styles. "
+                                        "Each style definition must start with '>>>' followed by the "
+                                        "style name, and then include its description on the next lines. "
+                                        "The description should incorporate '{$@}' where the main text "
+                                        "prompt will be inserted.",
                                ),
-                io.Combo.Input ("style", options=cls.style_names(),
+                io.Combo.Input ("style",
+                                options=cls.style_names(),
                                 tooltip="The style you want for your image.",
                                ),
+
                 io.Custom("ZIPN_STYLE_GALLERY").Input("gallery",
                                                       tooltip="Open the style gallery to see all available styles."
                                                      ),
-                io.Custom("ZIPN_SPACER").Input("spacer"),
-                io.String.Input("text", multiline=True, dynamic_prompts=True,
+
+                Separator.Input("spacer", mode="spacer"), #----------------------------------------
+
+                io.String.Input("text",
+                                multiline=True, dynamic_prompts=True,
                                 tooltip="The prompt to encode.",
                                ),
             ],

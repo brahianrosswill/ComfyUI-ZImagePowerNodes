@@ -156,35 +156,6 @@ function createDividerWidget( node, inputName ) {
 }
 
 
-/*============================= SPACER WIDGET =============================*/
-
-/**
- * Creates a spacer widget, which can be used for spacing UI elements.
- * @param {LGraphNode}  node - The node where the widget is added.
- * @param {string} inputName - The name of the input associated with this widget.
- * @returns {{widget: object}} An object containing the created widget.
- */
-function createSpacerWidget( node, inputName ) {
-
-    const w = node.addCustomWidget({
-        type      : "ui_spacer",
-        name      : inputName,
-        serialize : false,
-
-        draw: function(_ctx, _node, _widget_width, _y, _widget_height) {
-        },
-
-        // computeSize: function(widgetWidth) {
-        // }
-
-    });
-    w.serialize      = true;
-    w.serializeValue = () => null;
-    return { widget: w };
-
-}
-
-
 //#=========================================================================#
 //#////////////////////////// REGISTER EXTENSION ///////////////////////////#
 //#=========================================================================#
@@ -203,7 +174,6 @@ app.registerExtension({
         if (!ENABLED) return {};
         return {
             "ZIPN_DIVIDER"  : createDividerWidget,
-            "ZIPN_SPACER"   : createSpacerWidget,
             "ZIPN_SEPARATOR": createSeparatorWidget,
         };
     },

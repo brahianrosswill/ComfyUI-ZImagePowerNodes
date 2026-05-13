@@ -17,6 +17,7 @@ The V3 schema documentation can be found here:
 from typing                   import Final
 from functools                import cache
 from comfy_api.latest         import io
+from .custom_widgets          import Separator
 from .core.predefined_styles  import PREDEFINED_STYLES
 _STL_VERSION: Final[str] = "1.0.0" #< the version of style definitions this node uses
 
@@ -44,31 +45,40 @@ class MyTop10StylesEditor(io.ComfyNode):
             inputs=[
                 io.Combo.Input( "style_1" , options=cls.style_names(), ),
                 io.Custom("ZIPN_STYLE_GALLERY").Input("gallery_1"),
-                io.Custom("ZIPN_SPACER").Input("spacer_1"),
+                Separator.Input("spacer_1", mode="spacer"), #------------------
+
                 io.Combo.Input( "style_2" , options=cls.style_names(), ),
                 io.Custom("ZIPN_STYLE_GALLERY").Input("gallery_2"),
-                io.Custom("ZIPN_SPACER").Input("spacer_2"),
+                Separator.Input("spacer_2", mode="spacer"), #------------------
+
                 io.Combo.Input( "style_3" , options=cls.style_names(), ),
                 io.Custom("ZIPN_STYLE_GALLERY").Input("gallery_3"),
-                io.Custom("ZIPN_SPACER").Input("spacer_3"),
+                Separator.Input("spacer_3", mode="spacer"), #------------------
+
                 io.Combo.Input( "style_4" , options=cls.style_names(), ),
                 io.Custom("ZIPN_STYLE_GALLERY").Input("gallery_4"),
-                io.Custom("ZIPN_SPACER").Input("spacer_4"),
+                Separator.Input("spacer_4", mode="spacer"), #------------------
+
                 io.Combo.Input( "style_5" , options=cls.style_names(), ),
                 io.Custom("ZIPN_STYLE_GALLERY").Input("gallery_5"),
-                io.Custom("ZIPN_SPACER").Input("spacer_5"),
+                Separator.Input("spacer_5", mode="spacer"), #------------------
+
                 io.Combo.Input( "style_6" , options=cls.style_names(), ),
                 io.Custom("ZIPN_STYLE_GALLERY").Input("gallery_6"),
-                io.Custom("ZIPN_SPACER").Input("spacer_6"),
+                Separator.Input("spacer_6", mode="spacer"), #------------------
+
                 io.Combo.Input( "style_7" , options=cls.style_names(), ),
                 io.Custom("ZIPN_STYLE_GALLERY").Input("gallery_7"),
-                io.Custom("ZIPN_SPACER").Input("spacer_7"),
+                Separator.Input("spacer_7", mode="spacer"), #------------------
+
                 io.Combo.Input( "style_8" , options=cls.style_names(), ),
                 io.Custom("ZIPN_STYLE_GALLERY").Input("gallery_8"),
-                io.Custom("ZIPN_SPACER").Input("spacer_8"),
+                Separator.Input("spacer_8", mode="spacer"), #------------------
+
                 io.Combo.Input( "style_9" , options=cls.style_names(), ),
                 io.Custom("ZIPN_STYLE_GALLERY").Input("gallery_9"),
-                io.Custom("ZIPN_SPACER").Input("spacer_9"),
+                Separator.Input("spacer_9", mode="spacer"), #------------------
+
                 io.Combo.Input( "style_10", options=cls.style_names(), ),
                 io.Custom("ZIPN_STYLE_GALLERY").Input("gallery_10"),
             ],
