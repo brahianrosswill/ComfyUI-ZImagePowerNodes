@@ -124,6 +124,9 @@ class ZImagePowerNodesExtension(ComfyExtension):
         from .nodes.zsampler_turbo_2_advanced import ZSamplerTurbo2Advanced
         _register_node( ZSamplerTurbo2Advanced, nodes, subcategory )
 
+        from .nodes.style_prompt_encoder_25 import StylePromptEncoder25
+        _register_node( StylePromptEncoder25, nodes, subcategory )
+
         from .nodes.style_prompt_encoder_2 import StylePromptEncoder2
         _register_node( StylePromptEncoder2, nodes, subcategory )
 

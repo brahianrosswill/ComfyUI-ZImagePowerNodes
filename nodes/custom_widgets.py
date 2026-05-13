@@ -16,6 +16,74 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 """
 from comfy_api.latest import io
 
+#========================= PALETTE SELECTOR WIDGET =========================#
+
+@io.comfytype(io_type="ZIPN_PALETTE_SELECTOR")
+class PaletteSelector:
+    #Type = str
+
+    class Input(io.Input):
+
+        def __init__(self,
+                     id : str,
+                     **kwargs
+                     ):
+            """
+            <hr>A color palette selector widget.
+            """
+            extra_dict = {}
+            super().__init__(id, extra_dict=extra_dict, **kwargs)
+
+
+
+    class Output(io.Output):
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+
+
+
+#========================== STYLE SELECTOR WIDGET ==========================#
+
+@io.comfytype(io_type="ZIPN_STYLE_SELECTOR")
+class StyleSelector:
+    #Type = str
+
+    class Input(io.Input):
+
+        def __init__(self,
+                     id : str,
+                     **kwargs
+                     ):
+            """
+            <hr>A separator widget.
+
+            Args:
+                id (str):                  A unique identifier for the input component.
+                mode (str, optional):      The visual style of the separator `"spacer"`, `"divider"`, `"dotted"`, `"bold"`.
+                                            Defaults to 'spacer'.
+                color (str, optional):     The color of the separator. Accepts a hexadecimal color string.
+                                            Defaults to '#555555'.
+                height (int, optional):    The height of the separator. Defaults to `20`.
+                thickness (int, optional): The thickness of the separator. Defaults to `2`.
+            """
+            ALLOWED_MODES = ("spacer", "divider", "dotted", "bold")
+            extra_dict = {}
+
+            # if mode is not None:
+            #     if mode not in ALLOWED_MODES:
+            #         raise ValueError(f"Invalid mode: {mode}. Must be one of {ALLOWED_MODES}")
+            #     extra_dict["mode"] = mode
+
+            super().__init__(id, extra_dict=extra_dict, **kwargs)
+
+
+
+    class Output(io.Output):
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
+
+
+
 
 #============================ SEPARATOR WIDGET =============================#
 
