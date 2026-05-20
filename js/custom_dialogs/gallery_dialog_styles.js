@@ -30,9 +30,10 @@ import { GalleryDialog } from "./gallery_dialog.js";
 
 class StyleDataProvider extends GalleryDialog.DataProvider {
 
-    constructor() {
+    constructor(version) {
         super();
-        this._cachedStyles = null; //< List of all styles
+        this._version      = version; //< the version of the styles to fetch
+        this._cachedStyles = null;    //< list of all styles
     }
 
     /**
@@ -50,14 +51,19 @@ class StyleDataProvider extends GalleryDialog.DataProvider {
      *       - thumbnail  : URL for the style's thumbnail image (string)
      */
     async fetchDataArray(callback) {
-        if( typeof callback !== "function" )
-        { console.error("The provided argument is not a valid function."); return; }
 
         // if it has already been queried before, returns the stored result
-        if( self._cachedStyles ) { callback( self._cachedStyles ); return; }
+        if( this._cachedStyles ) {
+            callback( this._cachedStyles ); return;
+        }
+        // if version is invalid, returns an empty array and logs an error
+        if( typeof this._version != 'string' ) {
+            console.error('Error: ' + this._version + ' is not a string. StyleDataProvider must be initialized with a valid version number.');
+            callback( [] ); return;
+        }
 
         try {
-            const response = await api.fetchApi("/zi_power/styles/last_version");
+            const response = await api.fetchApi(`/zi_power/styles/by_version?v=${this._version}`);
             const styles   = await response.json();
             if( typeof styles !== "object" )
             { console.error("The fetching of last version style failed."); return; }
@@ -65,7 +71,7 @@ class StyleDataProvider extends GalleryDialog.DataProvider {
             // prefix used when requesting thumbnails
             const thumbnailRequestPrefix = "/zi_power/styles/samples?file=";
 
-            self._cachedStyles = styles.map((style, index) => {
+            this._cachedStyles = styles.map((style, index) => {
                 return {
                     id         : index,
                     name       : style[0],
@@ -76,9 +82,10 @@ class StyleDataProvider extends GalleryDialog.DataProvider {
                     thumbnail  : thumbnailRequestPrefix + style[4]
                 };
             });
-            callback( self._cachedStyles );
+            callback( this._cachedStyles );
         } catch (error) {
             console.error("Failed to fetch styles:", error);
+            callback([]);
         }
     }
 
@@ -106,7 +113,7 @@ const dialogs = {};
 function getStyleGalleryDialog(version) {
     let dialog = dialogs[version];
     if( !dialog ) {
-        dialog = new GalleryDialog(new StyleDataProvider(), new StyleItemRenderer());
+        dialog = new GalleryDialog(new StyleDataProvider(version), new StyleItemRenderer());
         dialogs[version] = dialog;
     }
     return dialog;

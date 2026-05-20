@@ -17,7 +17,7 @@ The V3 schema documentation can be found here:
 from typing                   import Final
 from functools                import cache
 from comfy_api.latest         import io
-from .custom_widgets          import Separator
+from .custom_widgets          import StyleGalleryButton, Separator
 from .core.predefined_styles  import PREDEFINED_STYLES
 _STL_VERSION: Final[str] = "1.0.0" #< the version of style definitions this node uses
 
@@ -44,43 +44,43 @@ class MyTop10StylesEditor(io.ComfyNode):
             ),
             inputs=[
                 io.Combo.Input( "style_1" , options=cls.style_names(), ),
-                io.Custom("ZIPN_STYLE_GALLERY").Input("gallery_1"),
+                StyleGalleryButton.Input("gallery_1", version="0.8"),
                 Separator.Input("spacer_1", mode="spacer"), #------------------
 
                 io.Combo.Input( "style_2" , options=cls.style_names(), ),
-                io.Custom("ZIPN_STYLE_GALLERY").Input("gallery_2"),
+                StyleGalleryButton.Input("gallery_2", version="1.0"),
                 Separator.Input("spacer_2", mode="spacer"), #------------------
 
                 io.Combo.Input( "style_3" , options=cls.style_names(), ),
-                io.Custom("ZIPN_STYLE_GALLERY").Input("gallery_3"),
+                StyleGalleryButton.Input("gallery_3", version="1.0"),
                 Separator.Input("spacer_3", mode="spacer"), #------------------
 
                 io.Combo.Input( "style_4" , options=cls.style_names(), ),
-                io.Custom("ZIPN_STYLE_GALLERY").Input("gallery_4"),
+                StyleGalleryButton.Input("gallery_4", version="1.0"),
                 Separator.Input("spacer_4", mode="spacer"), #------------------
 
                 io.Combo.Input( "style_5" , options=cls.style_names(), ),
-                io.Custom("ZIPN_STYLE_GALLERY").Input("gallery_5"),
+                StyleGalleryButton.Input("gallery_5", version="1.0"),
                 Separator.Input("spacer_5", mode="spacer"), #------------------
 
                 io.Combo.Input( "style_6" , options=cls.style_names(), ),
-                io.Custom("ZIPN_STYLE_GALLERY").Input("gallery_6"),
+                StyleGalleryButton.Input("gallery_6", version="1.0"),
                 Separator.Input("spacer_6", mode="spacer"), #------------------
 
                 io.Combo.Input( "style_7" , options=cls.style_names(), ),
-                io.Custom("ZIPN_STYLE_GALLERY").Input("gallery_7"),
+                StyleGalleryButton.Input("gallery_7", version="1.0"),
                 Separator.Input("spacer_7", mode="spacer"), #------------------
 
                 io.Combo.Input( "style_8" , options=cls.style_names(), ),
-                io.Custom("ZIPN_STYLE_GALLERY").Input("gallery_8"),
+                StyleGalleryButton.Input("gallery_8", version="1.0"),
                 Separator.Input("spacer_8", mode="spacer"), #------------------
 
                 io.Combo.Input( "style_9" , options=cls.style_names(), ),
-                io.Custom("ZIPN_STYLE_GALLERY").Input("gallery_9"),
+                StyleGalleryButton.Input("gallery_9", version="1.0"),
                 Separator.Input("spacer_9", mode="spacer"), #------------------
 
                 io.Combo.Input( "style_10", options=cls.style_names(), ),
-                io.Custom("ZIPN_STYLE_GALLERY").Input("gallery_10"),
+                StyleGalleryButton.Input("gallery_10", version="1.0"),
             ],
             outputs=[
                 io.Custom("TOP_STYLES").Output("TOP_STYLES",

@@ -14,7 +14,9 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
    - https://docs.comfy.org/custom-nodes/v3_migration#custom-types
 
 """
+from typing           import cast
 from comfy_api.latest import io
+
 
 #========================= PALETTE SELECTOR WIDGET =========================#
 
@@ -137,5 +139,40 @@ class Separator:
     class Output(io.Output):
         def __init__(self, **kwargs):
             super().__init__(**kwargs)
+
+
+#==================== STYLE GALLERY BUTTON [DEPRECATED] ====================#
+
+@io.comfytype(io_type="ZIPN_STYLE_GALLERY_BUTTON")
+class StyleGalleryButton:
+    #Type = str
+
+    class Input(io.Input):
+
+        def __init__(self,
+                     id     : str,
+                     tooltip: str | None = None,
+                     version: str | None = None,
+                     ):
+            """
+            <hr>A button that launches the style gallery.
+
+            The selected style by the user within the style gallery
+            will be applied to the combobox immediately above this button.
+
+            Args:
+                id (str):                A unique identifier for the input component.
+                version (str, optional): The version of the visual styles to display in the
+                                         style gallery. This parameter can be used for backwards
+                                         compatibility with older versions of the styles. If not
+                                         provided, the latest version will be used.
+            """
+            extra_dict = {}
+
+            if version is not None:
+                extra_dict["version"] = version
+
+            super().__init__(id, extra_dict=extra_dict, tooltip=cast(str, tooltip))
+
 
 

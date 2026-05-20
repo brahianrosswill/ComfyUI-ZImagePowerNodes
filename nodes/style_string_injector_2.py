@@ -18,6 +18,7 @@ from typing                   import Final
 from functools                import cache
 from comfy_api.latest         import io
 from .core.predefined_styles  import PREDEFINED_STYLES
+from .custom_widgets          import StyleGalleryButton
 _STL_VERSION: Final[str] = "1.0.0" #< the version of style definitions this node uses
 
 
@@ -40,15 +41,18 @@ class StyleStringInjector2(io.ComfyNode):
                 "according to the selected style"
             ),
             inputs=[
-                io.Combo.Input ("style", options=cls.style_names(),
-                                tooltip="The visual style you want for your image.",
-                               ),
-                io.Custom("ZIPN_STYLE_GALLERY").Input("gallery",
-                                                      tooltip="Open the style gallery to see all available styles."
-                                                     ),
-                io.String.Input("string", multiline=True, dynamic_prompts=True, force_input=True,
-                                tooltip="The prompt to modify.",
-                               ),
+                io.Combo.Input          ("style",
+                                         options=cls.style_names(),
+                                         tooltip="The visual style you want for your image.",
+                                        ),
+                StyleGalleryButton.Input("gallery",
+                                         version="1.0",
+                                         tooltip="Open the style gallery to see all available styles."
+                                        ),
+                io.String.Input         ("string",
+                                         multiline=True, dynamic_prompts=True, force_input=True,
+                                         tooltip="The prompt to modify.",
+                                        ),
             ],
             outputs=[
                 io.String.Output(tooltip="The prompt after applying the selected style."),

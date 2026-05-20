@@ -109,19 +109,29 @@ async def get_last_version_styles(_) -> web.StreamResponse:
 
 @routes.get("/zi_power/styles/by_version")
 async def get_styles_by_version(request: web.Request) -> web.StreamResponse:
+    """
+    Retrieves a list of styles based on the specified version.
+    Example usage:
+        GET /zi_power/styles/by_version?v=1.2.3
+    """
+    # extract and clean the version parameter from the request query
+    version = (request.query.get("v") or request.query.get("version") or "").strip()
 
-    # try to get the version from query parameters
-    version = request.query.get("v") or request.query.get("version")
+    # check if the version parameter is provided
     if not version:
-        return web.Response(status=400)
+        return web.json_response(
+            {"error": "Missing required parameter: 'v' or 'version'"},
+            status=400)
 
-    # try to get all styles from the version
+    # check if any styles exist for the specified version
     styles = PREDEFINED_STYLES.by_version(version)
     if not styles:
-        return web.Response(status=400)
+        return web.json_response(
+            {"error": f"Style version '{version}' not found"}, 
+            status=404)
 
+    # respond with the style data
     return web.json_response( _style_data(styles) )
-
 
 
 @routes.get("/zi_power/styles/samples")

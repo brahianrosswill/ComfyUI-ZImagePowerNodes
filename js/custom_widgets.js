@@ -351,7 +351,7 @@ app.registerExtension({
             "ZIPN_PALETTE_SELECTOR": addPaletteSelectorWidget,
 
             // [DEPRECATED]
-            "ZIPN_STYLE_GALLERY": addStyleGalleryButton,
+            "ZIPN_STYLE_GALLERY_BUTTON": addStyleGalleryButton,
         };
     },
 

@@ -22,7 +22,10 @@ import { getStyleGalleryDialog } from "../custom_dialogs/gallery_dialog_styles.j
  * @returns {{widget: object}}
  *     An object containing the created widget.
  */
-function addStyleGalleryButton(node, name, _data) {
+function addStyleGalleryButton(node, name, data) {
+    //const type    = data[0];
+    const options = data[1] || {};
+
 
     // split the inputName to extract any title variant
     // (title variant is the part of the input-name after the last underscore)
@@ -31,7 +34,8 @@ function addStyleGalleryButton(node, name, _data) {
 
     // ensure the variant is a number
     if( variant.match(/^[0-9]+$/) === null ) { variant = ""; }
-    const title = `Select Style${variant ? ' ' + variant : ""}`;
+    const buttonTitle = `Select Style${variant ? ' ' + variant : ""}`;
+    const dialogTitle = buttonTitle;
 
     // find the previous widget,
     // which should be a combo widget to receive the style selection
@@ -46,8 +50,14 @@ function addStyleGalleryButton(node, name, _data) {
     const button = node.addCustomWidget({
             type     : "button",
             name     : name,
-            label    : `🖼️  ${title} ...`,
+            label    : `🖼️  ${buttonTitle} ...`,
             serialize: true,
+            options  : {
+                version     : "1.0.0",
+                dialog_title: dialogTitle,
+                prev_index  : prevIndex,
+                ...options
+            }
     });
 
     // the serialized value is always null, as it doesn't store a value itself.
@@ -63,16 +73,19 @@ function addStyleGalleryButton(node, name, _data) {
         //     return;
         // }
 
-        const styleName = prevWidget.value?.replace(/^"|"$/g, '');
-        getStyleGalleryDialog("1.0").launch( title, styleName, (styleName) =>
+        const options    = button.options;
+        const prevWidget = button.node.widgets[options.prev_index];
+
+        const currentStyle = prevWidget.value?.replace(/^"|"$/g, '');
+        getStyleGalleryDialog(options.version).launch( options.dialog_title, currentStyle, (selectedStyle) =>
         {
-            // ensure the style name is properly quoted
-            if( styleName!="" && styleName!="-" && styleName!="none" ) {
-                if( !styleName.startsWith('"') ) { styleName = `"${styleName}"`; }
+            // ensure the selected style name is properly quoted
+            if( selectedStyle!="" && selectedStyle!="-" && selectedStyle!="none" ) {
+                if( !selectedStyle.startsWith('"') ) { selectedStyle = `"${selectedStyle}"`; }
             }
             // apply the new style name on the previous widget
-            prevWidget.value = styleName;
-            prevWidget.callback(styleName);
+            prevWidget.value = selectedStyle;
+            prevWidget.callback(selectedStyle);
             node?.setDirtyCanvas?.(true);
         });
     };
