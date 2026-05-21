@@ -131,7 +131,7 @@ async def get_styles_by_version(request: web.Request) -> web.StreamResponse:
             status=404)
 
     # respond with the style data
-    return web.json_response( _style_data(styles) )
+    return web.json_response( _style_data(styles, add_none=True) )
 
 
 @routes.get("/zi_power/styles/samples")

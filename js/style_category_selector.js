@@ -1,6 +1,8 @@
 /**
  * File    : style_category_selector.js
- * Purpose : Implement a 'style' widget that shows only the styles corresponding with the selected category.
+ * Purpose : [DEPRECATED] This module manages a node containing category and style
+ *           widgets, listing only the styles associated with the selected category.
+ *           (The code is deprecated and maintained solely for backward compatibility)
  * Author  : Martin Rizzo | <martinrizzo@gmail.com>
  * Date    : Jan 22, 2026
  * Repo    : https://github.com/martin-rizzo/ComfyUI-ZImagePowerNodes
@@ -9,9 +11,9 @@
  *                        ComfyUI-ZImagePowerNodes
  *       ComfyUI nodes designed specifically for the "Z-Image" model.
  *_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-*/
-import { app }                         from "../../../scripts/app.js";
-import { fetchStyleNamesByCategory09 } from "./custom_routes.js";
+ */
+import { app }               from "../../../scripts/app.js";
+import { fetchVisualStyles } from "./custom_widgets/visual_styles.js";
 const ENABLED = true;
 /**
  * Object encapsulating the style category selection functionality.
@@ -38,13 +40,19 @@ function init(self, categoryWidget, styleWidget) {
     self.oldCategory        = self.categoryWidget.value;
     self.selectedByCategory = {};
 
-    // performs an asynchronous request to the server to get styles by category
-    fetchStyleNamesByCategory09( (stylesByCategory) => {
+    // performs an asynchronous request to the server to get styles (version 0.9)
+    console.log("##>> fetching visual styles");
+    fetchVisualStyles("0.9").then( styles => {
+        let stylesByCategory = {};
+        for( let i=0 ; i<styles.length ; ++i ) {
+            const name     = `"${styles[i].name}"`; //< quoted name
+            const category =     styles[i].category;
+            if( !stylesByCategory[category] ) { stylesByCategory[category] = []; }
+            stylesByCategory[category].push(name);
+        }
         self.stylesByCategory = stylesByCategory;
-        // fill the style combo widget with all the styles from the current category
         fillStyleWidget(self, self.categoryWidget.value);
     });
-
 
     // save the existing callback functionconst ENABLED = true;
     const originalCallback = self.categoryWidget.callback;
@@ -141,8 +149,8 @@ app.registerExtension({
             !comfyClass.startsWith("StyleStringInjector //ZImage")  )
         { return; }
 
-        const categoryWidget   = node.widgets.find(w => w.name === "category");
-        const styleWidget      = node.widgets.find(w => w.name === "style"   );
+        const categoryWidget = node.widgets.find(w => w.name === "category");
+        const styleWidget    = node.widgets.find(w => w.name === "style"   );
 
         // if any of the widgets or stylesByCategory could not be created, return
         if( !categoryWidget || !styleWidget  )

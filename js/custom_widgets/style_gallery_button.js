@@ -9,7 +9,7 @@
  *                        ComfyUI-ZImagePowerNodes
  *       ComfyUI nodes designed specifically for the "Z-Image" model.
  *_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-*/
+ */
 export { addStyleGalleryButton };
 import { getStyleGalleryDialog } from "../custom_dialogs/gallery_dialog_styles.js";
 
