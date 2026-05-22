@@ -19,6 +19,7 @@
  *_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
  */
 export { SelectorWidget };
+import { LiteGraph } from "../comfyui_bridge.js";
 
 
 //#====================== SelectorWidget.DataProvider ======================#
@@ -113,47 +114,26 @@ class _DefaultItemRenderer extends SelectorWidgetItemRenderer {
         ctx.fillRect(rect.left, rect.top, rect.width, rect.height);
     }
 
-    /**
-     * Called when text details need to be drawn for a specific item.
-     * Typically draws 2 lines of text (item name + additional info)
-     *
-     * @abstract
-     * @param {number}             itemIndex - The index of the item to draw details for
-     * @param {CanvasRenderingContext2D} ctx - The canvas 2D rendering context
-     * @param {Object} rect        - The rectangle object defining the drawing area
-     * @param {number} rect.left   - The left position of the drawing area
-     * @param {number} rect.top    - The top position of the drawing area
-     * @param {number} rect.width  - The width of the drawing area
-     * @param {number} rect.height - The height of the drawing area
-     * @returns {number} The maximum width (in pixels) occupied by the rendered text elements,
-     *                   which represents the space needed to the right of the drawing area
-     *                   for proper layout calculations.
-     */
-
     drawDetails(itemIndex, ctx, rect, value) {
-        ctx.textBaseline = 'top';
-        ctx.textAlign = 'right'; // Alinea el texto a la derecha de la coordenada X dada
-
-        // Posición X justo en el borde derecho del rectángulo
-        const rightEdge = rect.left + rect.width;
+        const rightEdge   = rect.left + rect.width;
+        const centerY1    = rect.top  + (rect.height / 3);
+        const centerY2    = rect.top  + (rect.height / 3) * 2;
+        const description = 'implement SelectorWidget.ItemRenderer';
+        ctx.textBaseline = 'middle';
+        ctx.textAlign    = 'right';
 
         // Línea 1: Título de marcador de posición
-        ctx.font = 'bold 14px sans-serif';
-        ctx.fillStyle = '#333333';
-        ctx.fillText(value, rightEdge, rect.top);
+        ctx.font      = `bold ${LiteGraph.NODE_TEXT_SIZE}px ${LiteGraph.NODE_FONT}`;
+        ctx.fillStyle = LiteGraph.WIDGET_TEXT_COLOR;;
+        ctx.fillText(value, rightEdge, centerY1);
+        const width1 = ctx.measureText(value).width;
 
         // Línea 2: Subtítulo de advertencia
-        ctx.font = '12px sans-serif';
-        ctx.fillStyle = '#666666';
-        const description = 'Sobrescribir drawDetails()';
-        ctx.fillText(description, rightEdge, rect.top + 20);
-
-        // Restaura la alineación predeterminada para no afectar otros dibujos
-        ctx.textAlign = 'left';
-
-        // Calcula y retorna el ancho ocupado por el texto más largo
-        const width1 = ctx.measureText(value).width;
+        ctx.font      = `${LiteGraph.NODE_SUBTEXT_SIZE}px ${LiteGraph.NODE_FONT}`;;
+        ctx.fillStyle = LiteGraph.WIDGET_SECONDARY_TEXT_COLOR;
+        ctx.fillText(description, rightEdge, centerY2);
         const width2 = ctx.measureText(description).width;
+
         return Math.max(width1, width2);
     }
 
@@ -268,12 +248,62 @@ class SelectorWidget {
         }
 
         // TODO: dibujar text.name a izquierda, centrado verticalmente dentro de 'rect'
-        ctx.font         = '12px Arial';
+        ctx.font         = `${LiteGraph.NODE_SUBTEXT_SIZE}px ${LiteGraph.NODE_FONT}`;
+        ctx.fillStyle    = LiteGraph.WIDGET_SECONDARY_TEXT_COLOR; //this.text_color;
         ctx.textAlign    = 'left';
         ctx.textBaseline = 'middle';
         this.drawTextWithEllipsis(this.name, ctx, rect);
 
         ctx.restore();
+    }
+
+    /**
+     * Draws the main container and arrows
+     * @param {CanvasRenderingContext2D} ctx - The canvas context
+     * @param {Object} rect        - The rectangle coordinates where the container is drawn
+     * @param {number} rect.left   - The left position
+     * @param {number} rect.top    - The top position
+     * @param {number} rect.width  - The container width
+     * @param {number} rect.height - The container height
+     */
+    drawContainerAndArrows(ctx, { left, top, width, height }, padding) {
+        const marginX    = 14;
+        const marginY    = 1;
+        const arrowWidth = 24;
+        const lineSize   = 1;
+
+        left += marginX ;  width  -= (marginX * 2);
+        top  += marginY ;  height -= (marginY * 2);
+        const radii = height/4;
+
+        // dibujar el contenedor principal
+        ctx.fillStyle   = LiteGraph.WIDGET_BGCOLOR;
+        ctx.strokeStyle = LiteGraph.WIDGET_OUTLINE_COLOR;
+        ctx.lineWidth = lineSize;
+        ctx.beginPath();
+        ctx.roundRect(left, top, width, height, radii);
+        ctx.fill();
+        ctx.stroke();
+        const midline = Math.floor(lineSize/2);
+        left += midline/2 ; width  -= (midline*2);
+        top  += midline/2 ; height -= (midline*2);
+
+        // 2. dibujar flechas izquierda y derecha
+        ctx.fillStyle    = LiteGraph.WIDGET_TEXT_COLOR;
+        ctx.font         = `${LiteGraph.NODE_TEXT_SIZE}px ${LiteGraph.NODE_FONT}`;
+        ctx.textAlign    = "center";
+        ctx.textBaseline = "middle";
+
+        const centerY = top + (height / 2);
+        const leftArrowX = left + (arrowWidth/2);
+        ctx.fillText("◀", leftArrowX, centerY);
+
+        const rightArrowX = left + width - (arrowWidth/2);
+        ctx.fillText("▶", rightArrowX, centerY);
+
+        left += arrowWidth + padding ; width -= (arrowWidth*2) + (padding*2);
+        top  += padding              ; height -= (padding*2);
+        return { left: left, top: top, width: width, height: height };
     }
 
     /**
@@ -322,93 +352,6 @@ class SelectorWidget {
         ctx.fillText(displayText, textX, textY);
     }
 
-
-
-    // /**
-    //  * Draws the main container and arrows
-    //  * @param {CanvasRenderingContext2D} ctx - The canvas context
-    //  * @param {number} widgetWidth - The widget width
-    //  * @param {number} y - The y position
-    //  * @param {number} centerY - The center y position
-    //  */
-    // drawContainerAndArrows(ctx, widgetWidth, y, centerY) {
-    //     const marginx = 14;
-    //     const marginy = 1;
-    //     const contentHeight = 48 - (marginy * 2);
-    //     const radii = contentHeight / 4;
-
-    //     // 1. dibujar el contenedor principal
-    //     ctx.fillStyle = "#1e1e1e";
-    //     ctx.strokeStyle = "#444444";
-    //     ctx.lineWidth = 2;
-
-    //     ctx.beginPath();
-    //     ctx.roundRect(marginx, y + marginy, widgetWidth - (marginx * 2), contentHeight, radii);
-    //     ctx.fill();
-    //     ctx.stroke();
-
-    //     // 2. dibujar flechas izquierda y derecha
-    //     ctx.fillStyle = "#aaaaaa";
-    //     ctx.font = "12px sans-serif";
-    //     ctx.textAlign = "center";
-    //     ctx.textBaseline = "middle";
-
-    //     const leftArrowX = 15;
-    //     ctx.fillText("◀", leftArrowX, centerY);
-
-    //     const rightArrowX = widgetWidth - marginx - 15;
-    //     ctx.fillText("▶", rightArrowX, centerY);
-    // }
-
-    /**
-     * Draws the main container and arrows
-     * @param {CanvasRenderingContext2D} ctx - The canvas context
-     * @param {Object} rect        - The rectangle coordinates where the container is drawn
-     * @param {number} rect.left   - The left position
-     * @param {number} rect.top    - The top position
-     * @param {number} rect.width  - The container width
-     * @param {number} rect.height - The container height
-     */
-    drawContainerAndArrows(ctx, { left, top, width, height }, padding) {
-        const marginX    = 14;
-        const marginY    = 1;
-        const arrowWidth = 20;
-        const lineSize   = 2;
-
-        // 1. dibujar el contenedor principal
-        ctx.fillStyle = "#1e1e1e";
-        ctx.strokeStyle = "#444444";
-        ctx.lineWidth = lineSize;
-
-        ctx.beginPath();
-
-
-        left += marginX ;  width  -= (marginX * 2);
-        top  += marginY ;  height -= (marginY * 2);
-        const radii = height/4;
-        ctx.roundRect(left, top, width, height, radii);
-        ctx.fill();
-        ctx.stroke();
-        left += lineSize/2 ; width  -= lineSize;
-        top  += lineSize/2 ; height -= lineSize;
-
-        // 2. dibujar flechas izquierda y derecha
-        ctx.fillStyle = "#aaaaaa";
-        ctx.font = "12px sans-serif";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-
-        const centerY = top + (height / 2);
-        const leftArrowX = left + (arrowWidth/2);
-        ctx.fillText("◀", leftArrowX, centerY);
-
-        const rightArrowX = left + width - (arrowWidth/2);
-        ctx.fillText("▶", rightArrowX, centerY);
-
-        left += arrowWidth + padding ; width -= (arrowWidth*2) + (padding*2);
-        top  += padding              ; height -= (padding*2);
-        return { left: left, top: top, width: width, height: height };
-    }
 
     // /**
     //  * Draws 5 vertical color bars inside a container frame
