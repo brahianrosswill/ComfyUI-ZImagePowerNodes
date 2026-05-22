@@ -14,16 +14,33 @@
  *       ComfyUI nodes designed specifically for the "Z-Image" model.
  *_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
  */
-export { fetchVisualStyles };
+export {
+    fetchVisualStyles,
+    getVisualStylesGalleryDialog,
+};
 import { api } from "../../../scripts/api.js";
+import { GalleryDialog } from "../custom_dialogs/gallery_dialog.js";
 
-// Cache of promises to avoid duplicate requests
-const visualStylesCache = new Map();
+// Cache of promises to avoid duplicate requests for the same visual style version.
+const _visualStylesCache = new Map();
+
+// Registry of dialogs for each visual style version.
+const _dialogRegistry = new Map();
+
+
+//#========================== FETCH VISUAL STYLES ==========================#
 
 /**
  * Fetches an array with data about each visual style from the server.
+ *
+ * Note: The implementation looks a bit complex because of the caching system.
+ * It uses an immediately-invoked function (IIFE) to cache the ongoing promise
+ * right away, ensuring we don't trigger duplicate network requests for the
+ * same version.
+ *
  * @param {string} version - The version of the styles to fetch.
- * @returns {Promise<Array<Object>>} Resolves to the array of formatted styles.
+ * @returns {Promise<Array<Object>>}
+ *     Resolves to the array of formatted styles.
  *     Each element in the array is an object with the following properties:
  *       - id         : Unique identifier for the style (the index in the list)
  *       - name       : The name of the style (string)
@@ -31,6 +48,17 @@ const visualStylesCache = new Map();
  *       - description: Description of the style (string)
  *       - tags       : Array of tags associated with the style (Array<string>)
  *       - thumbnail  : URL for the style's thumbnail image (string)
+ *
+ * @example
+ *   // Using async/await
+ *   const styles = await fetchVisualStyles('1.0.0');
+ *   console.log(`Loaded ${styles.length} styles.`);
+ *
+ * @example
+ *   // Using promises (.then)
+ *   fetchVisualStyles('1.0.0').then(styles => {
+ *       console.log(`Loaded ${styles.length} styles.`);
+ *   });
  */
 async function fetchVisualStyles(version)
 {
@@ -41,8 +69,8 @@ async function fetchVisualStyles(version)
 
     // if the version already exists in cache (either the ongoing promise
     // or resolved result), return it!
-    if( visualStylesCache.has(version) ) {
-        return visualStylesCache.get(version);
+    if( _visualStylesCache.has(version) ) {
+        return _visualStylesCache.get(version);
     }
 
     // define the fetching process in a promise
@@ -62,7 +90,6 @@ async function fetchVisualStyles(version)
             }
 
             const THUMBNAIL_PREFIX = "/zi_power/styles/samples?file=";
-
             return styles.map((style, index) => {
                 const tagsString = style[3] || "";
                 return {
@@ -78,13 +105,92 @@ async function fetchVisualStyles(version)
         } catch (error) {
             // if failed, delete the cache for this version to allow future retries
             console.error(`Failed to fetch styles for version ${version}: ${error.message}`);
-            visualStylesCache.delete(version);
+            _visualStylesCache.delete(version);
             return [];
         }
     })();
 
     // store the promise in cache for future use
-    visualStylesCache.set(version, fetchPromise);
+    _visualStylesCache.set(version, fetchPromise);
     return fetchPromise;
+}
+
+
+//#====================== VISUAL STYLES DATA PROVIDER ======================#
+
+class DataProvider extends GalleryDialog.DataProvider {
+
+    constructor(version) {
+        super();
+        this._version = version; //< the version of the styles to fetch
+    }
+
+    /**
+     * Fetches an array with data about each item to be displayed in the gallery.
+     * @returns {Promise<Array<Object>>}
+     *   A promise that resolves to an array of objects with the following properties:
+     *       - id         : Unique identifier for the item (the index in the list)
+     *       - name       : The display name of the item (string)
+     *       - category   : The category the item belongs to (string)
+     *       - description: A detailed description of the item (string)
+     *       - tags       : Array of tags associated with the item (Array<string>)
+     *       - thumbnail  : URL for the item's thumbnail image (string)
+     */
+    async fetchItemArray() {
+        return fetchVisualStyles(this._version);
+    }
+
+    /**
+     * Returns an array of category definitions used for filtering the gallery items.
+     * @returns {Array<Array<string>>}
+     *   An array of category definitions where each item contains:
+     *     - category    (string): The value used for matching gallery items (must match the "category" property in items)
+     *     - displayName (string): The visible name shown in the UI
+     *     - description (string): Tooltip description for screen readers/accessibility
+     */
+    getCategories() {
+        return [
+        /*   CATEGORY        DISPLAY_NAME    DESCRIPTION                      */
+            [""            , "All"         , "Search all styles"               ],
+            ["photo"       , "Photo"       , "Search only photographic styles" ],
+            ["illustration", "Illustration", "Search only illustration styles" ],
+            ["wild"        , "Wild"        , "Search only wild styles"         ],
+            ["custom"      , "Custom"      , "Search only custom styles"       ]
+        ];
+    }
+
+}
+
+
+//#===================== VISUAL STYLES: ITEM RENDERER ======================#
+
+class ItemRenderer extends GalleryDialog.ItemRenderer {
+
+}
+
+
+//#===================== VISUAL STYLES: GALLERY DIALOG =====================#
+
+/**
+ * Returns the gallery dialog for the specified version of the visual styles.
+ * @param {string} version - The version of the visual styles to show in the gallery
+ * @returns {GalleryDialog}
+ *     The dialog instance for the specified version
+ *
+ * Usage example:
+ *     const styleVersion = "1.0"; //< version of the style definitions
+ *     const styleDialog  = getVisualStylesGalleryDialog(styleVersion);
+ *     const currentStyle = "Anime";
+ *     styleDialog.launch("Select Style", currentStyle, (selectedStyle) => {
+ *         console.log("Selected Style: " + selectedStyle);
+ *     });
+ */
+function getVisualStylesGalleryDialog(version) {
+    let dialog = _dialogRegistry.get(version);
+    if( !dialog ) {
+        dialog = new GalleryDialog(new DataProvider(version), new ItemRenderer());
+        _dialogRegistry.set(version, dialog);
+    }
+    return dialog;
 }
 

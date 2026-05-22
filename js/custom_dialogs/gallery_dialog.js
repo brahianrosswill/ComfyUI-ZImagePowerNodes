@@ -29,41 +29,42 @@ const TITLE_ID  = 'zipn-style-gallery-title';  //< ID of the DOM element where t
 
 /**
  * Base provider class for GalleryDialog.
- *
- * Users should extend this class and implement the fetchDataArray method
- * to provide the data source for the gallery.
- *
- * @example
- * class MyDataProvider extends GalleryDialog.DataProvider {
- *     async fetchDataArray(callback) {
- *         const data = [{ id: 0, name: "Example", thumbnail: "url/to/img.png", ... }];
- *         callback(data);
- *     }
- * }
+ * Users should extend this class and implement the `fetchItemArray()`
+ * and `getCategories()` methods.
  */
 class GalleryDialogDataProvider {
 
     /**
-     * Fetches an array containing the data for each item to be displayed in the gallery.
+     * Fetches an array with data about each item to be displayed in the gallery.
+     * Must be overridden by subclasses to implement data retrieval.
      *
-     * This method must be overridden by the inheriting class to implement
-     * the actual data retrieval logic.
+     * @abstract
+     * @returns {Promise<Array<Object>>}
+     *   Resolves to the array of formatted gallery items.
+     *   Each item object must contain the following properties:
+     *       - id         : Unique identifier for the item (the index in the list)
+     *       - name       : The display name of the item (string)
+     *       - category   : The category the item belongs to (string)
+     *       - description: A detailed description of the item (string)
+     *       - tags       : A list of strings containing associated tags (Array<string>)
      *
-     * @param {function(Array<Object>)} callback
-     *   A callback function that receives an array of items.
-     *    Each item object should contain the following properties:
-     *     @property {number|string} id          - Unique identifier for the item (the index in the list).
-     *     @property {string}        name        - The display name of the item.
-     *     @property {string}        lowerName   - (optional) The name of the item converted to lowercase (used for searching/filtering).
-     *     @property {string}        category    - The category the item belongs to.
-     *     @property {string}        description - A detailed description of the item.
-     *     @property {Array<string>} tags        - A list of strings containing the tags associated with the item.
-     *     @property {string}        thumbnail   - The URL path to the item's thumbnail image.
-     *
-     * @returns {Promise<void>}
+     * @example
+     * // How to implement in a subclass:
+     * class MyDataProvider extends GalleryDialogDataProvider {
+     *     async fetchItemArray() {
+     *         const data = await myApi.get('/items');
+     *         return data.map((item, index) => ({
+     *           id         : index,
+     *           name       : item.title,
+     *           category   : item.group,
+     *           description: item.desc,
+     *           tags       : item.labels || [],
+     *         }));
+     *     }
+     * }
      */
-    async fetchDataArray(callback) {
-        throw new Error(`Method fetchDataArray(callback: ${typeof callback}) must be implemented.`);
+    async fetchItemArray() {
+        throw new Error("Method 'fetchItemArray()' must be implemented by subclasses.");
     }
 
     /**
@@ -561,7 +562,7 @@ class _GalleryDialog extends ComfyDialog {
         // `this.viewMode` is not set here because it persists between dialog reopenings
 
         // load style data from server and focus on the initial style
-        this.dataProvider.fetchDataArray( (items) =>
+        this.dataProvider.fetchItemArray().then( items =>
         {
             // check each item if it doesn't have the `lowerName` property
             // generate it in base to the `name` property

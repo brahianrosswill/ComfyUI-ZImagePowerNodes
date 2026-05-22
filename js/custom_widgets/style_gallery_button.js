@@ -11,7 +11,7 @@
  *_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
  */
 export { addStyleGalleryButton };
-import { getStyleGalleryDialog } from "../custom_dialogs/gallery_dialog_styles.js";
+import { getVisualStylesGalleryDialog } from "./visual_styles.js";
 
 
 /**
@@ -76,8 +76,9 @@ function addStyleGalleryButton(node, name, data) {
         const options    = button.options;
         const prevWidget = button.node.widgets[options.prev_index];
 
+        const styleDialog  = getVisualStylesGalleryDialog(options.version);
         const currentStyle = prevWidget.value?.replace(/^"|"$/g, '');
-        getStyleGalleryDialog(options.version).launch( options.dialog_title, currentStyle, (selectedStyle) =>
+        styleDialog.launch( options.dialog_title, currentStyle, (selectedStyle) =>
         {
             // ensure the selected style name is properly quoted
             if( selectedStyle!="" && selectedStyle!="-" && selectedStyle!="none" ) {
