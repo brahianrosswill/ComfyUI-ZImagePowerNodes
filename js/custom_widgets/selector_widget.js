@@ -1,4 +1,164 @@
+/**
+ * File    : selector_widget.js
+ * Purpose : Generic class for ComfyUI widget that allows to select a value from a list of items with thumbnails.
+ * Author  : Martin Rizzo | <martinrizzo@gmail.com>
+ * Date    : May 18, 2026
+ * Repo    : https://github.com/martin-rizzo/ComfyUI-ZImagePowerNodes
+ * License : MIT
+ *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ *
+ * While this class is part of the `ComfyUI-ZImagePowerNodes` suite, it was
+ * designed to be as generic and modular as possible. The goal is for it to
+ * be easily plug-and-play in any other ComfyUI Nodes project you might be
+ * working on.
+ *
+ * Feel free to use it, modify it, or integrate it however you like! If you
+ * find it useful, a quick shout-out to this project or a mention of my name
+ * would be greatly appreciated. :)
+ *
+ *_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+ */
 export { SelectorWidget };
+
+
+//#====================== SelectorWidget.DataProvider ======================#
+// THIS CLASS MUST BE IMPLEMENTED TO PROVIDE THE ITEM LIST
+//
+
+/**
+ * Class to implement the visual presentation of items in the selector widget.
+ */
+class SelectorWidgetDataProvider {
+
+    /**
+     * Fetches an array with data about each item that can be selected.
+     * Must be overridden by subclasses to implement data retrieval.
+     *
+     * @abstract
+     * @returns {Promise<Array<Object>>}
+     *   Resolves to the array of formatted gallery items.
+     *   Each item object must contain at least the following properties:
+     *       - name : The display name of the item (string)
+     *       - any data to be rendered with `SelectorWidgetItemRenderer`
+     *
+     * @example
+     * // How to implement in a subclass:
+     * class MyDataProvider extends SelectorWidget.DataProvider {
+     *     async fetchItemArray() {
+     *         const data = await myApi.get('/items');
+     *         return data.map((item, index) => ({
+     *           name       : item.title | "unknown",
+     *           description: item.desc,
+     *           thumbnail  : item.thumbnail,
+     *         }));
+     *     }
+     * }
+     */
+    async fetchItemArray() {
+        throw new Error("Method 'fetchItemArray()' must be implemented by any SelectorWidgetDataProvider subclass");
+    }
+
+}
+
+//#====================== SelectorWidget.ItemRenderer ======================#
+// THIS CLASS MUST BE IMPLEMENTED TO CUSTOMIZE THE VISUAL PRESENTATION OF ITEMS
+//
+
+/**
+ * Class to implement the visual presentation of items in the selector widget.
+ */
+class SelectorWidgetItemRenderer {
+
+    /**
+     * Called when a thumbnail needs to be drawn for a specific item.
+     *
+     * @abstract
+     * @param {number}              itemIndex - The index of the item to draw the thumbnail for
+     * @param {CanvasRenderingContext2D} ctx  - The canvas 2D rendering context
+     * @param {Object}                   rect - The rectangle object defining the drawing area (left, top, width, height)
+     */
+    drawThumbnail(itemIndex, ctx, rect) { }
+
+    /**
+     * Called when text details need to be drawn for a specific item.
+     * Typically draws 2 lines of text (item name + additional info)
+     *
+     * @abstract
+     * @param {number}             itemIndex - The index of the item to draw details for
+     * @param {CanvasRenderingContext2D} ctx - The canvas 2D rendering context
+     * @param {Object} rect        - The rectangle object defining the drawing area
+     * @param {number} rect.left   - The left position of the drawing area
+     * @param {number} rect.top    - The top position of the drawing area
+     * @param {number} rect.width  - The width of the drawing area
+     * @param {number} rect.height - The height of the drawing area
+     * @returns {number} The maximum width (in pixels) occupied by the rendered text elements,
+     *                   which represents the space needed to the right of the drawing area
+     *                   for proper layout calculations.
+     */
+    drawDetails(itemIndex, ctx, rect, value) { }
+
+}
+
+
+
+
+//#=========================================================================#
+//#//////////////////////// INTERNAL IMPLEMENTATION ////////////////////////#
+//#=========================================================================#
+
+class _DefaultItemRenderer extends SelectorWidgetItemRenderer {
+
+    drawThumbnail(itemIndex, ctx, rect) {
+        ctx.fillStyle = '#FF4D4D';
+        ctx.fillRect(rect.left, rect.top, rect.width, rect.height);
+    }
+
+    /**
+     * Called when text details need to be drawn for a specific item.
+     * Typically draws 2 lines of text (item name + additional info)
+     *
+     * @abstract
+     * @param {number}             itemIndex - The index of the item to draw details for
+     * @param {CanvasRenderingContext2D} ctx - The canvas 2D rendering context
+     * @param {Object} rect        - The rectangle object defining the drawing area
+     * @param {number} rect.left   - The left position of the drawing area
+     * @param {number} rect.top    - The top position of the drawing area
+     * @param {number} rect.width  - The width of the drawing area
+     * @param {number} rect.height - The height of the drawing area
+     * @returns {number} The maximum width (in pixels) occupied by the rendered text elements,
+     *                   which represents the space needed to the right of the drawing area
+     *                   for proper layout calculations.
+     */
+
+    drawDetails(itemIndex, ctx, rect, value) {
+        ctx.textBaseline = 'top';
+        ctx.textAlign = 'right'; // Alinea el texto a la derecha de la coordenada X dada
+
+        // Posición X justo en el borde derecho del rectángulo
+        const rightEdge = rect.left + rect.width;
+
+        // Línea 1: Título de marcador de posición
+        ctx.font = 'bold 14px sans-serif';
+        ctx.fillStyle = '#333333';
+        ctx.fillText(value, rightEdge, rect.top);
+
+        // Línea 2: Subtítulo de advertencia
+        ctx.font = '12px sans-serif';
+        ctx.fillStyle = '#666666';
+        const description = 'Sobrescribir drawDetails()';
+        ctx.fillText(description, rightEdge, rect.top + 20);
+
+        // Restaura la alineación predeterminada para no afectar otros dibujos
+        ctx.textAlign = 'left';
+
+        // Calcula y retorna el ancho ocupado por el texto más largo
+        const width1 = ctx.measureText(value).width;
+        const width2 = ctx.measureText(description).width;
+        return Math.max(width1, width2);
+    }
+
+}
+
 
 
 /**
@@ -7,22 +167,44 @@ export { SelectorWidget };
  */
 class SelectorWidget {
 
+    static get ItemRenderer() { return SelectorWidgetItemRenderer; }
+    static get DataProvider() { return SelectorWidgetDataProvider; }
+
+
     /**
      * Creates a new StyleSelectorWidget instance
-     * @param {Object} node - The node to attach the widget to
-     * @param {string} inputName - The name of the input
-     * @param {Array} inputData - The input data array [type, options]
+     * @param {string} name - The name of the input
+     * @param {SelectorWidgetDataProvider} dataProvider
+     * @param {SelectorWidgetItemRenderer} itemRenderer
      */
-    constructor(type, name, value, options) {
-        this.type  = type;
-        this.name  = name;
-        this.value = value;
+    constructor(type, name, options, dataProvider, itemRenderer, action) {
+
+        /** @type {string} The type of the widget. Generally a custom type registered by the user in ComfyUI */
+        this.type = type;
+
+        /** @type {string} Unique identifier for the widget (not used for value serialization) */
+        this.name = name;
+
+        /** @type {SelectorWidgetItemRenderer} External object to render the items */
+        this.itemRenderer = itemRenderer || new _DefaultItemRenderer();
+
+        /** @type {SelectorWidgetDataProvider} External object to provide the items to the widget */
+        this.dataProvider = dataProvider,
+
+        this.onAction     = action;
+        this.value = "";
         this.serialize = true,
         this.options = {
             socketless: true,
             height: 32,
             ...options
         };
+
+        // load item data from provider
+        this.itemArray = [];
+        this.dataProvider.fetchItemArray().then( itemArray => {
+            this.itemArray = itemArray;
+        });
 
         console.log("##>> name:", name);
 
@@ -57,6 +239,7 @@ class SelectorWidget {
      */
     draw(ctx, node, widgetWidth, y, _widgetHeight) {
         const padding = 4;
+        const spacing = 6;
         const thumbWidth = 32;
 
         ctx.save();
@@ -73,12 +256,13 @@ class SelectorWidget {
                 width : thumbWidth,
                 height: rect.height
             };
-            this.onDrawThumb(0, ctx, thumbRect);
+            this.itemRenderer.drawThumbnail(0, ctx, thumbRect);
             rect.width -= thumbWidth;
+            rect.width -= spacing;
         }
 
         // draw item text description
-        const textWidth = this.onDrawDetails(0, ctx, rect);
+        const textWidth = this.itemRenderer.drawDetails(0, ctx, rect, this.value);
         if( typeof textWidth === 'number' ) {
             rect.width -= Math.ceil(textWidth);
         }
@@ -226,33 +410,33 @@ class SelectorWidget {
         return { left: left, top: top, width: width, height: height };
     }
 
-    /**
-     * Draws 5 vertical color bars inside a container frame
-     * @param {CanvasRenderingContext2D} ctx - The canvas context
-     * @param {number} x - The x-coordinate where the container frame will be positioned
-     * @param {number} y - The starting y position (top of the bars)
-     * @param {number} height - The height of each bar
-     * @param {Array<string>} colors - Array of 5 color values (fillStyle compatible strings)
-     * @param {"left"|"right"} [alignment="left"] - Determines which edge of the frame will be aligned to the x coordinate:
-     *   - "left": The left edge of the container frame will be positioned at x
-     *   - "right": The right edge of the container frame will be positioned at x
-     * @returns {number} The width of the container frame.
-     */
-    drawColorBars(ctx, x, y, height, colors, alignment="left") {
-        const barCount   = 5;
-        const barWidth   = 8;
-        const barSpacing = 2;
-        const totalBarsWidth = (barWidth * barCount) + (barSpacing * (barCount - 1));
+    // /**
+    //  * Draws 5 vertical color bars inside a container frame
+    //  * @param {CanvasRenderingContext2D} ctx - The canvas context
+    //  * @param {number} x - The x-coordinate where the container frame will be positioned
+    //  * @param {number} y - The starting y position (top of the bars)
+    //  * @param {number} height - The height of each bar
+    //  * @param {Array<string>} colors - Array of 5 color values (fillStyle compatible strings)
+    //  * @param {"left"|"right"} [alignment="left"] - Determines which edge of the frame will be aligned to the x coordinate:
+    //  *   - "left": The left edge of the container frame will be positioned at x
+    //  *   - "right": The right edge of the container frame will be positioned at x
+    //  * @returns {number} The width of the container frame.
+    //  */
+    // drawColorBars(ctx, x, y, height, colors, alignment="left") {
+    //     const barCount   = 5;
+    //     const barWidth   = 8;
+    //     const barSpacing = 2;
+    //     const totalBarsWidth = (barWidth * barCount) + (barSpacing * (barCount - 1));
 
-        if (alignment === "right") {
-            x -= totalBarsWidth;
-        }
-        for (let i = 0; i < barCount; i++) {
-            ctx.fillStyle = colors[i];
-            ctx.fillRect(x + (i * (barWidth + barSpacing)), y, barWidth, height);
-        }
-        return totalBarsWidth;
-    }
+    //     if (alignment === "right") {
+    //         x -= totalBarsWidth;
+    //     }
+    //     for (let i = 0; i < barCount; i++) {
+    //         ctx.fillStyle = colors[i];
+    //         ctx.fillRect(x + (i * (barWidth + barSpacing)), y, barWidth, height);
+    //     }
+    //     return totalBarsWidth;
+    // }
 
 
     /**

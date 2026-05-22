@@ -10,11 +10,11 @@
  *       ComfyUI nodes designed specifically for the "Z-Image" model.
  *_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 */
-import { app }                    from "../../../scripts/app.js";
-import { SelectorWidgetPalettes } from "./custom_widgets/selector_widget_palettes.js";
-import { SelectorWidgetStyles   } from "./custom_widgets/selector_widget_styles.js";
-import { addStyleGalleryButton  } from "./custom_widgets/style_gallery_button.js";
-import { SeparatorWidget        } from "./custom_widgets/separator_widget.js";
+import { app }                          from "../../../scripts/app.js";
+import { SelectorWidgetPalettes }       from "./custom_widgets/selector_widget_palettes.js";
+import { addVisualStyleSelectorWidget } from "./custom_widgets/visual_styles.js";
+import { addStyleGalleryButton  }       from "./custom_widgets/style_gallery_button.js";
+import { SeparatorWidget        }       from "./custom_widgets/separator_widget.js";
 const ENABLED = true;
 //const DEFAULT_WIDGET_HEIGHT = 20;
 
@@ -35,13 +35,13 @@ function addPaletteSelectorWidget(node, name, data) {
 }
 
 
-function addStyleSelectorWidget(node, name, data) {
-    const type    = data[0];
-    const options = data[1] || {};
-    const value   = "Pepe";
-    const widget  = node.addCustomWidget( new SelectorWidgetStyles(type, name, value, options) );
-    return { widget: widget };
-}
+// function addStyleSelectorWidget(node, name, data) {
+//     const type    = data[0];
+//     const options = data[1] || {};
+//     const value   = "Pepe";
+//     const widget  = node.addCustomWidget( new SelectorWidgetStyles(type, name, value, options) );
+//     return { widget: widget };
+// }
 
 function addSeparatorWidget(node, name, data) {
     const type    = data[0];
@@ -69,8 +69,8 @@ app.registerExtension({
         if( !ENABLED ) return {};
         return {
             "ZIPN_SEPARATOR"       : addSeparatorWidget,
-            "ZIPN_STYLE_SELECTOR"  : addStyleSelectorWidget,
-            "ZIPN_PALETTE_SELECTOR": addPaletteSelectorWidget,
+            "ZIPN_STYLE_SELECTOR"  : addVisualStyleSelectorWidget,
+            "ZIPN_PALETTE_SELECTOR": addVisualStyleSelectorWidget,
 
             // [DEPRECATED]
             "ZIPN_STYLE_GALLERY_BUTTON": addStyleGalleryButton,

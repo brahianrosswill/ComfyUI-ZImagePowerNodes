@@ -11,7 +11,7 @@
  *_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
  */
 export { addStyleGalleryButton };
-import { getVisualStylesGalleryDialog } from "./visual_styles.js";
+import { requireVisualStyleGalleryDialog } from "./visual_styles.js";
 
 
 /**
@@ -76,7 +76,7 @@ function addStyleGalleryButton(node, name, data) {
         const options    = button.options;
         const prevWidget = button.node.widgets[options.prev_index];
 
-        const styleDialog  = getVisualStylesGalleryDialog(options.version);
+        const styleDialog  = requireVisualStyleGalleryDialog(options.version);
         const currentStyle = prevWidget.value?.replace(/^"|"$/g, '');
         styleDialog.launch( options.dialog_title, currentStyle, (selectedStyle) =>
         {

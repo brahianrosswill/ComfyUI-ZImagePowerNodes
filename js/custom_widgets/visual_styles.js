@@ -15,11 +15,13 @@
  *_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
  */
 export {
-    fetchVisualStyles,
-    getVisualStylesGalleryDialog,
+    fetchVisualStyleArray,
+    requireVisualStyleGalleryDialog,
+    addVisualStyleSelectorWidget,
 };
 import { api } from "../../../scripts/api.js";
 import { GalleryDialog } from "../custom_dialogs/gallery_dialog.js";
+import { SelectorWidget } from "./selector_widget.js";
 
 // Cache of promises to avoid duplicate requests for the same visual style version.
 const _visualStylesCache = new Map();
@@ -51,16 +53,16 @@ const _dialogRegistry = new Map();
  *
  * @example
  *   // Using async/await
- *   const styles = await fetchVisualStyles('1.0.0');
+ *   const styles = await fetchVisualStyleArray('1.0.0');
  *   console.log(`Loaded ${styles.length} styles.`);
  *
  * @example
  *   // Using promises (.then)
- *   fetchVisualStyles('1.0.0').then(styles => {
+ *   fetchVisualStyleArray('1.0.0').then(styles => {
  *       console.log(`Loaded ${styles.length} styles.`);
  *   });
  */
-async function fetchVisualStyles(version)
+async function fetchVisualStyleArray(version)
 {
     if (typeof version !== 'string' || !version.trim()) {
         console.error(`Invalid version parameter: "${version}". Expected a non-empty string.`);
@@ -137,7 +139,7 @@ class DataProvider extends GalleryDialog.DataProvider {
      *       - thumbnail  : URL for the item's thumbnail image (string)
      */
     async fetchItemArray() {
-        return fetchVisualStyles(this._version);
+        return fetchVisualStyleArray(this._version);
     }
 
     /**
@@ -166,7 +168,70 @@ class DataProvider extends GalleryDialog.DataProvider {
 
 class ItemRenderer extends GalleryDialog.ItemRenderer {
 
+
+
 }
+
+
+class ItemCanvasRenderer extends SelectorWidget.ItemRenderer {
+
+    /**
+     * Called when a thumbnail needs to be drawn for a specific item.
+     * @param {number}              itemIndex - The index of the item to draw the thumbnail for
+     * @param {CanvasRenderingContext2D} ctx  - The canvas 2D rendering context
+     * @param {Object}                   rect - The rectangle object defining the drawing area (left, top, width, height)
+     */
+    onDrawThumb(itemIndex, ctx, rect) {
+
+    }
+
+    /**
+     * Called when details need to be drawn for a specific item.
+     *
+     * Typically draws 2 lines of text (value + additional info)
+     * @param {number}             itemIndex - The index of the item to draw details for
+     * @param {CanvasRenderingContext2D} ctx - The canvas 2D rendering context
+     * @param {Object} rect        - The rectangle object defining the drawing area
+     * @param {number} rect.left   - The left position of the drawing area
+     * @param {number} rect.top    - The top position of the drawing area
+     * @param {number} rect.width  - The width of the drawing area
+     * @param {number} rect.height - The height of the drawing area
+     * @returns {number} The maximum width (in pixels) occupied by the rendered text elements,
+     *                   which represents the space needed to the right of the drawing area
+     *                   for proper layout calculations.
+     */
+    onDrawDetails(itemIndex, ctx, rect) {
+        const style = this.visualStyleItems[itemIndex];
+        if( style === undefined ) { return; }
+
+        // set text styles
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'top';
+
+        // calculate text dimensions
+        const lineHeight = 16;
+        const marginTop = 4;
+        const right = rect.left + rect.width;
+
+        // draw name text (first line)
+        ctx.font = '12px sans-serif';
+        ctx.fillStyle = '#666';
+        ctx.fillText(style.name, right, rect.top + marginTop);
+        const nameWidth = ctx.measureText(style.name).width;
+
+        // draw category text (second line)
+        ctx.font = 'bold 12px sans-serif';
+        ctx.fillStyle = '#000';
+        ctx.fillText(style.category, right, rect.top + marginTop + lineHeight);
+        const categoryWidth = ctx.measureText(style.category).width;
+
+        // return the maximum width for proper layout calculations
+        return Math.max(categoryWidth, nameWidth);
+    }
+
+
+}
+
 
 
 //#===================== VISUAL STYLES: GALLERY DIALOG =====================#
@@ -179,13 +244,13 @@ class ItemRenderer extends GalleryDialog.ItemRenderer {
  *
  * Usage example:
  *     const styleVersion = "1.0"; //< version of the style definitions
- *     const styleDialog  = getVisualStylesGalleryDialog(styleVersion);
+ *     const styleDialog  = requireVisualStyleGalleryDialog(styleVersion);
  *     const currentStyle = "Anime";
  *     styleDialog.launch("Select Style", currentStyle, (selectedStyle) => {
  *         console.log("Selected Style: " + selectedStyle);
  *     });
  */
-function getVisualStylesGalleryDialog(version) {
+function requireVisualStyleGalleryDialog(version) {
     let dialog = _dialogRegistry.get(version);
     if( !dialog ) {
         dialog = new GalleryDialog(new DataProvider(version), new ItemRenderer());
@@ -194,3 +259,24 @@ function getVisualStylesGalleryDialog(version) {
     return dialog;
 }
 
+//#==================== VISUAL STYLES: SELECTOR WIDGET =====================#
+
+function addVisualStyleSelectorWidget(node, name, data) {
+    const type    = data[0];
+    const options = data[1] || {};
+    const version = options.version || '1.0';
+    let   widget  = new SelectorWidget(type, name, options, new DataProvider(version), null /*new ItemCanvasRenderer()*/, (self) =>
+    {
+        // launch dialog
+        const styleDialog  = requireVisualStyleGalleryDialog(self.dataProvider.version);
+        styleDialog.launch( self.options.dialog_title, self.value, (selectedStyle) =>
+        {
+            // apply the new selected style
+            self.value = selectedStyle;
+            self.callback(selectedStyle);
+            self.node?.setDirtyCanvas?.(true);
+        });
+    });
+    widget = node.addCustomWidget( widget );
+    return { widget: widget };
+}
