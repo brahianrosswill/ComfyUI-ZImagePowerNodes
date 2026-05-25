@@ -11,7 +11,7 @@
  *_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
  */
 export { addStyleGalleryButton };
-import { requireVisualStyleGalleryDialog } from "./visual_styles.js";
+import { requireVisualStyleGalleryDialog } from "./ui_styles.js";
 
 
 /**

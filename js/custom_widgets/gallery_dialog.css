@@ -1,3 +1,15 @@
+/*
+ * File    : gallery_dialog.css
+ * Purpose : CSS styles for `gallery_dialog.js` to define the dialog window's appearance.
+ * Author  : Martin Rizzo | <martinrizzo@gmail.com>
+ * Date    : May 8, 2026
+ * Repo    : https://github.com/martin-rizzo/ComfyUI-ZImagePowerNodes
+ * License : MIT
+ *- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ *                        ComfyUI-ZImagePowerNodes
+ *       ComfyUI nodes designed specifically for the "Z-Image" model.
+ *_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+ */
 
 .zipn-spacer {
   width          : 0.5em;

@@ -1,5 +1,5 @@
 /**
- * File    : custom_widgets/visual_styles.js
+ * File    : ui_styles.js
  * Purpose : Implements Dialog, Widget, and DataProvider for visual styles, ensuring
  *           compatibility with previous Power Nodes versions. This centralizes the
  *           visual style UI across different versions, preventing redundant code
@@ -20,8 +20,9 @@ export {
     addVisualStyleSelectorWidget,
 };
 import { api } from "../../../scripts/api.js";
-import { GalleryDialog } from "../custom_dialogs/gallery_dialog.js";
-import { SelectorWidget } from "./selector_widget.js";
+import { GalleryWidget, GalleryWidgetDelegate } from "./gallery_widget.js";
+import { GalleryDialog, GalleryDialogDelegate } from "./gallery_dialog.js";
+
 
 // Cache of promises to avoid duplicate requests for the same visual style version.
 const _visualStylesCache = new Map();
@@ -118,9 +119,101 @@ async function fetchVisualStyleArray(version)
 }
 
 
+//#==================== VISUAL STYLES: SELECTOR WIDGET =====================#
+
+
+class StyleWidgetDelegate extends GalleryWidgetDelegate {
+
+    constructor(version) {
+        super();
+        this.version = version; //< the version of the styles to fetch
+    }
+
+    async fetchItemArray() {
+        return fetchVisualStyleArray(this.version);
+    }
+
+    getItemText(item, _value) {
+        if( !item ) { return "Undefined"; }
+        return `${item.name}\n${item.category}`;
+    }
+
+    /**
+     * Called when a thumbnail needs to be drawn for a specific item.
+     *
+     * @param {Object}                  item - The item data to render
+     * @param {CanvasRenderingContext2D} ctx - The canvas 2D rendering context
+     * @param {Object}                  rect - The rectangle object defining the drawing area (left, top, width, height)
+     * @param {string}                 value - The current value of the widget
+     */
+    drawItemThumbnail(ctx, rect, item, _value) {
+
+        if( !item?.thumbnail ) { return; }
+        const imageURL = item.thumbnail;
+
+        // 1. Si no existe la instancia de imagen, la creamos y disparamos la carga
+        if (!item._imageInstance) {
+            const img = new Image();
+            img.src = imageURL;
+
+            img.onload = () => {
+                // // Notificar a LiteGraph que necesita redibujar el canvas actual
+                // // app.canvas es la instancia global de LGraphCanvas en ComfyUI
+                // if (typeof app !== "undefined" && app.canvas) {
+                //     app.canvas.setDirty(true, true); 
+                // }
+            };
+
+            // Guardamos una propiedad privada en el item para reutilizarla
+            item._imageInstance = img;
+        }
+
+        // 2. Solo si la imagen está completamente cargada en este frame, la dibujamos
+        if (item._imageInstance.complete && item._imageInstance.naturalWidth > 0) {
+            // Calcular coordenadas centradas dentro de 'rect'
+            const x = rect.left + (rect.width - 32) / 2;
+            const y = rect.top + (rect.height - 32) / 2;
+
+            ctx.drawImage(item._imageInstance, x, y, 32, 32);
+        } else {
+            // OPCIONAL: Dibujar un placeholder temporal (ej. un cuadro gris sutil)
+            // mientras la imagen se descarga en segundo plano.
+            ctx.fillStyle = "#2a2a2a";
+            const x = rect.left + (rect.width - 32) / 2;
+            const y = rect.top + (rect.height - 32) / 2;
+            ctx.fillRect(x, y, 32, 32);
+        }
+    }
+
+
+}
+
+
+function addVisualStyleSelectorWidget(node, name, data) {
+    const type    = data[0];
+    const options = data[1] || {};
+    const version = options.version || '1.0';
+    let   widget  = new GalleryWidget(type, name, options, new StyleWidgetDelegate(version), (self) =>
+    {
+        console.log("###>>> launching styleGalleryDialog!!");
+        // launch dialog
+        const styleDialog  = requireVisualStyleGalleryDialog(version);
+        styleDialog.launch( self.options.dialog_title, self.value, (selectedStyle) =>
+        {
+            // apply the new selected style
+            self.value = selectedStyle;
+            //self.callback(selectedStyle);
+            self.node?.setDirtyCanvas?.(true);
+        });
+    });
+    widget = node.addCustomWidget( widget );
+    return { widget: widget };
+}
+
+
 //#====================== VISUAL STYLES DATA PROVIDER ======================#
 
-class DataProvider extends GalleryDialog.DataProvider {
+class StyleDialogDelegate extends GalleryDialogDelegate {
 
     constructor(version) {
         super();
@@ -164,75 +257,6 @@ class DataProvider extends GalleryDialog.DataProvider {
 }
 
 
-//#===================== VISUAL STYLES: ITEM RENDERER ======================#
-
-class ItemRenderer extends GalleryDialog.ItemRenderer {
-
-
-
-}
-
-
-class ItemCanvasRenderer extends SelectorWidget.ItemRenderer {
-
-    /**
-     * Called when a thumbnail needs to be drawn for a specific item.
-     * @param {number}              itemIndex - The index of the item to draw the thumbnail for
-     * @param {CanvasRenderingContext2D} ctx  - The canvas 2D rendering context
-     * @param {Object}                   rect - The rectangle object defining the drawing area (left, top, width, height)
-     */
-    onDrawThumb(itemIndex, ctx, rect) {
-
-    }
-
-    /**
-     * Called when details need to be drawn for a specific item.
-     *
-     * Typically draws 2 lines of text (value + additional info)
-     * @param {number}             itemIndex - The index of the item to draw details for
-     * @param {CanvasRenderingContext2D} ctx - The canvas 2D rendering context
-     * @param {Object} rect        - The rectangle object defining the drawing area
-     * @param {number} rect.left   - The left position of the drawing area
-     * @param {number} rect.top    - The top position of the drawing area
-     * @param {number} rect.width  - The width of the drawing area
-     * @param {number} rect.height - The height of the drawing area
-     * @returns {number} The maximum width (in pixels) occupied by the rendered text elements,
-     *                   which represents the space needed to the right of the drawing area
-     *                   for proper layout calculations.
-     */
-    onDrawDetails(itemIndex, ctx, rect) {
-        const style = this.visualStyleItems[itemIndex];
-        if( style === undefined ) { return; }
-
-        // set text styles
-        ctx.textAlign = 'right';
-        ctx.textBaseline = 'top';
-
-        // calculate text dimensions
-        const lineHeight = 16;
-        const marginTop = 4;
-        const right = rect.left + rect.width;
-
-        // draw name text (first line)
-        ctx.font = '12px sans-serif';
-        ctx.fillStyle = '#666';
-        ctx.fillText(style.name, right, rect.top + marginTop);
-        const nameWidth = ctx.measureText(style.name).width;
-
-        // draw category text (second line)
-        ctx.font = 'bold 12px sans-serif';
-        ctx.fillStyle = '#000';
-        ctx.fillText(style.category, right, rect.top + marginTop + lineHeight);
-        const categoryWidth = ctx.measureText(style.category).width;
-
-        // return the maximum width for proper layout calculations
-        return Math.max(categoryWidth, nameWidth);
-    }
-
-
-}
-
-
 
 //#===================== VISUAL STYLES: GALLERY DIALOG =====================#
 
@@ -253,30 +277,9 @@ class ItemCanvasRenderer extends SelectorWidget.ItemRenderer {
 function requireVisualStyleGalleryDialog(version) {
     let dialog = _dialogRegistry.get(version);
     if( !dialog ) {
-        dialog = new GalleryDialog(new DataProvider(version), new ItemRenderer());
+        dialog = new GalleryDialog(new StyleDialogDelegate(version));
         _dialogRegistry.set(version, dialog);
     }
     return dialog;
 }
 
-//#==================== VISUAL STYLES: SELECTOR WIDGET =====================#
-
-function addVisualStyleSelectorWidget(node, name, data) {
-    const type    = data[0];
-    const options = data[1] || {};
-    const version = options.version || '1.0';
-    let   widget  = new SelectorWidget(type, name, options, new DataProvider(version), null /*new ItemCanvasRenderer()*/, (self) =>
-    {
-        // launch dialog
-        const styleDialog  = requireVisualStyleGalleryDialog(self.dataProvider.version);
-        styleDialog.launch( self.options.dialog_title, self.value, (selectedStyle) =>
-        {
-            // apply the new selected style
-            self.value = selectedStyle;
-            self.callback(selectedStyle);
-            self.node?.setDirtyCanvas?.(true);
-        });
-    });
-    widget = node.addCustomWidget( widget );
-    return { widget: widget };
-}

@@ -1,6 +1,6 @@
 /**
  * File    : gallery_dialog.js
- * Purpose : Generic class for ComfyUI dialogs that display a thumbnail/image for each selectable option.
+ * Purpose : A generic, customizable ComfyUI dialog for selecting items through an image gallery.
  * Author  : Martin Rizzo | <martinrizzo@gmail.com>
  * Date    : May 8, 2026
  * Repo    : https://github.com/martin-rizzo/ComfyUI-ZImagePowerNodes
@@ -18,21 +18,19 @@
  *
  *_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
  */
+export { GalleryDialog, GalleryDialogDelegate };
 import { ComfyDialog, $el as html } from "../../../scripts/ui.js"; //< deprecated ??
-export { GalleryDialog };
 const DIALOG_ID = 'zipn-style-gallery-dialog'; //< ID of the DOM element where the dialog is located
 const TITLE_ID  = 'zipn-style-gallery-title';  //< ID of the DOM element where the title is located
 
 
-
-//#====================== GalleryDialog.DataProvider =======================#
 
 /**
  * Base provider class for GalleryDialog.
  * Users should extend this class and implement the `fetchItemArray()`
  * and `getCategories()` methods.
  */
-class GalleryDialogDataProvider {
+class GalleryDialogDelegate {
 
     /**
      * Fetches an array with data about each item to be displayed in the gallery.
@@ -50,7 +48,7 @@ class GalleryDialogDataProvider {
      *
      * @example
      * // How to implement in a subclass:
-     * class MyDataProvider extends GalleryDialogDataProvider {
+     * class MyDelegate extends GalleryDialogDelegate {
      *     async fetchItemArray() {
      *         const data = await myApi.get('/items');
      *         return data.map((item, index) => ({
@@ -83,7 +81,7 @@ class GalleryDialogDataProvider {
      *     - description (string): Tooltip description for screen readers/accessibility
      *
      * @example
-     * class MyDataProvider extends GalleryDialog.DataProvider {
+     * class MyDelegate extends GalleryDialogDelegate {
      *   getCategories() {
      *     return [
      *       ['images'   , 'Images'   , 'View all image files'   ],
@@ -97,76 +95,68 @@ class GalleryDialogDataProvider {
         return null;
     }
 
-}
-
-
-//#====================== GalleryDialog.ItemRenderer =======================#
-
-/**
- * Base renderer class for GalleryDialog.
- *
- * Provides default HTML templates for rendering items.
- * Users can extend this class to override specific methods
- * and customize the visual presentation.
- *
- * @example
- * class MyItemRenderer extends GalleryDialogItemRenderer {
- *     renderThumbnail(item, className, cacheBuster) {
- *         return `<div class="${className}">Custom Thumbnail: ${item.name}</div>`;
- *     }
- * }
- */
-class GalleryDialogItemRenderer {
+    /**
+     * Renders the thumbnail HTML element for the gallery grid.
+     * This method CAN be overridden to provide custom thumbnail rendering.
+     *
+     * @param {Object|null} item   - The data object representing the item
+     * @param {string} className   - CSS class to be applied to the img tag
+     * @param {string} cacheBuster - A string appended to the URL to prevent browser caching
+     * @returns {string}
+     *    The HTML string representing the thumbnail
+     */
+    htmlItemThumbnail(item, className, cacheBuster) {
+        if( !item?.thumbnail ) {
+            return "";
+        }
+        const imageURL = item.thumbnail + cacheBuster;
+        return `<img class="${className}" src="${imageURL}" loading="lazy" alt="${item.name | ""}"/>`;
+    }
 
     /**
-     * Renders the detailed HTML view for a selected item.
+     * Renders the main image HTML element for the selected item.
+     * This method CAN be overridden to provide custom image rendering.
      *
-     * @param {Object|null} item   - The data object representing the item, or `null` if no item is selected.
-     * @param {string} cacheBuster - A string appended to the URL to prevent browser caching.
+     * The current implementation renders a lazy-loaded image using the item's
+     * thumbnail property, or returns an empty string if the item or thumbnail
+     * is missing.
+     *
+     * @param {Object|null} item        - The data object representing the item,
+     *                                    or `null` if no item is selected.
+     * @param {string}      className   - CSS class to be applied to the img tag
+     * @param {string}      cacheBuster - A string to be appended to URLs to prevent image caching.
      * @returns {string}
-     *     HTML string representing the detailed description view.
+     *    The HTML string representing the image element
+     *    or an empty string if the item or thumbnail is missing.
      */
-    renderDescription(item, cacheBuster) {
-        const imageHTML = this.renderImage(item, 'zipn-image', cacheBuster);
+    htmlItemImage(item, className, cacheBuster) {
+        if( !item?.thumbnail ) {
+            return "";
+        }
+        const imageURL = item.thumbnail + cacheBuster;
+        return `<img class="${className}" src="${imageURL}" loading="lazy" alt="${item.name | ""}"/>`;
+    }
+
+    /**
+     * Renders the HTML content of the panel displaying details of the selected item.
+     * This method is NOT intended to be overridden by subclasses.
+     *
+     * The current implementation renders a structured layout consisting of
+     * the item's name as a header, the item's image, and its description.
+     *
+     * @param {Object|null} item        - The data object representing the item,
+     *                                    or `null` if no item is selected.
+     * @param {string}      cacheBuster - A string to be appended to URLs to prevent image caching.
+     * @returns {string}
+     *    The HTML string representing the content of the details panel.
+     */
+    htmlItemDetailsPane(item, cacheBuster) {
+        const imageHTML = this.htmlItemImage(item, 'zipn-image', cacheBuster);
         return `
            <h1>${item?.name || ""}</h1>
            ${imageHTML}
            <p>${item?.description || ""}</p>
            `;
-    }
-
-    /**
-     * Renders the image HTML element for the selected item.
-     *
-     * @param {Object|null} item   - The data object representing the item, or `null` if no item is selected.
-     * @param {string} className   - CSS class to be applied to the img tag.
-     * @param {string} cacheBuster - A string appended to the URL to prevent browser caching.
-     * @returns {string}
-     *    HTML string representing the image of the selected item.
-     */
-    renderImage(item, className, cacheBuster) {
-        if( !item?.thumbnail ) {
-            return "";
-        }
-        const imageURL = item.thumbnail + cacheBuster;
-        return `<img class="${className}" src="${imageURL}" loading="lazy" alt="${item.name | ""}"/>`;
-    }
-
-    /**
-     * Renders the thumbnail HTML element for the gallery grid.
-     *
-     * @param {Object|null} item   - The data object representing the item, or `null` if no item is selected.
-     * @param {string} className   - CSS class to be applied to the img tag.
-     * @param {string} cacheBuster - A string appended to the URL to prevent browser caching.
-     * @returns {string}
-     *     HTML string representing the thumbnail of the selected item.
-     */
-    renderThumbnail(item, className, cacheBuster) {
-        if( !item?.thumbnail ) {
-            return "";
-        }
-        const imageURL = item.thumbnail + cacheBuster;
-        return `<img class="${className}" src="${imageURL}" loading="lazy" alt="${item.name | ""}"/>`;
     }
 
 }
@@ -176,23 +166,14 @@ class GalleryDialogItemRenderer {
 
 class GalleryDialog {
 
-    static get ItemRenderer() { return GalleryDialogItemRenderer; }
-    static get DataProvider() { return GalleryDialogDataProvider; }
-
-
-    constructor(dataProvider, itemRenderer) {
+    constructor(delegate) {
 
         // ensure parameters are of the correct type
-        if (!(dataProvider instanceof GalleryDialogDataProvider)) {
-            throw new TypeError('dataProvider must be an instance of GalleryDialogDataProvider');
+        if (!(delegate instanceof GalleryDialogDelegate)) {
+            throw new TypeError('delegate must be an instance of GalleryDialogDelegate');
         }
-        if (!(itemRenderer instanceof GalleryDialogItemRenderer)) {
-            throw new TypeError('itemRenderer must be an instance of GalleryDialogItemRenderer');
-        }
-
-        this.dataProvider = dataProvider;
-        this.itemRenderer = itemRenderer;
-        this._instance    = null;
+        this.delegate  = delegate;
+        this._instance = null;
     }
 
 
@@ -204,19 +185,15 @@ class GalleryDialog {
      * @param {Function}                  onSelect - Callback executed when an element is selected.
      * @returns {void}
      * @example
-     * const MyGalleryDialog = new GalleryDialog(
-     *                               new MyGalleryDialogDataProvider(),
-     *                               new MyGalleryDialogItemRenderer()
-     *                               );
-     * 
-     * MyGalleryDialog.launch("Select an Image", "default", (item) => {
+     * const myGalleryDialog = new GalleryDialog( new MyGalleryDialogDelegate() );
+     * myGalleryDialog.launch("Select an Image", "default", (item) => {
      *   console.log("Selected:", item);
      * });
      */
     launch(title, selectedName, onSelect) {
         // create the instance only once (singleton instance logic)
         if( !this._instance ) {
-             this._instance = new _GalleryDialog(this.dataProvider, this.itemRenderer);
+             this._instance = new _GalleryDialog(this.delegate);
         }
 
         // relaunch the dialog
@@ -237,11 +214,10 @@ class GalleryDialog {
 class _GalleryDialog extends ComfyDialog {
 
     /**
-     * Creates a new instance, registering a data provider and card renderer.
-     * @param {GalleryDialogDataProvider}  dataProvider - The object that provides the data for each element in the gallery.
-     * @param {GalleryDialogItemRenderer} itemRenderer - The object that renders each item shown in the gallery.
+     * Creates a new instance, registering a delegate object to customize the dialog behavior.
+     * @param {GalleryDialogDelegate} delegate - ???
      */
-    constructor(dataProvider, itemRenderer) {
+    constructor(delegate) {
         super();
         ensureCSSLoaded();
 
@@ -284,11 +260,8 @@ class _GalleryDialog extends ComfyDialog {
 
         //---- INTERNAL VARIABLES -------------------------
 
-        /** @type {GalleryDialogDataProvider} The object that provides the data for each element in the gallery. */
-        this.dataProvider = dataProvider;
-
-        /** @type {GalleryDialogItemRenderer} The object that renders each card shown in the gallery.*/
-        this.itemRenderer = itemRenderer;
+        /** @type {GalleryDialogDelegate} The object that provides the item data and renderer. */
+        this.delegate = delegate;
 
         /** @type {Array<object>} An array to store elements in ID order for fast access. */
         this.elementsByID = [];
@@ -408,7 +381,7 @@ class _GalleryDialog extends ComfyDialog {
         // update details pane
         const element     = detailsID != null ? this.elementsByID[ detailsID ] : null;
         const cacheBuster = this.cacheBuster ? '&cache=' + this.cacheBuster : '';
-        this.detailsPaneEL.innerHTML = this.itemRenderer.renderDescription(element, cacheBuster);
+        this.detailsPaneEL.innerHTML = this.delegate.htmlItemDetailsPane(element, cacheBuster);
     }
 
     /**
@@ -460,7 +433,7 @@ class _GalleryDialog extends ComfyDialog {
 
         // apply filters and re-render gallery
         this.resultElements = _GalleryDialog.applyFilter( this.elementsByID, this.textFilter, this.categoryFilter );
-        _GalleryDialog.renderResults( this.searchResultsEl, this.viewMode, this.resultElements, this.itemRenderer, this.initialCardID, this.cacheBuster );
+        _GalleryDialog.renderResults( this.searchResultsEl, this.viewMode, this.resultElements, this.delegate, this.initialCardID, this.cacheBuster );
 
         // disable focus if there are no results
         if( this.resultElements.length == 0 ) { this.resultIndex = null; }
@@ -477,17 +450,17 @@ class _GalleryDialog extends ComfyDialog {
      * as an object in the 'elements' array and includes properties such as
      * 'id', 'name', and 'thumbnail'.
      *
-     * @param {HTMLElement}               containerEl  - The container element where the gallery will be rendered.
-     * @param {string}                    viewMode     - The current view mode ('grid' or 'list') that determines
-     *                                                   the layout of each item in the gallery. This parameter
-     *                                                   is used to apply appropriate CSS classes.
-     * @param {Array<Object>}             elements     - An array of objects representing the elements to display.
-     * @param {GalleryDialogItemRenderer} itemRenderer - The object responsible for rendering each item.
-     * @param {string|null}           initialElementID - The ID of the initially selected element, which will receive
-     *                                                   an additional CSS class ('initial') for highlighting.
-     * @param {string|null}               cacheBuster_ - A string used as a cache buster appended to each thumbnail
-     *                                                   image URL to ensure that the browser fetches the latest
-     *                                                   version of images.
+     * @param {HTMLElement}             containerEl  - The container element where the gallery will be rendered.
+     * @param {string}                  viewMode     - The current view mode ('grid' or 'list') that determines
+     *                                                 the layout of each item in the gallery. This parameter
+     *                                                 is used to apply appropriate CSS classes.
+     * @param {Array<Object>}           elements     - An array of objects representing the elements to display.
+     * @param {GalleryDialogDelegate}   delegate     - The object responsible for rendering each item.
+     * @param {string|null}         initialElementID - The ID of the initially selected element, which will receive
+     *                                                 an additional CSS class ('initial') for highlighting.
+     * @param {string|null}             cacheBuster_ - A string used as a cache buster appended to each thumbnail
+     *                                                 image URL to ensure that the browser fetches the latest
+     *                                                 version of images.
      * @example
      * const elements = [
      *   { id: 'element-1', name: 'Modern Look', thumbnail: '/images/modern.jpg' },
@@ -495,14 +468,14 @@ class _GalleryDialog extends ComfyDialog {
      * ];
      * renderResults(document.getElementById('gallery-container'), 'grid', elements, 'element-1', Date.now());
      */
-    static renderResults(containerEl, viewMode, elements, itemRenderer, initialElementID = null, cacheBuster_ = null) {
+    static renderResults(containerEl, viewMode, elements, delegate, initialElementID = null, cacheBuster_ = null) {
         const baseClass   = `zipn-${viewMode}`;
         const cacheBuster = cacheBuster_ ? '&cache=' + cacheBuster_ : '';
         containerEl.className = baseClass;
 
         containerEl.innerHTML = elements.map( element => {
             const extraClass = element.id === initialElementID ? ' initial' : '';
-            const thumbnailHTML = itemRenderer.renderThumbnail(element, `zipn-thumb`, cacheBuster);
+            const thumbnailHTML = delegate.htmlItemImage(element, `zipn-thumb`, cacheBuster);
             return `
                 <div class="${baseClass}-card${extraClass}" id="zipn-element-${element.id}" data-id="${element.id}">
                     ${thumbnailHTML}
@@ -562,7 +535,7 @@ class _GalleryDialog extends ComfyDialog {
         // `this.viewMode` is not set here because it persists between dialog reopenings
 
         // load style data from server and focus on the initial style
-        this.dataProvider.fetchItemArray().then( items =>
+        this.delegate.fetchItemArray().then( items =>
         {
             // check each item if it doesn't have the `lowerName` property
             // generate it in base to the `name` property
@@ -837,7 +810,7 @@ class _GalleryDialog extends ComfyDialog {
      * @returns {HTMLElement} An HTML structure representing a search bar.
      */
     createToolbar() {
-        const categories = this.dataProvider.getCategories() || [];
+        const categories = this.delegate.getCategories() || [];
 
         // create each category button from the `categories` array
         this.categoryButtons = [];

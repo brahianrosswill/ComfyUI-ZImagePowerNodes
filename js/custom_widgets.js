@@ -10,38 +10,14 @@
  *       ComfyUI nodes designed specifically for the "Z-Image" model.
  *_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 */
-import { app }                          from "../../../scripts/app.js";
-import { SelectorWidgetPalettes }       from "./custom_widgets/selector_widget_palettes.js";
-import { addVisualStyleSelectorWidget } from "./custom_widgets/visual_styles.js";
-import { addStyleGalleryButton  }       from "./custom_widgets/style_gallery_button.js";
-import { SeparatorWidget        }       from "./custom_widgets/separator_widget.js";
+import { app }                           from "../../../scripts/app.js";
+import { addColorPaletteSelectorWidget } from "./custom_widgets/ui_palettes.js";
+import { addVisualStyleSelectorWidget }  from "./custom_widgets/ui_styles.js";
+import { addStyleGalleryButton  }        from "./custom_widgets/style_gallery_button.js";
+import { SeparatorWidget        }        from "./custom_widgets/separator_widget.js";
 const ENABLED = true;
-//const DEFAULT_WIDGET_HEIGHT = 20;
 
 
-/**
- * Adds a palette selector widget to a node.
- *
- * @param {LGraphNode} node  - ComfyUI node where the widget will be added.
- * @param {string}     name  - The name of the value attached to the widget.
- * @param {Array}      data  - An array with the following format: [type, options]
- */
-function addPaletteSelectorWidget(node, name, data) {
-    const type    = data[0];
-    const options = data[1] || {};
-    const value   = "Pepe";
-    const widget = node.addCustomWidget( new SelectorWidgetPalettes(type, name, value, options) );
-    return { widget: widget };
-}
-
-
-// function addStyleSelectorWidget(node, name, data) {
-//     const type    = data[0];
-//     const options = data[1] || {};
-//     const value   = "Pepe";
-//     const widget  = node.addCustomWidget( new SelectorWidgetStyles(type, name, value, options) );
-//     return { widget: widget };
-// }
 
 function addSeparatorWidget(node, name, data) {
     const type    = data[0];
@@ -70,7 +46,7 @@ app.registerExtension({
         return {
             "ZIPN_SEPARATOR"       : addSeparatorWidget,
             "ZIPN_STYLE_SELECTOR"  : addVisualStyleSelectorWidget,
-            "ZIPN_PALETTE_SELECTOR": addVisualStyleSelectorWidget,
+            "ZIPN_PALETTE_SELECTOR": addColorPaletteSelectorWidget,
 
             // [DEPRECATED]
             "ZIPN_STYLE_GALLERY_BUTTON": addStyleGalleryButton,
