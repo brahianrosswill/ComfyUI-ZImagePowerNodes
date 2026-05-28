@@ -205,10 +205,12 @@ class GalleryWidget {
      * @param {GalleryWidgetDelegate} delegate   - Instance responsible for item data and rendering.
      * @param {Function}              [onAction] - Optional callback function executed when the center of the widget is clicked.
      */
-    constructor(type, name, options, delegate, onAction) {
+    constructor(type, node, name, options, delegate, onAction) {
 
         /** @type {string} The type of the widget. Generally a custom type registered by the user in ComfyUI */
         this.type = type;
+
+        this.node = node;
 
         /** @type {string} Unique identifier for the widget (not used for value serialization) */
         this.name = name;
@@ -217,7 +219,7 @@ class GalleryWidget {
         this.delegate = delegate || new GalleryWidgetDelegate();
 
         /** @type {string} The current selected value (Empty = nothing selected) */
-        this._value = "";
+        this.value = "";
 
         /** @type {number} Index of the currently selected item (-1 = nothing selected) */
         this._selectedIndex = -1;
@@ -234,10 +236,12 @@ class GalleryWidget {
         /** @type {boolean} Flag used by ComfyUI to know if the value must be serialized */
         this.serialize = true;
 
+        this._cachedImageURL = null;
+        this._cachedImage    = null;
+
         /** @type {Object} The configuration options passed to the widget */
         this.options = {
-            socketless: true,
-            height    : 32,
+            height : 48,
             ...options
         };
 
@@ -249,32 +253,11 @@ class GalleryWidget {
         // load item data
         this.itemArray = [];
         this.delegate.fetchItemArray().then( itemArray => {
-            if( Array.isArray(itemArray) ) { this.itemArray = itemArray; }
+            if( Array.isArray(itemArray) ) {
+                this.itemArray = itemArray;
+                this.forceUpdate();
+            }
         });
-    }
-
-
-    /**
-     * Gets the current selected value.
-     * @returns {string} The current selected value.
-     */
-    get value() {
-        return this._value;
-    }
-
-    /**
-     * Sets the current selected value.
-     * @param {string} value - The value to set.
-     */
-    set value(value) {
-        if( this._value === value ) { return; }
-
-        // modify the value and trigger visual update
-        this._value         = value;
-        this._selectedIndex = null;  //< invalidate the selected index (must be recalculated)
-        if( typeof this.node?.setDirtyCanvas === 'function' ) {
-            this.node.setDirtyCanvas(true);
-        }
     }
 
    /**
@@ -286,8 +269,8 @@ class GalleryWidget {
         // if the index was invalidated, recalculate it
         if( this._selectedIndex == null ) {
             this._selectedIndex = -1;
-            if( this._value && Array.isArray(this.itemArray) ) {
-                this._selectedIndex = this.itemArray.findIndex(item => item.name === this._value);
+            if( this.value && Array.isArray(this.itemArray) ) {
+                this._selectedIndex = this.itemArray.findIndex(item => item.name === this.value);
             }
         }
         return this._selectedIndex;
@@ -305,38 +288,95 @@ class GalleryWidget {
         if( index == this._selectedIndex ) { return; }
 
         // modify the value and index and trigger visual update
+        this.forceUpdate( this.itemArray[index].name );
         this._selectedIndex = index;
-        this._value         = this.itemArray[index].name;
-        if( typeof this.node?.setDirtyCanvas === 'function' ) {
-            this.node.setDirtyCanvas(true);
-        }
+    }
+
+    /**
+     * Force the widget to update its visual representation (with optional new value)
+     * @param {string} [newValue] - The new value to set.
+     *                              If not provided, the current value is retained.
+     */
+    forceUpdate(newValue) {
+        const oldValue = this.value;
+        this.value = newValue || this.value;
+
+        // If the value was actually modified, then the selected index becomes invalid
+        if( this.value !== oldValue ) { this._selectedIndex = null; }
+
+        // ComfyUI automatically injects a 'triggerDraw' method into widgets
+        // we call it if available, but we also manually trigger a canvas refresh
+        // using 'setDirtyCanvas' as a fallback to ensure the widget redraws
+        this.node?.setDirtyCanvas(true);
+        if( typeof this.triggerDraw === 'function' ) { this.triggerDraw(); }
     }
 
 
+    //#------------------------------ EVENTS -------------------------------#
+
     /**
+     * Called when the widget is clicked.
+     * @param {CanvasPointer} pointerOrEvent - Pointer or event object containing mouse/touch data
+     * @param {ComfyNode}     node           - Node object with position data
+     * @param {LGraphCanvas}  _canvas        - Canvas object for coordinate calculations
+     * @returns {boolean}
+     *     Returns true if processing was successful
+     */
+    onPointerDown(pointerOrEvent, node, _canvas) {
+
+        // this function looks like it is executed in different ways for compatibility,
+        // por eso descartar cuando los parametros no son los esperados
+        if( !pointerOrEvent?.eDown || !node?.pos ) { return; }
+
+        const event       = pointerOrEvent.eDown;
+        const localX      = event.canvasX - (node.pos[0] || 0);
+        const widgetWidth = node.size[0] || 0;
+
+        pointerOrEvent.onClick = () => {
+            if( localX < this.widgetMargin[0] + this.arrowButtonWidth ) {
+                this.selectedIndex -= 1;
+            } else if( localX > widgetWidth - this.widgetMargin[0] - this.arrowButtonWidth ) {
+                this.selectedIndex += 1;
+            } else if( this.onAction ) {
+                this.onAction(this);
+            }
+        };
+        return true;
+    };
+
+    /**
+     * Called when the widget needs to be drawn.
      * Draws all widget elements: container, navigation arrows, thumbnails, and descriptive text.
      * @param {CanvasRenderingContext2D} ctx - The canvas rendering context.
-     * @param {Object} node - The parent ComfyNode object.
+     * @param {Object} node          - The parent ComfyNode object where the widget is located.
      * @param {number} widgetWidth   - The width allocated to this widget.
      * @param {number} y             - The vertical offset of the widget.
-     * @param {number} _widgetHeight - The height allocated (unused internal parameter).
      */
-    draw(ctx, node, widgetWidth, y, _widgetHeight) {
+    draw(ctx, node, widgetWidth, y) {
         const padding       = 4;
         const spacing       = 6;
         const thumbWidth    = 32;
         const lastIndex     = this.itemArray.length - 1;
         const selectedIndex = this.selectedIndex;
+        const parentWidth   = this.node?.width || 0;
         const item = this.itemArray[selectedIndex];
+
+        // adjust the widget width to fix a small bug that occasionally occurs in ComfyUI
+        // the framework maintains a 'width' property in the widget, which we adjust here
+        // if any issue is detected... KIDS, DON'T TRY THIS AT HOME!!
+        if( parentWidth && Math.abs(widgetWidth-parentWidth)>2 ) {
+            widgetWidth = parentWidth;
+            this.width  = widgetWidth;
+        }
 
         ctx.save();
 
         // draw container and arrows
         let rect = {
-            left  : this.widgetMargin[0],
+            left  : 0 + this.widgetMargin[0],
             top   : y + this.widgetMargin[1],
-            width : widgetWidth - 2*this.widgetMargin[0],
-            height: 48          - 2*this.widgetMargin[1] };
+            width : widgetWidth         - 2*this.widgetMargin[0],
+            height: this.options.height - 2*this.widgetMargin[1] };
         rect = this.delegate.drawContainerAndArrows(ctx, rect, padding, this.arrowButtonWidth, selectedIndex>0, selectedIndex<lastIndex);
 
         // draw item thumbnail
@@ -347,7 +387,7 @@ class GalleryWidget {
                 width : thumbWidth,
                 height: rect.height
             };
-            this.delegate.drawItemThumbnail(ctx, thumbRect, item, this.value);
+            this.delegate.drawItemThumbnail(ctx, thumbRect, item, this.value, (url) => this.requestImage(url) );
             rect.width -= thumbWidth;
             rect.width -= spacing;
         }
@@ -376,34 +416,16 @@ class GalleryWidget {
     }
 
     /**
-     * Handles pointer down event for node interaction
-     * @param {CanvasPointer} pointerOrEvent - Pointer or event object containing mouse/touch data
-     * @param {ComfyNode}     node           - Node object with position data
-     * @param {LGraphCanvas}  _canvas        - Canvas object for coordinate calculations
-     * @returns {boolean}
-     *     Returns true if processing was successful
+     * Called when the widget size needs to be computed.
+     * @param {number} widgetWidth - The widget width
+     * @returns {Array} The computed size [width, height]
      */
-    onPointerDown(pointerOrEvent, node, _canvas) {
-        if( ! pointerOrEvent?.eDown ) { return; }
-        if( ! node?.pos ) { return; }
+    computeSize(widgetWidth) {
+        return [widgetWidth, this.options.height];
+    }
 
-        const event       = pointerOrEvent.eDown;
-        const localX      = event.canvasX - (node.pos[0] || 0);
-        const widgetWidth = node.size[0] || 0;
-        pointerOrEvent.onClick = () =>
-        {
-            if( localX < this.widgetMargin[0] + this.arrowButtonWidth ) {
-                this.selectedIndex = this.selectedIndex - 1;
-            }
-            else if( localX > widgetWidth - this.widgetMargin[0] - this.arrowButtonWidth ) {
-                this.selectedIndex = this.selectedIndex + 1;
-            }
-            else {
-                if( this.onAction ) { this.onAction(this); }
-            }
-        };
-        return true;
-    };
+
+    //#------------------------- INTERNAL METHODS --------------------------#
 
     /**
      * Draws text with ellipsis truncation within the given rectangle
@@ -452,12 +474,28 @@ class GalleryWidget {
     }
 
     /**
-     * Computes the widget size
-     * @param {number} widgetWidth - The widget width
-     * @returns {Array} The computed size [width, height]
+     * Requests an image URL and caches it for performance optimization.
+     * This method is used to efficiently render item thumbnails by reusing
+     * the cached image object.
+     *
+     * @param {string} url - The URL of the image/thumbnail to request.
+     * @returns {HTMLImageElement} The cached image object.
      */
-    computeSize(widgetWidth) {
-        return [widgetWidth, 48];
+    requestImage(url) {
+        // if the URL is the same as the cached one, return the cached image immediately
+        if( this._cachedImageURL === url ) { return this._cachedImage; }
+        this._cachedImageURL = url;
+
+        // reuse the existing Image object or create a new one if it's the first request
+        if( !this._cachedImage ) { this._cachedImage = new Image(); }
+
+        // set the onload event handler to trigger an update when the image is loaded
+        this._cachedImage.onload = () => {
+            if( this._cachedImageURL === url ) { this.forceUpdate(); }
+        };
+        // start the asynchronous download in the background
+        this._cachedImage.src = url;
+        return this._cachedImage;
     }
 
 }

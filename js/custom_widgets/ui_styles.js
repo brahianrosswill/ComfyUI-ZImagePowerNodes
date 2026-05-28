@@ -138,49 +138,37 @@ class StyleWidgetDelegate extends GalleryWidgetDelegate {
         return `${item.name}\n${item.category}`;
     }
 
+    getItemThumbnailURL(item, _value) {
+        return item.thumbnail;
+    }
+
     /**
-     * Called when a thumbnail needs to be drawn for a specific item.
+     * Draws the image/thumbnail for a specific item.
      *
-     * @param {Object}                  item - The item data to render
-     * @param {CanvasRenderingContext2D} ctx - The canvas 2D rendering context
-     * @param {Object}                  rect - The rectangle object defining the drawing area (left, top, width, height)
-     * @param {string}                 value - The current value of the widget
+     * @param {CanvasRenderingContext2D} ctx   - The canvas 2D rendering context
+     * @param {Object}                   rect  - The rectangle object defining the drawing area (left, top, width, height)
+     * @param {Object}                   item  - The item data to render
+     * @param {string}                   value - The current value of the widget (not used in this method)
+     * @param {Function}          requestImage - A function to request an image from a URL
      */
-    drawItemThumbnail(ctx, rect, item, _value) {
+    drawItemThumbnail(ctx, rect, item, value, requestImage) {
 
         if( !item?.thumbnail ) { return; }
-        const imageURL = item.thumbnail;
+        const imageURL = this.getItemThumbnailURL(item, value);
+        const image    = requestImage(imageURL);
 
-        // 1. Si no existe la instancia de imagen, la creamos y disparamos la carga
-        if (!item._imageInstance) {
-            const img = new Image();
-            img.src = imageURL;
-
-            img.onload = () => {
-                // // Notificar a LiteGraph que necesita redibujar el canvas actual
-                // // app.canvas es la instancia global de LGraphCanvas en ComfyUI
-                // if (typeof app !== "undefined" && app.canvas) {
-                //     app.canvas.setDirty(true, true); 
-                // }
-            };
-
-            // Guardamos una propiedad privada en el item para reutilizarla
-            item._imageInstance = img;
+        // if the image is fully loaded, draw it!!
+        if( image.complete && image.naturalWidth > 0 ) {
+            const x = rect.left + (rect.width  - 32) / 2;
+            const y = rect.top  + (rect.height - 32) / 2;
+            ctx.drawImage(image, x, y, 32, 32);
         }
-
-        // 2. Solo si la imagen está completamente cargada en este frame, la dibujamos
-        if (item._imageInstance.complete && item._imageInstance.naturalWidth > 0) {
-            // Calcular coordenadas centradas dentro de 'rect'
-            const x = rect.left + (rect.width - 32) / 2;
-            const y = rect.top + (rect.height - 32) / 2;
-
-            ctx.drawImage(item._imageInstance, x, y, 32, 32);
-        } else {
-            // OPCIONAL: Dibujar un placeholder temporal (ej. un cuadro gris sutil)
-            // mientras la imagen se descarga en segundo plano.
+        // draw a temporary placeholder (e.g., a subtle gray square)
+        // while the image is being downloaded in the background
+        else {
             ctx.fillStyle = "#2a2a2a";
-            const x = rect.left + (rect.width - 32) / 2;
-            const y = rect.top + (rect.height - 32) / 2;
+            const x = rect.left + (rect.width  - 32) / 2;
+            const y = rect.top  + (rect.height - 32) / 2;
             ctx.fillRect(x, y, 32, 32);
         }
     }
@@ -193,17 +181,12 @@ function addVisualStyleSelectorWidget(node, name, data) {
     const type    = data[0];
     const options = data[1] || {};
     const version = options.version || '1.0';
-    let   widget  = new GalleryWidget(type, name, options, new StyleWidgetDelegate(version), (self) =>
+    let   widget  = new GalleryWidget(type, node, name, options, new StyleWidgetDelegate(version), (self) =>
     {
-        console.log("###>>> launching styleGalleryDialog!!");
-        // launch dialog
-        const styleDialog  = requireVisualStyleGalleryDialog(version);
-        styleDialog.launch( self.options.dialog_title, self.value, (selectedStyle) =>
-        {
-            // apply the new selected style
-            self.value = selectedStyle;
-            //self.callback(selectedStyle);
-            self.node?.setDirtyCanvas?.(true);
+        // launch dialog and update widget value
+        const styleDialog = requireVisualStyleGalleryDialog(version);
+        styleDialog.launch( self.options.dialog_title, self.value, (selectedStyle) => {
+            self.forceUpdate( selectedStyle );
         });
     });
     widget = node.addCustomWidget( widget );

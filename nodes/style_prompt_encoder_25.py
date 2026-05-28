@@ -56,13 +56,13 @@ class StylePromptEncoder25(io.ComfyNode):
                                               "The description should incorporate '{$@}' where the main text "
                                               "prompt will be inserted.",
                                      ),
-                io.Int.Input         ("integer1", min=0, max=1024),
-                StyleSelector.Input  ("style"),
-                io.Combo.Input       ("combo1", options=["first", "second", "3"]),
-                PaletteSelector.Input("palette"),
-                io.Int.Input         ("integer2", min=0, max=1024),
+                #Separator.Input("separator",mode="divider"),#==========================================
+                #  Separator.Input("separator",variant="space"),
+                #  solid, dashed, space
 
-                Separator.Input("spacer",mode="divider"),#==========================================
+                StyleSelector.Input  ("style"),
+                PaletteSelector.Input("palette"),
+
 
                 io.String.Input      ("text",
                                       multiline=True, dynamic_prompts=True,

@@ -175,7 +175,7 @@ function addColorPaletteSelectorWidget(node, name, data) {
     const type    = data[0];
     const options = data[1] || {};
     const version = options.version || '1.0';
-    let   widget  = new GalleryWidget(type, name, options, new PaletteWidgetDelegate(version), (self) =>
+    let   widget  = new GalleryWidget(type, node, name, options, new PaletteWidgetDelegate(version), (self) =>
     {
         console.log("##>> LAUNCHING DIALOG (TODO)");
 
