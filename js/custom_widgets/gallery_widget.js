@@ -141,12 +141,15 @@ class GalleryWidgetDelegate {
      * This method is NOT intended to be overridden by subclasses.
      *
      * @param {CanvasRenderingContext2D} ctx - The canvas rendering context.
-     * @param {Object} rect - The rectangle object (left, top, width, height).
-     * @param {number} padding - The padding to apply inside the container.
-     * @param {number} arrowButtonWidth - The width allocated for the arrow buttons.
-     * @returns {Object} The updated rectangle object after accounting for container margins and arrows.
+     * @param {Object}  rect             - The rectangle object (left, top, width, height).
+     * @param {number}  padding          - The padding to apply inside the container.
+     * @param {number}  arrowWidth       - The width allocated for the arrow buttons.
+     * @param {boolean} enableLeftArrow  - Whether the left arrow is enabled.
+     * @param {boolean} enableRightArrow - Whether the right arrow is enabled.
+     * @returns {Object}
+     *     The updated rectangle object after accounting for container margins and arrows.
      */
-    drawContainerAndArrows(ctx, rect, padding, arrowButtonWidth) {
+    drawContainerAndArrows(ctx, rect, padding, arrowWidth, enableLeftArrow, enableRightArrow) {
         const lineSize = 1;
         const radii = rect.height / 4;
 
@@ -171,14 +174,14 @@ class GalleryWidgetDelegate {
         const rect_right = rect.left + rect.width;
 
         // draw left and right arrows
-        ctx.fillStyle = LiteGraph.WIDGET_TEXT_COLOR;
-        ctx.fillText("◀", rect.left  + (arrowButtonWidth/2), centerY);
-        ctx.fillStyle = LiteGraph.WIDGET_TEXT_COLOR;
-        ctx.fillText("▶", rect_right - (arrowButtonWidth/2), centerY);
+        ctx.fillStyle = enableLeftArrow ? LiteGraph.WIDGET_TEXT_COLOR : LiteGraph.WIDGET_DISABLED_TEXT_COLOR;
+        ctx.fillText("◀", rect.left  + (arrowWidth/2), centerY);
+        ctx.fillStyle = enableRightArrow ? LiteGraph.WIDGET_TEXT_COLOR : LiteGraph.WIDGET_DISABLED_TEXT_COLOR;
+        ctx.fillText("▶", rect_right - (arrowWidth/2), centerY);
 
         // calculate the inside rect
-        rect.left += arrowButtonWidth + padding;  rect.width  -= 2*arrowButtonWidth + 2*padding;
-        rect.top  += padding;                     rect.height -= 2*padding;
+        rect.left += arrowWidth + padding ;  rect.width  -= 2*arrowWidth + 2*padding;
+        rect.top  += padding              ;  rect.height -= 2*padding;
         return rect;
     }
 }
@@ -246,7 +249,7 @@ class GalleryWidget {
         // load item data
         this.itemArray = [];
         this.delegate.fetchItemArray().then( itemArray => {
-            this.itemArray = itemArray;
+            if( Array.isArray(itemArray) ) { this.itemArray = itemArray; }
         });
     }
 
@@ -319,10 +322,12 @@ class GalleryWidget {
      * @param {number} _widgetHeight - The height allocated (unused internal parameter).
      */
     draw(ctx, node, widgetWidth, y, _widgetHeight) {
-        const padding = 4;
-        const spacing = 6;
-        const thumbWidth = 32;
-        const item = this.itemArray[this.selectedIndex];
+        const padding       = 4;
+        const spacing       = 6;
+        const thumbWidth    = 32;
+        const lastIndex     = this.itemArray.length - 1;
+        const selectedIndex = this.selectedIndex;
+        const item = this.itemArray[selectedIndex];
 
         ctx.save();
 
@@ -332,7 +337,7 @@ class GalleryWidget {
             top   : y + this.widgetMargin[1],
             width : widgetWidth - 2*this.widgetMargin[0],
             height: 48          - 2*this.widgetMargin[1] };
-        rect = this.delegate.drawContainerAndArrows(ctx, rect, padding, this.arrowButtonWidth);
+        rect = this.delegate.drawContainerAndArrows(ctx, rect, padding, this.arrowButtonWidth, selectedIndex>0, selectedIndex<lastIndex);
 
         // draw item thumbnail
         if( thumbWidth > 0 ) {
@@ -353,17 +358,18 @@ class GalleryWidget {
         const line1 = itemText.length > 0 ? itemText[0] : "";
         const line2 = itemText.length > 1 ? itemText[1] : "";
 
-        // draw item text description
+        // draw item text on the right side
         const textWidth = this.delegate.drawItemText(ctx, rect, line1, line2, item, this.value);
         if( typeof textWidth === 'number' ) {
             rect.width -= Math.ceil(textWidth);
         }
 
-        // TODO: dibujar text.name a izquierda, centrado verticalmente dentro de 'rect'
+        // draw this.name text on the left side
         ctx.font         = `${LiteGraph.NODE_SUBTEXT_SIZE}px ${LiteGraph.NODE_FONT}`;
         ctx.fillStyle    = LiteGraph.WIDGET_SECONDARY_TEXT_COLOR; //this.text_color;
         ctx.textAlign    = 'left';
         ctx.textBaseline = 'middle';
+        rect.left -= 7;
         this.drawTextWithEllipsis(ctx, rect, this.name);
 
         ctx.restore();
