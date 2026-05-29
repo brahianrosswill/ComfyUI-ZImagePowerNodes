@@ -139,7 +139,7 @@ class StyleWidgetDelegate extends GalleryWidgetDelegate {
     }
 
     getItemThumbnailURL(item, _value) {
-        return item.thumbnail;
+        return item?.thumbnail || "";
     }
 
     /**
@@ -152,25 +152,28 @@ class StyleWidgetDelegate extends GalleryWidgetDelegate {
      * @param {Function}          requestImage - A function to request an image from a URL
      */
     drawItemThumbnail(ctx, rect, item, value, requestImage) {
+        const thumbSize = 32;
+        const rect_right = rect.left + rect.width;
 
-        if( !item?.thumbnail ) { return; }
+        if( !item?.thumbnail ) { return 0; }
         const imageURL = this.getItemThumbnailURL(item, value);
         const image    = requestImage(imageURL);
 
         // if the image is fully loaded, draw it!!
         if( image.complete && image.naturalWidth > 0 ) {
-            const x = rect.left + (rect.width  - 32) / 2;
-            const y = rect.top  + (rect.height - 32) / 2;
-            ctx.drawImage(image, x, y, 32, 32);
+            const x = rect_right - thumbSize;
+            const y = rect.top + (rect.height - thumbSize) / 2;
+            ctx.drawImage(image, x, y, thumbSize, thumbSize);
         }
         // draw a temporary placeholder (e.g., a subtle gray square)
         // while the image is being downloaded in the background
         else {
             ctx.fillStyle = "#2a2a2a";
-            const x = rect.left + (rect.width  - 32) / 2;
-            const y = rect.top  + (rect.height - 32) / 2;
-            ctx.fillRect(x, y, 32, 32);
+            const x = rect_right - thumbSize;
+            const y = rect.top + (rect.height - thumbSize) / 2;
+            ctx.fillRect(x, y, thumbSize, thumbSize);
         }
+        return thumbSize;
     }
 
 

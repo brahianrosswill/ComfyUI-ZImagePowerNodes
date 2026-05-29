@@ -85,30 +85,44 @@ class GalleryWidgetDelegate {
      * Called when a thumbnail needs to be drawn for a specific item.
      * Subclasses MUST implement this method to provide custom thumbnail rendering.
      *
+     * The implementation must draw the thumbnail aligned to the RIGHT side
+     * of the provided rectangle area.
+     *
      * @param {CanvasRenderingContext2D} ctx - The canvas 2D rendering context
-     * @param {Object} rect - The rectangle object defining the drawing area (left, top, width, height)
-     * @param {Object} item - The item data to render
-     * @param {string} value - The current value of the widget, as reported to the backend
+     * @param {Object} rect  - The rectangle object defining the drawing area (left, top, width, height)
+     * @param {Object} item  - The data of the item to be drawn
+     * @param {string} value - The current value of the widget as reported to the backend
+     * @returns {number}
+     *     The width (in pixels) occupied by the thumbnail, representing the
+     *     space used on the right side of the drawing area.
      */
     drawItemThumbnail(ctx, rect, _item, _value) {
+        const thumbWidth = 32;
+        const rect_right = rect.left + rect.width;
         ctx.fillStyle = '#FF4D4D';
-        ctx.fillRect(rect.left, rect.top, rect.width, rect.height);
+        ctx.fillRect(rect_right-thumbWidth, rect.top, rect.width, rect.height);
+        return thumbWidth;
     }
 
     /**
      * Called when text details need to be drawn for a specific item.
      * This method CAN be overridden to provide custom text rendering.
      *
-     * Typically draws 2 lines of text (item name + additional info), the current
-     * implementation will draw a single centered line if `line2` is empty.
+     * The implementation must draw the text aligned to the RIGHT side of
+     * the provided rectangle area. Typically draws 1 or 2 lines of text
+     * (line1 + optional line2), this default implementation will draw a
+     * single centered line if `line2` is empty.
      *
      * @param {CanvasRenderingContext2D} ctx - The canvas 2D rendering context
-     * @param {Object} rect - The rectangle object defining the drawing area
-     * @param {Object} item - The item data to be drawn
-     * @param {string} value - The current value reported by the widget to the backend
-     * @returns {number} The maximum width (in pixels) occupied by the rendered text elements,
-     *                   which represents the space needed to the right of the drawing area
-     *                   for proper layout calculations.
+     * @param {Object} rect  - The rectangle object defining the drawing area (top, left, width, height)
+     * @param {string} line1 - The primary text content to be drawn
+     * @param {string} line2 - The optional secondary text content
+     * @param {Object} item  - The data of the item to be drawn
+     * @param {string} value - The current value of the widget as reported to the backend
+     * @returns {number}
+     *     The width (in pixels) occupied by the widest rendered text element,
+     *     which represents the space used by the text on the right side of
+     *     the drawing area.
      */
     drawItemText(ctx, rect, line1, line2, _item, _value) {
         const rightEdge   = rect.left + rect.width;
@@ -137,11 +151,13 @@ class GalleryWidgetDelegate {
     }
 
     /**
-     * Draws the main container and navigation arrows within the specified rectangle.
+     * Called when the main container and navigation arrows need to be drawn.
      * This method is NOT intended to be overridden by subclasses.
      *
      * @param {CanvasRenderingContext2D} ctx - The canvas rendering context.
-     * @param {Object}  rect             - The rectangle object (left, top, width, height).
+     * @param {Object}  rect - The rectangle object (left, top, width, height).
+     *                         Input : The bounding box where the container should be drawn.
+     *                         Output: The inner rectangle area where items should be drawn.
      * @param {number}  padding          - The padding to apply inside the container.
      * @param {number}  arrowWidth       - The width allocated for the arrow buttons.
      * @param {boolean} enableLeftArrow  - Whether the left arrow is enabled.
@@ -182,7 +198,6 @@ class GalleryWidgetDelegate {
         // calculate the inside rect
         rect.left += arrowWidth + padding ;  rect.width  -= 2*arrowWidth + 2*padding;
         rect.top  += padding              ;  rect.height -= 2*padding;
-        return rect;
     }
 }
 
@@ -355,7 +370,6 @@ class GalleryWidget {
     draw(ctx, node, widgetWidth, y) {
         const padding       = 4;
         const spacing       = 6;
-        const thumbWidth    = 32;
         const lastIndex     = this.itemArray.length - 1;
         const selectedIndex = this.selectedIndex;
         const parentWidth   = this.node?.width || 0;
@@ -372,24 +386,17 @@ class GalleryWidget {
         ctx.save();
 
         // draw container and arrows
-        let rect = {
+        const rect = {
             left  : 0 + this.widgetMargin[0],
             top   : y + this.widgetMargin[1],
             width : widgetWidth         - 2*this.widgetMargin[0],
             height: this.options.height - 2*this.widgetMargin[1] };
-        rect = this.delegate.drawContainerAndArrows(ctx, rect, padding, this.arrowButtonWidth, selectedIndex>0, selectedIndex<lastIndex);
+        this.delegate.drawContainerAndArrows(ctx, rect, padding, this.arrowButtonWidth, selectedIndex>0, selectedIndex<lastIndex);
 
         // draw item thumbnail
-        if( thumbWidth > 0 ) {
-            const thumbRect = {
-                left  : rect.left+rect.width - thumbWidth,
-                top   : rect.top,
-                width : thumbWidth,
-                height: rect.height
-            };
-            this.delegate.drawItemThumbnail(ctx, thumbRect, item, this.value, (url) => this.requestImage(url) );
-            rect.width -= thumbWidth;
-            rect.width -= spacing;
+        const thumbWidth = this.delegate.drawItemThumbnail(ctx, rect, item, this.value, (url) => this.requestImage(url) );
+        if( typeof thumbWidth === 'number' ) {
+            rect.width -= (thumbWidth + spacing);
         }
 
         // get item text (can be one or two lines)

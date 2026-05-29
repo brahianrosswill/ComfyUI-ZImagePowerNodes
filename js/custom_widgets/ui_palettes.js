@@ -146,21 +146,24 @@ class PaletteWidgetDelegate extends GalleryWidgetDelegate {
      * @param {Object}                   rect - The rectangle object defining the drawing area (left, top, width, height)
      */
     drawItemThumbnail(ctx, rect, item, _value) {
-        if( !item ) { return; }
+        if( !item ) { return 0; }
+        const thumbSize = 32;
+        const rect_right = rect.left + rect.width;
         const barCount       = 5;
         const barSpacing     = 2;
-        const barWidth       = Math.floor((rect.width - 1) / barCount) + 1  -  barSpacing;
+        const barWidth       = Math.floor((thumbSize - 1) / barCount) + 1  -  barSpacing;
         const barHeight      = rect.height;
         const totalBarsWidth = (barWidth * barCount) + (barSpacing * (barCount - 1));
 
         // draw the bars
-        const x      = rect.left + (rect.width/2) - (totalBarsWidth/2);
+        const x      = rect_right - totalBarsWidth;
         const y      = rect.top;
         const colors = item.colors;
         for( let i = 0 ; i < barCount ; i++ ) {
             ctx.fillStyle = colors[i].hex;
             ctx.fillRect(x + (i * (barWidth + barSpacing)), y, barWidth, barHeight);
         }
+        return thumbSize;
     }
 
     /* Using the default implementation of drawItemText() */
