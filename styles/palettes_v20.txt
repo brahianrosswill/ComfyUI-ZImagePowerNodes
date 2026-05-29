@@ -1,0 +1,102 @@
+@PALETTES
+>## File    : palettes_v20.txt
+>## Purpose : Collection of color palettes (version 2.0)
+>## Author  : Martin Rizzo | <martinrizzo@gmail.com>
+>## Date    : May 29, 2026
+>## Repo    : https://github.com/martin-rizzo/ComfyUI-ZImagePowerNodes
+>## License : MIT
+>## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+>##                          ComfyUI-ZImagePowerNodes
+>##         ComfyUI nodes designed specifically for the "Z-Image" model.
+>##_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+>##
+>##  1: (Highlight / Brightest) The color of maximum light or brightest point.
+>##  2: (Primary   / Light    ) The main tone or lightest color of the object's body.
+>##  3: (Mid-tone  / Neutral  ) The middle tone, the "base color" or transition hue.
+>##  4: (Shadow    / Dark     ) The tone for projected shadows or deep details.
+>##  5: (Accent    / Contrast ) An accent or intense contrasting color for final details.
+>##
+
+>>>Ocean Breeze
+azure : #00FFFF
+cyan  : #87CEEB
+teal  : #008080
+navy  : #000080
+indigo: #4B0082
+
+>>>Sunset Glow
+peach  : #FFDAB9
+gold   : #FFD700
+coral  : #FF7F50
+crimson: #DC143C
+maroon : #800000
+
+>>>Forest Canopy
+sage   : #9DC183
+emerald: #50C878
+moss   : #8A9A5B
+olive  : #808000
+pine   : #01796F
+
+>>>Midnight Noir
+silver  : #C0C0C0
+smoke   : #848884
+slate   : #708090
+charcoal: #36454F
+onyx    : #353839
+
+>>>Desert Sands
+beige     : #F5F5DC
+tan       : #D2B48C
+sand      : #C2B280
+ochre     : #CC7722
+terracotta: #E2725B
+
+>>>Royal Velvet
+lavender: #E6E6FA
+violet  : #EE82EE
+amethyst: #9966CC
+plum    : #8E4585
+indigo  : #4B0082
+
+>>>Neon Cyber
+electric: #00FFEF
+lime    : #BFFF00
+acid    : #CCFF00
+hotpink : #FF69B4
+magenta : #FF00FF
+
+>>>Autumn Harvest
+mustard: #FFDB58
+pumpkin: #FF7518
+copper : #B87333
+bronze : #CD7F32
+rust   : #B7410E
+
+>>>Arctic Frost
+frost    : #E0FFFF
+powder   : #B0E0E6
+ice      : #B0E0E6
+steelblue: #4682B4
+white    : #F8F8FF
+
+>>>Volcanic Ash
+ash     : #A9A9A9
+ember   : #FF8C00
+magma   : #FF4500
+lava    : #CF1020
+obsidian: #0B0B0B
+
+>>>Volcano
+Sulfur    : #F1C40F
+Lava      : #E67E22
+Magma     : #C0392B
+Deep Ember: #741212
+Obsidian  : #1B1B1B
+
+>>>Amazonia
+Moss       : #DCEDC8
+Bamboo     : #8BC34A
+Leaf       : #4CAF50
+Canopy     : #2E7D32
+Undergrowth: #1B5E20

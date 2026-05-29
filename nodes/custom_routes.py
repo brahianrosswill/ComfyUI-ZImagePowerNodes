@@ -21,21 +21,23 @@ from functools                   import cache
 from server                      import PromptServer
 from aiohttp                     import web
 from .core.style                 import StyleSet
+from .core.palette               import PaletteSet
 from .core.predefined_styles     import PREDEFINED_STYLES
+from .core.predefined_palettes   import PREDEFINED_PALETTES
 from .core.helpers               import get_project_root
 routes = PromptServer.instance.routes
 
 
 
-def _style_data(styles: StyleSet, add_none=False):
+def _styles_as_list(styles: StyleSet, add_none=False):
     """
-    Generates a list of style data for all styles in the given set.
-
+    Generates a list of style data to be sent to the frontend.
     Args:
-        styles: The `StyleSet` object containing the styles to be processed.
-
+        styles: The `StyleSet` object containing the styles to be sent.
     Returns:
-        list[list[str]]: A nested list where each inner list contains the style information:
+        list[list[str]]: A nested list where each inner list contains
+                         the style information in the following format:
+
             [0] name        (str): The name of the style.
             [1] category    (str): The category to which the style belongs.
             [2] description (str): Description of the style.
@@ -60,22 +62,37 @@ def _style_data(styles: StyleSet, add_none=False):
     return result
 
 
-@cache
-def _last_version_style_data() -> list[list[str]]:
+def _palettes_as_list(palettes: PaletteSet, add_none=False) -> list[str]:
     """
-    Returns a cached list of style data for the last version of predefined styles.
-
-    This function caches the result so that it is only computed once,
-    even if called multiple times.
+    Generates a list of palette data to be sent to the frontend.
+    Args:
+        palettes: The `PaletteSet` object containing the palettes to be sent.
     Returns:
-        list[list[str]]: A list containing lists of style data. Each inner list contains:
-            [0] name        (str): The name of the style.
-            [1] category    (str): The category to which the style belongs.
-            [2] description (str): Description of the style (currently empty).
-            [3] tags        (str): Tags associated with the style, comma-separated
-            [4] thumbnail   (str): The filename of the thumbnail image (e.g. "casual_photo.jpg")
+        list[list[str]]: A nested list where earch inner list contains
+                         the palette information in the following format:
+
+            [0] name   (str): The name of the palette.
+            [1] color1 (str): The name of the first color.
+            [2] hex1   (str): The first color in hex format.
+            [3] color2 (str): The name of the second color.
+            [4] hex2   (str): The second color in hex format.
+            ....
+            [N*2-1] colorN (str): The name of the Nth color.
+            [N*2  ] hexN   (str): The Nth color in hex format.
     """
-    return _style_data( PREDEFINED_STYLES.by_version("1.0.0"), add_none=True )
+    result = []
+
+    # add "none" option if requested
+    if add_none:
+        result.append(["none"])
+
+    for palette in palettes:
+        palette_data : list[str] = [ palette.name ]
+        for color, hex in palette.items():
+            palette_data.append( color )
+            palette_data.append( hex   )
+        result.append( palette_data )
+    return result
 
 
 def _sanitize_filename(filename: str) -> str:
@@ -102,9 +119,32 @@ def _sanitize_filename(filename: str) -> str:
 
 #============================== SERVER ROUTES ==============================#
 
-@routes.get("/zi_power/styles/last_version")
-async def get_last_version_styles(_) -> web.StreamResponse:
-    return web.json_response( _last_version_style_data() )
+@routes.get("/zi_power/palettes/by_version")
+async def get_palettes_by_version(request: web.Request) -> web.StreamResponse:
+    """
+    Retrieves a list of palettes based on the specified collection version.
+    Example usage:
+       GET /zi_power/palettes/by_version?v=1.2.3
+    """
+    # extract and clean the version parameter from the request query
+    version = (request.query.get("v") or request.query.get("version") or "").strip()
+
+    # check if the version parameter is provided
+    if not version:
+        return web.json_response(
+            {"error": "Missing required parameter: 'v' or 'version'"},
+            status=400)
+
+    # check if any palette exist for the specified version
+    palettes = PREDEFINED_PALETTES.by_version(version)
+    if not palettes:
+        return web.json_response(
+            {"error": f"Palette version '{version}' not found"}, 
+            status=404)
+
+    # respond with the style data
+    return web.json_response( _palettes_as_list(palettes, add_none=True) )
+
 
 
 @routes.get("/zi_power/styles/by_version")
@@ -131,7 +171,8 @@ async def get_styles_by_version(request: web.Request) -> web.StreamResponse:
             status=404)
 
     # respond with the style data
-    return web.json_response( _style_data(styles, add_none=True) )
+    return web.json_response( _styles_as_list(styles, add_none=True) )
+
 
 
 @routes.get("/zi_power/styles/samples")

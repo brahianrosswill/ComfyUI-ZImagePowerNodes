@@ -32,10 +32,11 @@ License : MIT
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 """
 import os
-from comfy_api.latest              import ComfyExtension, io
-from .nodes                        import custom_routes
-from .nodes.core.helpers           import get_project_version
-from .nodes.core.predefined_styles import PREDEFINED_STYLES
+from comfy_api.latest                import ComfyExtension, io
+from .nodes                          import custom_routes
+from .nodes.core.helpers             import get_project_version
+from .nodes.core.predefined_styles   import PREDEFINED_STYLES
+from .nodes.core.predefined_palettes import PREDEFINED_PALETTES
 __PROJECT_EMOJI = "⚡"                 #< emoji that identifies the project
 __PROJECT_MENU  = "Z-Image"            #< name of the menu where all the nodes will be
 __PROJECT_ID    = "//ZImagePowerNodes" #< used to identify the project in the ComfyUI node registry.
@@ -198,12 +199,14 @@ class ZImagePowerNodesExtension(ComfyExtension):
         and_deprecated    = f" and {num_of_deprecated} deprecated ones" if num_of_deprecated>0 else ""
 
         # count the number of pre-defined styles that are not custom styles
-        canonical_names          = PREDEFINED_STYLES.by_version("1.0.0").canonical_names()
-        num_of_predefined_styles = sum(1 for name in canonical_names if not name.startswith("custom"))
+        canonical_names            = PREDEFINED_STYLES.by_version("1.0.0").canonical_names()
+        num_of_predefined_styles   = sum(1 for name in canonical_names if not name.startswith("custom"))
+        num_of_predefined_palettes = len( PREDEFINED_PALETTES.by_version("2.0.0") );
 
         logger.info(f"Version: {version}")
         logger.info(f"This package includes {num_of_nodes} active nodes{and_deprecated}.")
-        logger.info(f"It also features {num_of_predefined_styles} predefined visual styles.")
+        logger.info(f"It also features {num_of_predefined_styles} predefined visual styles,")
+        logger.info(f"and {num_of_predefined_palettes} predefined palettes.")
         return nodes
 
 

@@ -195,4 +195,3 @@ from .helpers import get_project_root
 
 PREDEFINED_STYLES: Final = StyleLibrary()
 PREDEFINED_STYLES.load_from_directory( get_project_root() / "styles" )
-
