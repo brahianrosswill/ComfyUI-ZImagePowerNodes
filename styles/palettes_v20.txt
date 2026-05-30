@@ -73,13 +73,6 @@ copper : #B87333
 bronze : #CD7F32
 rust   : #B7410E
 
->>>Arctic Frost
-frost    : #E0FFFF
-powder   : #B0E0E6
-ice      : #B0E0E6
-steelblue: #4682B4
-white    : #F8F8FF
-
 >>>Volcanic Ash
 ash     : #A9A9A9
 ember   : #FF8C00
@@ -88,6 +81,8 @@ lava    : #CF1020
 obsidian: #0B0B0B
 
 >>>Volcano
+>## @description: Intense and energetic tones inspired by flowing magma.
+>## @tags: hot, vibrant, red, dark
 Sulfur    : #F1C40F
 Lava      : #E67E22
 Magma     : #C0392B
@@ -95,8 +90,19 @@ Deep Ember: #741212
 Obsidian  : #1B1B1B
 
 >>>Amazonia
+>## @description: Deep jungle greens and earthy organic tones.
+>## @tags: forest, organic, green, growth
 Moss       : #DCEDC8
 Bamboo     : #8BC34A
 Leaf       : #4CAF50
 Canopy     : #2E7D32
 Undergrowth: #1B5E20
+
+>>>Arctic Frost
+>## @description: Crystalline blues and whites reflecting polar landscapes.
+>## @tags: ice, clean, blue, winter
+frost    : #E0FFFF
+powder   : #B0E0E6
+ice      : #B0E0E6
+steelblue: #4682B4
+white    : #F8F8FF

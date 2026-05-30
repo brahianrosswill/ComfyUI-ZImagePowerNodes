@@ -17,101 +17,147 @@ export {
     requireColorPaletteGalleryDialog,
     addColorPaletteSelectorWidget,
 };
-//import { api }            from "../../../scripts/api.js";
+import { api }            from "../../../scripts/api.js";
 import { GalleryDialog }  from "./gallery_dialog.js";
 import { GalleryWidget, GalleryWidgetDelegate } from "./gallery_widget.js";
 
 // Cache of promises to avoid duplicate requests for the same color palette version.
-const _colorPaletteCache = new Map();
+const _fetchPalettesCache = new Map();
 
 // Registry of dialogs for each color palette version.
 const _dialogRegistry = new Map();
 
 
-//#========================== FETCH VISUAL STYLES ==========================#
+//#==========================================================================#
+//#                           FETCH COLOR PALETTES                           #
+//# FIRST generation of UI fetched the items and loaded them into a native   #
+//# ComfyUI combo-box, directly using this function. Currently, the function #
+//# is internally invoked from GALLERY DIALOG and the GALLERY WIDGET.        #
 
 /**
- * Fetches an array with data about each visual style from the server.
+ * Fetches an array with data about each color palette from the server.
  *
  * Note: The implementation looks a bit complex because of the caching system.
  * It uses an immediately-invoked function (IIFE) to cache the ongoing promise
  * right away, ensuring we don't trigger duplicate network requests for the
  * same version.
  *
- * @param {string} version - The version of the styles to fetch.
+ * @param {string} version - The version of the color palettes to fetch.
  * @returns {Promise<Array<Object>>}
- *     Resolves to the array of formatted styles.
+ *     Resolves to the array of formatted color palettes.
  *     Each element in the array is an object with the following properties:
- *       - id         : Unique identifier for the style (the index in the list)
- *       - name       : The name of the style (string)
- *       - category   : The category of the style (string)
- *       - description: Description of the style (string)
- *       - tags       : Array of tags associated with the style (Array<string>)
- *       - thumbnail  : URL for the style's thumbnail image (string)
- *
+ *       - id         : Unique identifier for the palette (the index in the list)
+ *       - name       : The name of the color palette (string)
+ *       - description: Description of the color palette (string)
+ *       - tags       : Array of tags associated with the palette (Array<string>)
+ *       - colors     : Array of color objects, each containing a name and a hex code (Array<{name: string, hex: string}>)
  * @example
  *   // Using async/await
- *   const styles = await fetchVisualStyleArray('1.0.0');
- *   console.log(`Loaded ${styles.length} styles.`);
- *
+ *   const palettes = await fetchColorPaletteArray('1.0.0');
+ *   console.log(`Loaded ${palettes.length} palettes.`);
  * @example
  *   // Using promises (.then)
- *   fetchVisualStyleArray('1.0.0').then(styles => {
- *       console.log(`Loaded ${styles.length} styles.`);
+ *   fetchColorPaletteArray('1.0.0').then(palettes => {
+ *       console.log(`Loaded ${palettes.length} palettes.`);
  *   });
  */
-async function fetchColorPaletteArray(_version)
+async function fetchColorPaletteArray(version)
 {
-    const colorPaletteArray = [
-    {
-        id: 0,
-        name       : "Volcano",
-        category   : "Warm",
-        description: "Intense and energetic tones inspired by flowing magma.",
-        tags: ["hot", "vibrant", "red", "dark"],
-        colors: [
-            { name: "Sulfur"    , hex: "#F1C40F" },
-            { name: "Lava"      , hex: "#E67E22" },
-            { name: "Magma"     , hex: "#C0392B" },
-            { name: "Deep Ember", hex: "#741212" },
-            { name: "Obsidian"  , hex: "#1B1B1B" }
-        ]
-    },{
-        id: 1,
-        name       : "Arctic Frost",
-        category   : "Cold",
-        description: "Crystalline blues and whites reflecting polar landscapes.",
-        tags: ["ice", "clean", "blue", "winter"],
-        colors: [
-            { name: "Snow"        , hex: "#ECF0F1" },
-            { name: "Ice Cap"     , hex: "#AED6F1" },
-            { name: "Frost"       , hex: "#3498DB" },
-            { name: "Glacier"     , hex: "#2980B9" },
-            { name: "Midnight Sea", hex: "#2C3E50" }
-        ]
-    },{
-        id: 2,
-        name       : "Amazonia",
-        category   : "Nature",
-        description: "Deep jungle greens and earthy organic tones.",
-        tags: ["forest", "organic", "green", "growth"],
-        colors: [
-            { name: "Moss"       , hex: "#DCEDC8" },
-            { name: "Bamboo"     , hex: "#8BC34A" },
-            { name: "Leaf"       , hex: "#4CAF50" },
-            { name: "Canopy"     , hex: "#2E7D32" },
-            { name: "Undergrowth", hex: "#1B5E20" }
-        ]
-    }];
-    return colorPaletteArray;
+    if( typeof version !== 'string' || !version.trim() ) {
+        console.error(`Invalid version parameter: "${version}". Expected a non-empty string.`);
+        return [];
+    }
 
+    // normalize version string "x,y,z"
+    const parts = version.split('.');
+    while( parts.length < 3 ) { parts.push('0'); }
+    version = parts.join('.');
+
+    // if the version already exists in cache,
+    // either the ongoing promise or resolved result
+    // RETURN IT!
+    if( _fetchPalettesCache.has(version) ) {
+        return _fetchPalettesCache.get(version);
+    }
+    // define the fetching process in a promise
+    const fetchPromise = (async () => {
+        try {
+            // fetch the palettes for the given version
+            const response = await api.fetchApi(`/zi_power/palettes/by_version?v=${encodeURIComponent(version)}`);
+            if( !response.ok ) { throw new Error(`HTTP ${response.status}`); }
+
+            // validate that the response is an actual array
+            const palettes = await response.json();
+            if( !Array.isArray(palettes) ) { throw new Error(`Expected an array but received ${typeof palettes}`); }
+
+            return palettes.map((paldata, index) =>
+            {
+                const name        = paldata[0] || "Unknown";
+                const description = paldata[1] || "";
+                const tagsString  = paldata[2] || "";
+                // build the colors array from the data received from the API
+                const colors = [];
+                for( let i=3; (i+1) < paldata.length; i+=2 ) {
+                    colors.push({ color: paldata[i], hex: paldata[i+1] });
+                }
+                return {
+                    id         : index,
+                    name       : name,
+                    description: description,
+                    tags       : tagsString ? tagsString.split(",").map(t => t.trim()) : [],
+                    colors     : colors
+                };
+            });
+
+        } catch (error) {
+            // if failed, delete the cache for this version to allow future retries
+            console.error(`Failed to fetch styles for version ${version}: ${error.message}`);
+            _fetchPalettesCache.delete(version);
+            return [];
+        }
+    })();
+
+    // store the promise in cache for future use
+    _fetchPalettesCache.set(version, fetchPromise);
+    return fetchPromise;
 }
 
 
+//#=========================================================================#
+//#                         PALETTE GALLERY DIALOG                          #
+//# SECOND generation of UI added a button within the node that launched a  #
+//# GALLERY DIALOG, which in turn modified a native combo-box in ComfyUI.   #
+//#                                                                         #
 
-//#==================== COLOR PALETTES: SELECTOR WIDGET ====================#
-// Third generation of UI uses custom widgets to launch the selection dialog,
-// these custom widgets are customized by delegate objects.
+/**
+ * Returns the gallery dialog for the specified version of the color palettes
+ * @param {string} version - The version of the color palettes to show in the gallery dialog
+ * @returns {GalleryDialog}
+ *     The dialog instance for the specified version
+ *
+ * Usage example:
+ *     const paletteVersion = "1.0"; //< version of the palette definitions
+ *     const paletteDialog  = requireColorPaletteGalleryDialog(paletteVersion);
+ *     const currentPalette = "Volcano";
+ *     paletteDialog.launch("Select a Palette", currentPalette, (selectedPalette) => {
+ *         console.log("Selected Palette: " + selectedPalette);
+ *     });
+ */
+function requireColorPaletteGalleryDialog(version) {
+    let dialog = _dialogRegistry.get(version);
+    // if( !dialog ) {
+    //     dialog = new GalleryDialog(new DataProvider(version), new ItemHtmlRenderer());
+    //     _dialogRegistry.set(version, dialog);
+    // }
+    return dialog;
+}
+
+
+//#=========================================================================#
+//#                         PALETTE GALLERY WIDGET                          #
+//# THIRD generation of UI uses GALLERY WIDGET to launch the GALLERY DIALOG,#
+//# these gallery widgets are customized by 'delegate' objects.             #
+//#                                                                         #
 
 class PaletteWidgetDelegate extends GalleryWidgetDelegate {
 
@@ -146,10 +192,11 @@ class PaletteWidgetDelegate extends GalleryWidgetDelegate {
      * @param {Object}                   rect - The rectangle object defining the drawing area (left, top, width, height)
      */
     drawItemThumbnail(ctx, rect, item, _value) {
-        if( !item ) { return 0; }
-        const thumbSize = 32;
-        const rect_right = rect.left + rect.width;
-        const barCount       = 5;
+        const numberOfColors = item?.colors?.length || 0;
+        if( numberOfColors == 0 ) { return 0; }
+        const thumbSize      = 32;
+        const rect_right     = rect.left + rect.width;
+        const barCount       = Math.min(5, numberOfColors);
         const barSpacing     = 2;
         const barWidth       = Math.floor((thumbSize - 1) / barCount) + 1  -  barSpacing;
         const barHeight      = rect.height;
@@ -159,7 +206,7 @@ class PaletteWidgetDelegate extends GalleryWidgetDelegate {
         const x      = rect_right - totalBarsWidth;
         const y      = rect.top;
         const colors = item.colors;
-        for( let i = 0 ; i < barCount ; i++ ) {
+        for( let i = 0 ; i < barCount && i < colors.length ; i++ ) {
             ctx.fillStyle = colors[i].hex;
             ctx.fillRect(x + (i * (barWidth + barSpacing)), y, barWidth, barHeight);
         }
@@ -168,16 +215,12 @@ class PaletteWidgetDelegate extends GalleryWidgetDelegate {
 
     /* Using the default implementation of drawItemText() */
     // drawItemText(ctx, rect, line1, line2, item, value) { }
-
-
-
 }
-
 
 function addColorPaletteSelectorWidget(node, name, data) {
     const type    = data[0];
     const options = data[1] || {};
-    const version = options.version || '1.0';
+    const version = options.version || '2.0';
     let   widget  = new GalleryWidget(type, node, name, options, new PaletteWidgetDelegate(version), (self) =>
     {
         console.log("##>> LAUNCHING DIALOG (TODO)");
@@ -194,32 +237,5 @@ function addColorPaletteSelectorWidget(node, name, data) {
     });
     widget = node.addCustomWidget( widget );
     return { widget: widget };
-}
-
-
-
-//#==================== COLOR PALETTES: GALLERY DIALOG =====================#
-
-/**
- * Returns the gallery dialog for the specified version of the color palettes
- * @param {string} version - The version of the color palettes to show in the gallery dialog
- * @returns {GalleryDialog}
- *     The dialog instance for the specified version
- *
- * Usage example:
- *     const paletteVersion = "1.0"; //< version of the palette definitions
- *     const paletteDialog  = requireColorPaletteGalleryDialog(paletteVersion);
- *     const currentPalette = "Volcano";
- *     paletteDialog.launch("Select a Palette", currentPalette, (selectedPalette) => {
- *         console.log("Selected Palette: " + selectedPalette);
- *     });
- */
-function requireColorPaletteGalleryDialog(version) {
-    let dialog = _dialogRegistry.get(version);
-    // if( !dialog ) {
-    //     dialog = new GalleryDialog(new DataProvider(version), new ItemHtmlRenderer());
-    //     _dialogRegistry.set(version, dialog);
-    // }
-    return dialog;
 }
 
