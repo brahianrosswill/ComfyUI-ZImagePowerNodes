@@ -1,9 +1,7 @@
 /**
  * File    : ui_styles.js
- * Purpose : Implements Dialog, Widget, and DataProvider for visual styles, ensuring
- *           compatibility with previous Power Nodes versions. This centralizes the
- *           visual style UI across different versions, preventing redundant code
- *           implementation and maintaining functionality for deprecated nodes.
+ * Purpose : Implements Dialog, Widget, and DataProvider for visual styles,
+ *           ensuring compatibility with previous Power Nodes versions.
  *
  * Author  : Martin Rizzo | <martinrizzo@gmail.com>
  * Date    : May 21, 2026
@@ -17,21 +15,24 @@
 export {
     fetchVisualStyleArray,
     requireVisualStyleGalleryDialog,
-    addVisualStyleSelectorWidget,
+    addVisualStyleGalleryWidget,
 };
 import { api } from "../../../scripts/api.js";
-import { GalleryWidget, GalleryWidgetDelegate } from "./gallery_widget.js";
 import { GalleryDialog, GalleryDialogDelegate } from "./gallery_dialog.js";
-
+import { GalleryWidget, GalleryWidgetDelegate } from "./gallery_widget.js";
 
 // Cache of promises to avoid duplicate requests for the same visual style version.
-const _visualStylesCache = new Map();
+const _fetchStylesCache = new Map();
 
 // Registry of dialogs for each visual style version.
 const _dialogRegistry = new Map();
 
 
-//#========================== FETCH VISUAL STYLES ==========================#
+//#==========================================================================#
+//#                           FETCH VISUAL STYLES                            #
+//# FIRST generation of UI fetched the items directly using this function    #
+//# and loaded them into a native ComfyUI combo-box. Currently, the function #
+//# is internally invoked from GALLERY DIALOG and the GALLERY WIDGET.        #
 
 /**
  * Fetches an array with data about each visual style from the server.
@@ -72,8 +73,8 @@ async function fetchVisualStyleArray(version)
 
     // if the version already exists in cache (either the ongoing promise
     // or resolved result), return it!
-    if( _visualStylesCache.has(version) ) {
-        return _visualStylesCache.get(version);
+    if( _fetchStylesCache.has(version) ) {
+        return _fetchStylesCache.get(version);
     }
 
     // define the fetching process in a promise
@@ -108,19 +109,95 @@ async function fetchVisualStyleArray(version)
         } catch (error) {
             // if failed, delete the cache for this version to allow future retries
             console.error(`Failed to fetch styles for version ${version}: ${error.message}`);
-            _visualStylesCache.delete(version);
+            _fetchStylesCache.delete(version);
             return [];
         }
     })();
 
     // store the promise in cache for future use
-    _visualStylesCache.set(version, fetchPromise);
+    _fetchStylesCache.set(version, fetchPromise);
     return fetchPromise;
 }
 
 
-//#==================== VISUAL STYLES: SELECTOR WIDGET =====================#
+//#=========================================================================#
+//#                          STYLE GALLERY DIALOG                           #
+//# SECOND generation of UI added a button within the node that launched a  #
+//# GALLERY DIALOG, which in turn modified a native combo-box in ComfyUI.   #
+//#                                                                         #
 
+class StyleDialogDelegate extends GalleryDialogDelegate {
+
+    constructor(version) {
+        super();
+        this._version = version; //< the version of the styles to fetch
+    }
+
+    /**
+     * Fetches an array with data about each item to be displayed in the gallery.
+     * @returns {Promise<Array<Object>>}
+     *   A promise that resolves to an array of objects with the following properties:
+     *       - id         : Unique identifier for the item (the index in the list)
+     *       - name       : The display name of the item (string)
+     *       - category   : The category the item belongs to (string)
+     *       - description: A detailed description of the item (string)
+     *       - tags       : Array of tags associated with the item (Array<string>)
+     *       - thumbnail  : URL for the item's thumbnail image (string)
+     */
+    async fetchItemArray() {
+        return fetchVisualStyleArray(this._version);
+    }
+
+    /**
+     * Returns an array of category definitions used for filtering the gallery items.
+     * @returns {Array<Array<string>>}
+     *   An array of category definitions where each item contains:
+     *     - category    (string): The value used for matching gallery items (must match the "category" property in items)
+     *     - displayName (string): The visible name shown in the UI
+     *     - description (string): Tooltip description for screen readers/accessibility
+     */
+    getCategories() {
+        return [
+        /*   CATEGORY        DISPLAY_NAME    DESCRIPTION                      */
+            [""            , "All"         , "Search all styles"               ],
+            ["photo"       , "Photo"       , "Search only photographic styles" ],
+            ["illustration", "Illustration", "Search only illustration styles" ],
+            ["wild"        , "Wild"        , "Search only wild styles"         ],
+            ["custom"      , "Custom"      , "Search only custom styles"       ]
+        ];
+    }
+}
+
+
+/**
+ * Returns the gallery dialog for the specified version of the visual styles.
+ * @param {string} version - The version of the visual styles to show in the gallery
+ * @returns {GalleryDialog}
+ *     The dialog instance for the specified version
+ *
+ * Usage example:
+ *     const styleVersion = "1.0"; //< version of the style definitions
+ *     const styleDialog  = requireVisualStyleGalleryDialog(styleVersion);
+ *     const currentStyle = "Anime";
+ *     styleDialog.launch("Select Style", currentStyle, (selectedStyle) => {
+ *         console.log("Selected Style: " + selectedStyle);
+ *     });
+ */
+function requireVisualStyleGalleryDialog(version) {
+    let dialog = _dialogRegistry.get(version);
+    if( !dialog ) {
+        dialog = new GalleryDialog(new StyleDialogDelegate(version));
+        _dialogRegistry.set(version, dialog);
+    }
+    return dialog;
+}
+
+
+//#=========================================================================#
+//#                          STYLE GALLERY WIDGET                           #
+//# THIRD generation of UI uses GALLERY WIDGET to launch the GALLERY DIALOG,#
+//# these gallery widgets are customized by 'delegate' objects.             #
+//#                                                                         #
 
 class StyleWidgetDelegate extends GalleryWidgetDelegate {
 
@@ -180,7 +257,7 @@ class StyleWidgetDelegate extends GalleryWidgetDelegate {
 }
 
 
-function addVisualStyleSelectorWidget(node, name, data) {
+function addVisualStyleGalleryWidget(node, name, data) {
     const type    = data[0];
     const options = data[1] || {};
     const version = options.version || '1.0';
@@ -194,78 +271,5 @@ function addVisualStyleSelectorWidget(node, name, data) {
     });
     widget = node.addCustomWidget( widget );
     return { widget: widget };
-}
-
-
-//#====================== VISUAL STYLES DATA PROVIDER ======================#
-
-class StyleDialogDelegate extends GalleryDialogDelegate {
-
-    constructor(version) {
-        super();
-        this._version = version; //< the version of the styles to fetch
-    }
-
-    /**
-     * Fetches an array with data about each item to be displayed in the gallery.
-     * @returns {Promise<Array<Object>>}
-     *   A promise that resolves to an array of objects with the following properties:
-     *       - id         : Unique identifier for the item (the index in the list)
-     *       - name       : The display name of the item (string)
-     *       - category   : The category the item belongs to (string)
-     *       - description: A detailed description of the item (string)
-     *       - tags       : Array of tags associated with the item (Array<string>)
-     *       - thumbnail  : URL for the item's thumbnail image (string)
-     */
-    async fetchItemArray() {
-        return fetchVisualStyleArray(this._version);
-    }
-
-    /**
-     * Returns an array of category definitions used for filtering the gallery items.
-     * @returns {Array<Array<string>>}
-     *   An array of category definitions where each item contains:
-     *     - category    (string): The value used for matching gallery items (must match the "category" property in items)
-     *     - displayName (string): The visible name shown in the UI
-     *     - description (string): Tooltip description for screen readers/accessibility
-     */
-    getCategories() {
-        return [
-        /*   CATEGORY        DISPLAY_NAME    DESCRIPTION                      */
-            [""            , "All"         , "Search all styles"               ],
-            ["photo"       , "Photo"       , "Search only photographic styles" ],
-            ["illustration", "Illustration", "Search only illustration styles" ],
-            ["wild"        , "Wild"        , "Search only wild styles"         ],
-            ["custom"      , "Custom"      , "Search only custom styles"       ]
-        ];
-    }
-
-}
-
-
-
-//#===================== VISUAL STYLES: GALLERY DIALOG =====================#
-
-/**
- * Returns the gallery dialog for the specified version of the visual styles.
- * @param {string} version - The version of the visual styles to show in the gallery
- * @returns {GalleryDialog}
- *     The dialog instance for the specified version
- *
- * Usage example:
- *     const styleVersion = "1.0"; //< version of the style definitions
- *     const styleDialog  = requireVisualStyleGalleryDialog(styleVersion);
- *     const currentStyle = "Anime";
- *     styleDialog.launch("Select Style", currentStyle, (selectedStyle) => {
- *         console.log("Selected Style: " + selectedStyle);
- *     });
- */
-function requireVisualStyleGalleryDialog(version) {
-    let dialog = _dialogRegistry.get(version);
-    if( !dialog ) {
-        dialog = new GalleryDialog(new StyleDialogDelegate(version));
-        _dialogRegistry.set(version, dialog);
-    }
-    return dialog;
 }
 

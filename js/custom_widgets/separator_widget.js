@@ -1,4 +1,4 @@
-export { SeparatorWidget };
+export { addSeparatorWidget };
 import { LiteGraph } from "../comfyui_bridge.js";
 const DEFAULT_WIDGET_HEIGHT = 20;
 
@@ -104,7 +104,7 @@ class SeparatorWidget {
  * The widget supports different visual modes: solid line, dotted line, bold line,
  * or just spacing. This widget does not create input/output ports (it is socketless).
  * 
- * @param {LGraphNode} node      - The node instance where the widget is being created
+ * @param {LGraphNode} node - The node instance where the widget is being created
  * @param {string}     name - Unique identifier for the widget (not used for value serialization)
  * @param {Array}      data - Configuration array where:
  *                                  - [0] = Type name
@@ -117,13 +117,10 @@ class SeparatorWidget {
  * @returns {{ widget: object }}
  *     Object containing the created widget instance with:
  */
-// function addSeparatorWidget(node, name, data, _app) {
-
-//     const type    = data[0];
-//     const options = data[1] || {};
-
-//     const widget = node.addCustomWidget( new SeparatorWidget(type, name, options) );
-//     //w.serializeValue = () => null;
-//     return { widget: widget };
-// }
+function addSeparatorWidget(node, name, data) {
+    const type    = data[0];
+    const options = data[1] || {};
+    const widget  = node.addCustomWidget( new SeparatorWidget(type, name, options) );
+    return { widget: widget };
+}
 

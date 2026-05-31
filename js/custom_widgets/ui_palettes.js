@@ -1,7 +1,7 @@
 /**
  * File    : ui_palettes.js
- * Purpose : Implements Dialog, Widget y UI componentes relacionados con seleccion de paleta de colores.
- *           El codigo asegura compatibility with previous Power Nodes versions.
+ * Purpose : Implements Dialog, Widget, and DataProvider for color palettes,
+ *           ensuring compatibility with previous Power Nodes versions.
  *
  * Author  : Martin Rizzo | <martinrizzo@gmail.com>
  * Date    : May 21, 2026
@@ -15,10 +15,10 @@
 export {
     fetchColorPaletteArray,
     requireColorPaletteGalleryDialog,
-    addColorPaletteSelectorWidget,
+    addColorPaletteGalleryWidget,
 };
-import { api }            from "../../../scripts/api.js";
-import { GalleryDialog }  from "./gallery_dialog.js";
+import { api } from "../../../scripts/api.js";
+import { GalleryDialog, GalleryDialogDelegate } from "./gallery_dialog.js";
 import { GalleryWidget, GalleryWidgetDelegate } from "./gallery_widget.js";
 
 // Cache of promises to avoid duplicate requests for the same color palette version.
@@ -30,8 +30,8 @@ const _dialogRegistry = new Map();
 
 //#==========================================================================#
 //#                           FETCH COLOR PALETTES                           #
-//# FIRST generation of UI fetched the items and loaded them into a native   #
-//# ComfyUI combo-box, directly using this function. Currently, the function #
+//# FIRST generation of UI fetched the items directly using this function    #
+//# and loaded them into a native ComfyUI combo-box. Currently, the function #
 //# is internally invoked from GALLERY DIALOG and the GALLERY WIDGET.        #
 
 /**
@@ -217,7 +217,7 @@ class PaletteWidgetDelegate extends GalleryWidgetDelegate {
     // drawItemText(ctx, rect, line1, line2, item, value) { }
 }
 
-function addColorPaletteSelectorWidget(node, name, data) {
+function addColorPaletteGalleryWidget(node, name, data) {
     const type    = data[0];
     const options = data[1] || {};
     const version = options.version || '2.0';
