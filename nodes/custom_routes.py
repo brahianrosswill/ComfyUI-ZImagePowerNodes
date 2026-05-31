@@ -90,9 +90,9 @@ def _palettes_as_list(palettes: PaletteSet, add_none=False) -> list[str]:
 
     for palette in palettes:
         palette_data : list[str] = [
-            palette.name,    # 0: palette name
-            "",              # 1: description
-            ""               # 2: comma-separated list of tags
+            palette.name,        # 0: palette name
+            palette.description, # 1: description
+            palette.tags,        # 2: comma-separated list of tags
         ]
         for color, hex in palette.items():
             palette_data.append( color )

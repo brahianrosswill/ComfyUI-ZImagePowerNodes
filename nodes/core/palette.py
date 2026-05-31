@@ -36,11 +36,15 @@ class Palette:
         version_tuple:
     """
     def __init__(self,
-                 name   : str,
-                 content: str = "",
-                 version: str | tuple[int,int,int] = (0, 0, 0),
+                 name       : str,
+                 content    : str = "",
+                 description: str = "",
+                 tags       : str = "",
+                 version    : str | tuple[int,int,int]   = (0, 0, 0),
                  ):
-        self.name       : str            = name
+        self.name       : str            = name.strip()
+        self.description: str            = description.strip()
+        self.tags       : str            = tags
         self._colors    : dict[str, str] = {}
         self._keys      : list[str]      = []
         self._versiontup: VersionTuple   = (0, 0, 0)
@@ -269,38 +273,45 @@ class PaletteSet:
         # add sentinel element to force processing of last palette
         all_lines.append(">>>EOF")
 
-        load_count   : int       = 0
-        marker       : str       = ""
-        content      : list[str] = []
+        load_count     : int       = 0
+        pending_marker : str       = ""
+        pending_content: list[str] = []
+        pending_descrip: str       = ""
+        pending_version: str | VersionTuple = version
 
         for line in all_lines:
-            line                = line.rstrip()  #< trailing whitespaces are lost at the end of each line
-            is_comment          = line.startswith(">##")
-            new_marker          = line
-            new_marker_detected = (
-                new_marker.startswith(">>>")     #< palette definition !!
-            )
+            line = line.rstrip()  #< trailing whitespaces are lost at the end of each line
 
-            # if the line does not contain any new marker then
-            # it is text that must be added to the content of the previous marker
-            if not new_marker_detected and not is_comment:
-                content.append(line)
-                continue
+            # if the line is a comment, skip it
+            if line.startswith(">##"):
+                if ':' not in line:
+                    continue
+                param, _, value = line[3:].partition(":")
+                param = param.strip().upper()
+                if param == "@DESCRIPTION":
+                    pending_descrip = value
 
-            # at this point a new marker is detected
-            # so the previous pending marker/content must be processed
-            if marker.startswith(">>>"):
-                palette_name = marker[3:].strip()
-                palette      = Palette(palette_name,
-                                       content = "\n".join(content).strip(),
-                                       version = version,
-                                       )
-                # try to add the new palette
-                if self.add_palette(palette):
-                    load_count += 1
+            # when a new palette marker is detected,
+            # the previous pending palette/content must be processed
+            elif line.startswith(">>>"):
+                if pending_marker:
+                    palette = Palette(pending_marker[3:],
+                                      content     = "\n".join(pending_content).strip(),
+                                      description = pending_descrip,
+                                      version     = pending_version)
+                    if self.add_palette(palette):
+                        load_count += 1
 
-            # the new marker is stored as pending
-            marker, content = new_marker, []
+                # reset values to default
+                pending_marker  = line
+                pending_content = []
+                pending_descrip = ""
+                pending_version = version
+
+            # the line does not contain any marker,
+            # it is text that must be added to the pending content
+            else:
+                pending_content.append(line)
 
         return load_count
 
