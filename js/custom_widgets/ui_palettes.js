@@ -68,7 +68,7 @@ async function fetchColorPaletteArray(version)
         return [];
     }
 
-    // normalize version string "x,y,z"
+    // normalize version string to "x.y.z" format
     const parts = version.split('.');
     while( parts.length < 3 ) { parts.push('0'); }
     version = parts.join('.');
@@ -79,7 +79,7 @@ async function fetchColorPaletteArray(version)
     if( _fetchPalettesCache.has(version) ) {
         return _fetchPalettesCache.get(version);
     }
-    // define the fetching process in a promise
+    // encapsulate the fetch process in a promise
     const fetchPromise = (async () => {
         try {
             // fetch the palettes for the given version
@@ -111,7 +111,7 @@ async function fetchColorPaletteArray(version)
 
         } catch (error) {
             // if failed, delete the cache for this version to allow future retries
-            console.error(`Failed to fetch styles for version ${version}: ${error.message}`);
+            console.error(`Failed to fetch palettes for version ${version}: ${error.message}`);
             _fetchPalettesCache.delete(version);
             return [];
         }
@@ -163,7 +163,7 @@ class PaletteWidgetDelegate extends GalleryWidgetDelegate {
 
     constructor(version) {
         super();
-        this.version = version; //< the version of the styles to fetch
+        this.version = version; //< the version of the palettes to fetch
     }
 
     /**
@@ -226,12 +226,12 @@ function addColorPaletteGalleryWidget(node, name, data) {
         console.log("##>> LAUNCHING DIALOG (TODO)");
 
         // // launch dialog
-        // const styleDialog  = requireColorPaletteGalleryDialog(self.dataProvider.version);
-        // styleDialog.launch( self.options.dialog_title, self.value, (selectedStyle) =>
+        // const paletteDialog  = requireColorPaletteGalleryDialog(self.dataProvider.version);
+        // paletteDialog.launch( self.options.dialog_title, self.value, (selectedPalette) =>
         // {
-        //     // apply the new selected style
-        //     self.value = selectedStyle;
-        //     self.callback(selectedStyle);
+        //     // apply the new selected palette
+        //     self.value = selectedPalette;
+        //     self.callback(selectedPalette);
         //     self.node?.setDirtyCanvas?.(true);
         // });
     });

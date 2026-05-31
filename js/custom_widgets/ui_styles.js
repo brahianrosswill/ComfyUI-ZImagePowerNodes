@@ -71,38 +71,40 @@ async function fetchVisualStyleArray(version)
         return [];
     }
 
-    // if the version already exists in cache (either the ongoing promise
-    // or resolved result), return it!
+    // normalize version string to "x.y.z" format
+    const parts = version.split('.');
+    while( parts.length < 3 ) { parts.push('0'); }
+    version = parts.join('.');
+
+    // if the version already exists in cache,
+    // either the ongoing promise or resolved result
+    // RETURN IT!
     if( _fetchStylesCache.has(version) ) {
         return _fetchStylesCache.get(version);
     }
 
-    // define the fetching process in a promise
+    // encapsulate the fetch process in a promise
     const fetchPromise = (async () => {
         try {
+            // fetch the styles for the given version
             const response = await api.fetchApi(`/zi_power/styles/by_version?v=${encodeURIComponent(version)}`);
-            if( !response.ok ) {
-                console.error(`Failed to fetch styles for version ${version}: HTTP ${response.status}`);
-                return [];
-            }
+            if( !response.ok ) { throw new Error(`HTTP ${response.status}`); }
 
             // validate that the response is an actual array
             const styles = await response.json();
-            if( !Array.isArray(styles) ) {
-                console.error(`Failed to fetch styles for version ${version}: Expected an array but received ${typeof styles}`);
-                return [];
-            }
+            if( !Array.isArray(styles) ) { throw new Error(`Expected an array but received ${typeof palettes}`); }
 
-            const THUMBNAIL_PREFIX = "/zi_power/styles/samples?file=";
+            const THUMBNAIL_BASE_URL = "/zi_power/styles/samples";
             return styles.map((style, index) => {
-                const tagsString = style[3] || "";
+                const tagsString    = style[3] || "";
+                const thumbFileName = style[4] || "";
                 return {
                     id         : index,
                     name       : style[0] || "Unknown",
                     category   : style[1] || "Uncategorized",
                     description: style[2] || "",
                     tags       : tagsString ? tagsString.split(",").map(t => t.trim()) : [],
-                    thumbnail  : style[4]   ? `${THUMBNAIL_PREFIX}${style[4]}`          : ""
+                    thumbnail  : thumbFileName  ? `${THUMBNAIL_BASE_URL}?file=${thumbFileName}` : ""
                 };
             });
 
