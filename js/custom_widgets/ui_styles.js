@@ -25,7 +25,7 @@ import { GalleryWidget, GalleryWidgetDelegate } from "./gallery_widget.js";
 const _fetchStylesCache = new Map();
 
 // Registry of dialogs for each visual style version.
-const _dialogRegistry = new Map();
+const _dialogsByVersion = new Map();
 
 
 //#==========================================================================#
@@ -172,8 +172,10 @@ class StyleDialogDelegate extends GalleryDialogDelegate {
 
 
 /**
- * Returns the gallery dialog for the specified version of the visual styles.
- * @param {string} version - The version of the visual styles to show in the gallery
+ * Returns the gallery dialog instance for a specific visual style version.
+ * @param {string} version    - The version identifier of the visual styles to show in the gallery
+ * @param {string} [size]     - Optional size of the dialog window. Can be "default" or "small".
+ * @param {string} [viewMode] - Optional view mode of the items. Can be "default", "list", or "grid".
  * @returns {GalleryDialog}
  *     The dialog instance for the specified version
  *
@@ -185,13 +187,20 @@ class StyleDialogDelegate extends GalleryDialogDelegate {
  *         console.log("Selected Style: " + selectedStyle);
  *     });
  */
-function requireVisualStyleGalleryDialog(version) {
-    let dialog = _dialogRegistry.get(version);
-    if( !dialog ) {
-        dialog = new GalleryDialog(new StyleDialogDelegate(version));
-        _dialogRegistry.set(version, dialog);
+function requireVisualStyleGalleryDialog(version, size="default", viewMode="default") {
+
+    console.log("##>> requireStyles:", size, viewMode);
+
+    // check if the dialog is already registered for the specified version
+    const dialog = _dialogsByVersion.get(version);
+    if(   dialog   ) {
+        return dialog;
     }
-    return dialog;
+    // If no dialog exists for this version, create a new one
+    const newDelegate = new StyleDialogDelegate(version);
+    const newDialog   = new GalleryDialog(newDelegate, size, viewMode);
+    _dialogsByVersion.set(version, newDialog);
+    return newDialog;
 }
 
 
@@ -254,8 +263,6 @@ class StyleWidgetDelegate extends GalleryWidgetDelegate {
         }
         return thumbSize;
     }
-
-
 }
 
 
@@ -266,7 +273,10 @@ function addVisualStyleGalleryWidget(node, name, data) {
     let   widget  = new GalleryWidget(type, node, name, options, new StyleWidgetDelegate(version), (self) =>
     {
         // launch dialog and update widget value
-        const styleDialog = requireVisualStyleGalleryDialog(version);
+        const styleDialog = requireVisualStyleGalleryDialog(version,
+                                                            options.dialog_size,
+                                                            options.dialog_view_mode
+                                                            );
         styleDialog.launch( self.options.dialog_title, self.value, (selectedStyle) => {
             self.forceUpdate( selectedStyle );
         });

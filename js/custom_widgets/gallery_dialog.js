@@ -96,24 +96,6 @@ class GalleryDialogDelegate {
     }
 
     /**
-     * Renders the thumbnail HTML element for the gallery grid.
-     * This method CAN be overridden to provide custom thumbnail rendering.
-     *
-     * @param {Object|null} item   - The data object representing the item
-     * @param {string} className   - CSS class to be applied to the img tag
-     * @param {string} cacheBuster - A string appended to the URL to prevent browser caching
-     * @returns {string}
-     *    The HTML string representing the thumbnail
-     */
-    htmlItemThumbnail(item, className, cacheBuster) {
-        if( !item?.thumbnail ) {
-            return "";
-        }
-        const imageURL = item.thumbnail + cacheBuster;
-        return `<img class="${className}" src="${imageURL}" loading="lazy" alt="${item.name | ""}"/>`;
-    }
-
-    /**
      * Renders the main image HTML element for the selected item.
      * This method CAN be overridden to provide custom image rendering.
      *
@@ -164,38 +146,60 @@ class GalleryDialogDelegate {
 
 //#============================= GalleryDialog =============================#
 
+/**
+ * A wrapper class for `_GalleryDialog` that implements a lazy-initialization pattern.
+ *
+ * In the ComfyUI framework, `ComfyDialog` instances depend on the UI context being
+ * fully initialized. To allow developers to declare `GalleryDialog` instances as
+ * global variables or static properties during the application load phase, this
+ * wrapper defers the actual instantiation of the underlying `_GalleryDialog`
+ * until the `launch` method is explicitly called.
+ *
+ * @example
+ *   // You can safely instantiate this early in your module
+ *   const gallery = new GalleryDialog(new MyDelegate());
+ *
+ *   // The actual _GalleryDialog is created only when this is invoked
+ *   gallery.launch("Title", "default", (item) => console.log(item));
+ */
 class GalleryDialog {
 
-    constructor(delegate) {
+    /**
+     * Creates a new instance, registering a delegate object to customize the dialog behavior.
+     * @param {GalleryDialogDelegate} delegate - The object that provides the item data and renderer.
+     * @param {string} size     - Optional size of the dialog window. Can be "default" or "small".
+     * @param {string} viewMode - Optional view mode of the items. Can be "default", "list", or "grid".
+     */
+    constructor(delegate, size="default", viewMode="default") {
 
         // ensure parameters are of the correct type
         if (!(delegate instanceof GalleryDialogDelegate)) {
             throw new TypeError('delegate must be an instance of GalleryDialogDelegate');
         }
-        this.delegate  = delegate;
-        this._instance = null;
+        this.delegate   = delegate;
+        this.viewMode   = viewMode;
+        this.size       = size;
+        this._instance  = null;
     }
 
 
     /**
-     * Launches the gallery dialog with the provided configuration and dependencies.
+     * Launches the gallery dialog with the provided configuration.
      *
-     * @param {string}                    title - Title of the dialog.
-     * @param {string}                    selectedName - Default selected element name.
-     * @param {Function}                  onSelect - Callback executed when an element is selected.
-     * @returns {void}
+     * @param {string}   title - Title of the dialog.
+     * @param {string}   selectedName - Default selected element name.
+     * @param {Function} onSelect - Callback executed when an element is selected.
      * @example
-     * const myGalleryDialog = new GalleryDialog( new MyGalleryDialogDelegate() );
-     * myGalleryDialog.launch("Select an Image", "default", (item) => {
-     *   console.log("Selected:", item);
-     * });
+     *   const myGalleryDialog = new GalleryDialog( new MyGalleryDialogDelegate() );
+     *   myGalleryDialog.launch("Select an Image", "default", (item) => {
+     *     console.log("Selected:", item);
+     *   });
      */
     launch(title, selectedName, onSelect) {
         // create the instance only once (singleton instance logic)
         if( !this._instance ) {
-             this._instance = new _GalleryDialog(this.delegate);
+             this._instance = new _GalleryDialog(this.delegate, this.size, this.viewMode);
         }
-
         // relaunch the dialog
         const dialog  = this._instance;
         const titleEl = dialog.element?.querySelector(`#${TITLE_ID}`);
@@ -215,9 +219,11 @@ class _GalleryDialog extends ComfyDialog {
 
     /**
      * Creates a new instance, registering a delegate object to customize the dialog behavior.
-     * @param {GalleryDialogDelegate} delegate - ???
+     * @param {GalleryDialogDelegate} delegate - The object that provides the item data and renderer.
+     * @param {string} [size]     - Optional size of the dialog window. Can be "default" or "small".
+     * @param {string} [viewMode] - Optional view mode of the items. Can be "default", "list", or "grid".
      */
-    constructor(delegate) {
+    constructor(delegate, size="default", viewMode="default") {
         super();
         ensureCSSLoaded();
 
@@ -258,6 +264,9 @@ class _GalleryDialog extends ComfyDialog {
         /** @type {"grid"|"list"} View mode of the dialog, either "grid" or "list". */
         this.viewMode = "grid";
 
+        /** @type {boolean} Whether the user is allowed to change the view mode. */
+        this.userCanChangeViewMode = true;
+
         //---- INTERNAL VARIABLES -------------------------
 
         /** @type {GalleryDialogDelegate} The object that provides the item data and renderer. */
@@ -286,6 +295,12 @@ class _GalleryDialog extends ComfyDialog {
         /** @type {Function|null} Callback function for when an element is selected. */
         this.onSelectElement = null;
 
+        // if a fixed view mode is set, el usuario can't change it
+        if( viewMode=="list" || viewMode=="grid" ) {
+            this.viewMode              = viewMode;
+            this.userCanChangeViewMode = false;
+        }
+
         // create the custom dialog.
         //   icons can be taken from PrimeIcons or Pictogrammers MDT
         //   PrimeIcons       : e.g. "i.pi.pi-image"   (https://primevue.org/icons)
@@ -296,14 +311,24 @@ class _GalleryDialog extends ComfyDialog {
             ''                        , //< title
             'i.mdi.mdi-image-multiple', //< icon
 
-            // DIALOG CONTENT
-            html("div.zipn-dialog", {}, [
+            // DIALOG
+            html( size==="small" ? "div.zipn-dialog.zipn-dialog--small" : "div.zipn-dialog",
+                {}, [
+
+                // UPPER TOOLBAR
                 this.createToolbar(),
-                html("div.zipn-two-columns", {}, [
-                    html("div.zipn-details-pane"),
-                    html("div.zipn-search-results-pane", { id: "zipn-search-results-pane" }, [
+
+                // BODY
+                html("div.zipn-dialog__body", {}, [
+                    html("div.zipn-dialog__details"),
+                    html("div.zipn-dialog__results", { id: "zipn-dialog__results" }, [
                         html("div.zipn-grid", { id: "zipn-search-results" })
                     ])
+                ]),
+
+                // FOOTER
+                html("div.zipn-dialog__footer", {}, [
+                    html("div.zipn-dialog__statusbar")
                 ]),
             ]),
 
@@ -319,7 +344,7 @@ class _GalleryDialog extends ComfyDialog {
         this.searchResultsEl = this.element.querySelector('#zipn-search-results');
 
         /** @type {HTMLElement|null} Element containing the details pane. */
-        this.detailsPaneEL = this.element.querySelector('.zipn-details-pane');
+        this.detailsPaneEL = this.element.querySelector('.zipn-dialog__details');
 
         //---- EVENT LISTENERS ----------------------------
 
@@ -821,11 +846,6 @@ class _GalleryDialog extends ComfyDialog {
             this.categoryButtons.push( [category, buttonEl] );
         }
 
-        // create viewmode buttons
-        this.listButtonEl = this.createToolButton("zipn-list-btn", 'pi pi-list' , "", "List View", () => { this.updateSearchResults("$list"); });
-        this.gridButtonEl = this.createToolButton("zipn-grid-btn", 'pi pi-image', "", "Grid View", () => { this.updateSearchResults("$grid"); });
-
-
         // add search input
         const toolbarElementList = [];
         toolbarElementList.push(
@@ -841,9 +861,13 @@ class _GalleryDialog extends ComfyDialog {
         }
 
         // add viewmode buttons
-        toolbarElementList.push(_GalleryDialog.DIVIDER);
-        toolbarElementList.push( this.gridButtonEl );
-        toolbarElementList.push( this.listButtonEl );
+        if( this.userCanChangeViewMode ) {
+            this.gridButtonEl = this.createToolButton("zipn-grid-btn", 'pi pi-image', "", "Grid View", () => { this.updateSearchResults("$grid"); });
+            this.listButtonEl = this.createToolButton("zipn-list-btn", 'pi pi-list' , "", "List View", () => { this.updateSearchResults("$list"); });
+            toolbarElementList.push(_GalleryDialog.DIVIDER);
+            toolbarElementList.push( this.gridButtonEl );
+            toolbarElementList.push( this.listButtonEl );
+        }
 
         return html("div", toolbarElementList );
     }
@@ -857,8 +881,8 @@ class _GalleryDialog extends ComfyDialog {
             buttonEl.classList.toggle('p-highlight', category == this.categoryFilter );
         }
         // update view mode buttons
-        this.listButtonEl.classList.toggle('p-highlight', this.viewMode == "list" );
-        this.gridButtonEl.classList.toggle('p-highlight', this.viewMode == "grid" );
+        this.listButtonEl?.classList.toggle('p-highlight', this.viewMode == "list" );
+        this.gridButtonEl?.classList.toggle('p-highlight', this.viewMode == "grid" );
     }
 
 

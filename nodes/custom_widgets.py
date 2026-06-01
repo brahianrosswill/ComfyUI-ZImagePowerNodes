@@ -27,15 +27,42 @@ class PaletteSelector:
     class Input(io.Input):
 
         def __init__(self,
-                     id : str,
-                     **kwargs
+                     id              : str, *,
+                     height          : int | None = None,
+                     dialog_title    : str = "Select Palette",
+                     dialog_size     : str | None = None,
+                     dialog_view_mode: str | None = None,
                      ):
             """
             <hr>A color palette selector widget.
+            Args:
+                id (str):               A unique identifier for the input component.
+                dialog_title (str):     The title of the dialog window that will be displayed to select the palette.
+                dialog_size (str):      The size of the dialog window. Can be either "small" or "default"
+                dialog_view_mode (str): The view mode for the dialog window. Can be either "grid" or "list".
+                                        If provided, the user cannot change the view mode.
             """
+            ALLOWED_DIALOG_SIZES = ("small", "default")
+            ALLOWED_DIALOG_VIEW_MODES = ("grid", "list")
             extra_dict = {}
-            super().__init__(id, extra_dict=extra_dict, **kwargs)
 
+            if height is not None:
+                extra_dict["height"] = height
+
+            if dialog_title is not None:
+                extra_dict["dialog_title"] = dialog_title
+
+            if dialog_size is not None:
+                extra_dict["dialog_size"] = dialog_size
+                if dialog_size not in ALLOWED_DIALOG_SIZES:
+                    raise ValueError(f"Invalid dialog size '{dialog_size}'. Allowed values are {ALLOWED_DIALOG_SIZES}")
+
+            if dialog_view_mode is not None:
+                extra_dict["dialog_view_mode"] = dialog_view_mode
+                if dialog_view_mode not in ALLOWED_DIALOG_VIEW_MODES:
+                    raise ValueError(f"Invalid dialog view '{dialog_view_mode}'. Allowed values are {ALLOWED_DIALOG_VIEW_MODES}")
+
+            super().__init__(id, extra_dict=extra_dict)
 
 
     class Output(io.Output):
@@ -45,38 +72,50 @@ class PaletteSelector:
 
 
 #========================== STYLE SELECTOR WIDGET ==========================#
+#Type = str
 
 @io.comfytype(io_type="ZIPN_STYLE_SELECTOR")
 class StyleSelector:
-    #Type = str
 
     class Input(io.Input):
 
         def __init__(self,
-                     id : str,
-                     **kwargs
+                     id              : str, *,
+                     height          : int | None = None,
+                     dialog_title    : str = "Select Style",
+                     dialog_size     : str | None = None,
+                     dialog_view_mode: str | None = None,
                      ):
             """
-            <hr>A separator widget.
-
+            <hr>A visual style selector widget.
             Args:
-                id (str):                  A unique identifier for the input component.
-                mode (str, optional):      The visual style of the separator `"spacer"`, `"divider"`, `"dotted"`, `"bold"`.
-                                            Defaults to 'spacer'.
-                color (str, optional):     The color of the separator. Accepts a hexadecimal color string.
-                                            Defaults to '#555555'.
-                height (int, optional):    The height of the separator. Defaults to `20`.
-                thickness (int, optional): The thickness of the separator. Defaults to `2`.
+                id (str):               A unique identifier for the input component.
+                dialog_title (str):     The title of the dialog window that will be displayed to select the style.
+                dialog_size (str):      The size of the dialog window. Can be either "small" or "default"
+                dialog_view_mode (str): The view mode for the dialog window. Can be either "grid" or "list".
+                                        If provided, the user cannot change the view mode.
             """
-            ALLOWED_MODES = ("spacer", "divider", "dotted", "bold")
+            ALLOWED_DIALOG_SIZES = ("small", "default")
+            ALLOWED_DIALOG_VIEW_MODES = ("grid", "list")
             extra_dict = {}
 
-            # if mode is not None:
-            #     if mode not in ALLOWED_MODES:
-            #         raise ValueError(f"Invalid mode: {mode}. Must be one of {ALLOWED_MODES}")
-            #     extra_dict["mode"] = mode
+            if height is not None:
+                extra_dict["height"] = height
 
-            super().__init__(id, extra_dict=extra_dict, **kwargs)
+            if dialog_title is not None:
+                extra_dict["dialog_title"] = dialog_title
+
+            if dialog_size is not None:
+                extra_dict["dialog_size"] = dialog_size
+                if dialog_size not in ALLOWED_DIALOG_SIZES:
+                    raise ValueError(f"Invalid dialog size '{dialog_size}'. Allowed values are {ALLOWED_DIALOG_SIZES}")
+
+            if dialog_view_mode is not None:
+                extra_dict["dialog_view_mode"] = dialog_view_mode
+                if dialog_view_mode not in ALLOWED_DIALOG_VIEW_MODES:
+                    raise ValueError(f"Invalid dialog view '{dialog_view_mode}'. Allowed values are {ALLOWED_DIALOG_VIEW_MODES}")
+
+            super().__init__(id, extra_dict=extra_dict)
 
 
 

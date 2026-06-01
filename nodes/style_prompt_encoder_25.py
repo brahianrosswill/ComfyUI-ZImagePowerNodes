@@ -61,7 +61,7 @@ class StylePromptEncoder25(io.ComfyNode):
                 #  solid, dashed, space
 
                 StyleSelector.Input  ("style"),
-                PaletteSelector.Input("palette"),
+                PaletteSelector.Input("palette", dialog_size="small", dialog_view_mode="list"),
 
 
                 io.String.Input      ("text",

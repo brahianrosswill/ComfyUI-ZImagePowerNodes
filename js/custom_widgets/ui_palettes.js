@@ -103,6 +103,7 @@ async function fetchColorPaletteArray(version)
                 return {
                     id         : index,
                     name       : name,
+                    category   : "",
                     description: description,
                     tags       : tagsString ? tagsString.split(",").map(t => t.trim()) : [],
                     colors     : colors
@@ -129,6 +130,59 @@ async function fetchColorPaletteArray(version)
 //# GALLERY DIALOG, which in turn modified a native combo-box in ComfyUI.   #
 //#                                                                         #
 
+class PaletteGalleryDialogDelegate extends GalleryDialogDelegate {
+
+    constructor(version) {
+        super();
+        this._version = version; //< the version of the palettes to fetch
+    }
+
+    /**
+     * Fetches an array with data about each item to be displayed in the gallery.
+     * @returns {Promise<Array<Object>>}
+     *   A promise that resolves to an array of objects with the following properties:
+     *       - id         : Unique identifier for the item (the index in the list)
+     *       - name       : The display name of the item (string)
+     *       - category   : The category the item belongs to (string)
+     *       - description: A detailed description of the item (string)
+     *       - tags       : Array of tags associated with the item (Array<string>)
+     *       - thumbnail  : URL for the item's thumbnail image (string)
+     */
+    async fetchItemArray() {
+        return fetchColorPaletteArray(this._version);
+    }
+
+    /**
+     * Renders the image HTML element for the selected item.
+     * @param {Object|null} item        - The data object representing the item,
+     *                                    or `null` if no item is selected.
+     * @param {string}      className   - CSS class to be applied to the img tag
+     * @returns {string}
+     *    The HTML string representing the image element
+     *    or an empty string if the item or thumbnail is missing.
+     */
+    htmlItemImage(item, className) {
+        if( !item ) { return ""; }
+        const colorBars = item.colors.map(color => `
+            <div style="
+                background-color: ${color.hex};
+                flex: 1;
+                height: 100%;">
+            </div>
+        `).join('');
+
+        return `
+            <div class="${className}" style="
+                            display   : flex;
+                            overflow  : hidden;
+                            border    : 1px solid rgba(0,0,0,0.15);
+                            box-sizing: border-box;">
+                ${colorBars}
+            </div>
+        `;
+    }
+}
+
 /**
  * Returns the gallery dialog for the specified version of the color palettes
  * @param {string} version - The version of the color palettes to show in the gallery dialog
@@ -143,13 +197,20 @@ async function fetchColorPaletteArray(version)
  *         console.log("Selected Palette: " + selectedPalette);
  *     });
  */
-function requireColorPaletteGalleryDialog(version) {
-    let dialog = _dialogRegistry.get(version);
-    // if( !dialog ) {
-    //     dialog = new GalleryDialog(new DataProvider(version), new ItemHtmlRenderer());
-    //     _dialogRegistry.set(version, dialog);
-    // }
-    return dialog;
+function requireColorPaletteGalleryDialog(version, size="default", viewMode="default") {
+
+    console.log("##>> requirePalettes:", size, viewMode);
+
+    // check if the dialog is already registered for the specified version
+    const dialog = _dialogRegistry.get(version);
+    if(   dialog   ) {
+        return dialog;
+    }
+    // If no dialog exists for this version, create a new one
+    const newDelegate = new PaletteGalleryDialogDelegate(version);
+    const newDialog   = new GalleryDialog(newDelegate, size, viewMode);
+    _dialogRegistry.set(version, newDialog);
+    return newDialog;
 }
 
 
@@ -221,19 +282,16 @@ function addColorPaletteGalleryWidget(node, name, data) {
     const type    = data[0];
     const options = data[1] || {};
     const version = options.version || '2.0';
-    let   widget  = new GalleryWidget(type, node, name, options, new PaletteWidgetDelegate(version), (self) =>
+    let   widget  = new GalleryWidget(type, node, name, options, new PaletteWidgetDelegate(version), (widget) =>
     {
-        console.log("##>> LAUNCHING DIALOG (TODO)");
-
-        // // launch dialog
-        // const paletteDialog  = requireColorPaletteGalleryDialog(self.dataProvider.version);
-        // paletteDialog.launch( self.options.dialog_title, self.value, (selectedPalette) =>
-        // {
-        //     // apply the new selected palette
-        //     self.value = selectedPalette;
-        //     self.callback(selectedPalette);
-        //     self.node?.setDirtyCanvas?.(true);
-        // });
+        // launch dialog and update widget value
+        const paletteDialog = requireColorPaletteGalleryDialog(version,
+                                                               options.dialog_size,
+                                                               options.dialog_view_mode
+                                                               );
+        paletteDialog.launch( widget.options.dialog_title, widget.value, (selectedPalette) => {
+            widget.forceUpdate( selectedPalette );
+        });
     });
     widget = node.addCustomWidget( widget );
     return { widget: widget };
