@@ -17,8 +17,8 @@ The V3 schema documentation can be found here:
 from typing                   import Final
 from functools                import cache
 from comfy_api.latest         import io
+from .data.predefined_styles  import PREDEFINED_STYLES
 from .custom_widgets          import StyleGalleryButton, Separator
-from .core.predefined_styles  import PREDEFINED_STYLES
 _STL_VERSION: Final[str] = "1.0.0" #< the version of style definitions this node uses
 
 

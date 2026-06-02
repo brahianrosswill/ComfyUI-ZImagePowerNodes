@@ -10,9 +10,11 @@ License : MIT
          ComfyUI nodes designed specifically for the "Z-Image" model.
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 """
-from pathlib     import Path
-from collections import defaultdict
-from .style      import Style, StyleSet
+from typing         import Final
+from pathlib        import Path
+from collections    import defaultdict
+from ..core.style   import Style, StyleSet
+from ..core.helpers import get_project_root
 
 
 #============================== StyleLibrary ===============================#
@@ -189,9 +191,7 @@ def _normalize_version(version_str: str) -> str:
 
 
 #======================= 'PREDEFINED_STYLES' OBJECT ========================#
-
-from typing import Final
-from .helpers import get_project_root
+#                 global instance of the predefined styles                  #
 
 PREDEFINED_STYLES: Final = StyleLibrary()
 PREDEFINED_STYLES.load_from_directory( get_project_root() / "styles" )

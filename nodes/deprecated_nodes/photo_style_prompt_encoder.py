@@ -15,11 +15,11 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
     - https://docs.comfy.org/custom-nodes/v3_migration
 
 """
-from typing                   import Final
-from functools                import cache
-from comfy_api.latest         import io
-from ..core.style             import StyleSet
-from ..core.predefined_styles import PREDEFINED_STYLES
+from typing                    import Final
+from functools                 import cache
+from comfy_api.latest          import io
+from ..core.style              import StyleSet
+from ..data.predefined_styles  import PREDEFINED_STYLES
 _STL_VERSION: Final[str] = "0.8.0" #< the version of style definitions this node uses
 
 

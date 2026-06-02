@@ -22,9 +22,9 @@ from server                      import PromptServer
 from aiohttp                     import web
 from .core.style                 import StyleSet
 from .core.palette               import PaletteSet
-from .core.predefined_styles     import PREDEFINED_STYLES
-from .core.predefined_palettes   import PREDEFINED_PALETTES
 from .core.helpers               import get_project_root
+from .data.predefined_styles     import PREDEFINED_STYLES
+from .data.predefined_palettes   import PREDEFINED_PALETTES
 routes = PromptServer.instance.routes
 
 

@@ -11,12 +11,12 @@ License : MIT
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 """
 import re
-from typing         import Final
-from pathlib        import Path
-from collections    import defaultdict
-from .palette       import Palette, PaletteSet
-from .helpers       import get_project_root
-from ..core.system  import logger
+from typing          import Final
+from pathlib         import Path
+from collections     import defaultdict
+from ..core.palette  import Palette, PaletteSet
+from ..core.helpers  import get_project_root
+from ..core.system   import logger
 type VersionTuple = tuple[int, int, int]
 
 

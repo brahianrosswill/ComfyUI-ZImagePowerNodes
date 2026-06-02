@@ -16,9 +16,9 @@ The V3 schema documentation can be found here:
 """
 from typing                   import Final
 from comfy_api.latest         import io
-from .custom_widgets          import Separator
 from .core.style              import append_style_to_text, remove_style_from_text
-from .core.predefined_styles  import PREDEFINED_STYLES
+from .data.predefined_styles  import PREDEFINED_STYLES
+from .custom_widgets          import Separator
 _STL_VERSION: Final[str] = "1.0.0" #< the version of style definitions this node uses
 
 

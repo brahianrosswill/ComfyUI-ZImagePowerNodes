@@ -18,7 +18,7 @@ from typing                    import Final
 from functools                 import cache
 from comfy_api.latest          import io
 from ..core.style              import StyleSet
-from ..core.predefined_styles  import PREDEFINED_STYLES
+from ..data.predefined_styles  import PREDEFINED_STYLES
 _STL_VERSION: Final[str] = "0.9.0" #< the version of style definitions this node uses
 
 
