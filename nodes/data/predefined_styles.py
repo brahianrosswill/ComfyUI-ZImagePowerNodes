@@ -10,11 +10,13 @@ License : MIT
          ComfyUI nodes designed specifically for the "Z-Image" model.
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 """
-from typing         import Final
-from pathlib        import Path
-from collections    import defaultdict
-from ..core.style   import Style, StyleSet
-from ..core.helpers import get_project_root
+from typing          import Final
+from pathlib         import Path
+from collections     import defaultdict
+from ..core.style    import Style, StyleSet
+from ..core.helpers  import get_project_root
+from ..core.system   import logger
+type VersionTuple = tuple[int, int, int]
 
 
 #============================== StyleLibrary ===============================#
@@ -27,8 +29,13 @@ class StyleLibrary:
     Styles are internally grouped by version, and callers can obtain a `StyleSet`
     that contains only targets belonging to a specific release.
     """
+
+    # Constant used to identify valid style configuration files.
+    # Any configuration file that does not start with this string is ignored.
+    FILE_IDENTIFIER = b"@STYLES"
+
     def __init__(self) -> None:
-        self._styles_by_version: dict[tuple[int,int,int], StyleSet] = defaultdict(StyleSet)
+        self._styles_by_versiontup: dict[VersionTuple, StyleSet] = defaultdict(StyleSet)
 
 
     def load_from_directory(self,
@@ -50,112 +57,95 @@ class StyleLibrary:
                 - The number of files that were successfully processed.
                 - The total number of styles loaded from those files.
         """
-        # force `directory` to be a path
-        if isinstance(directory, str):
-            directory = Path(directory)
-
-        # recorrer todos los archivos que hay dentro del directorio
-        num_loaded_files  = 0
-        num_loaded_styles = 0
-        for file_path in directory.iterdir():
-
-            # only files whose names have a format like "styles_*.txt"
-            if file_path.suffix != ".txt":
+        loaded_files  = 0
+        total_palettes = 0
+        for path in Path(directory).iterdir():
+            if not path.is_file():
                 continue
-            name_parts = file_path.stem.replace('_',' ').replace('.',' ').split()
-            if len(name_parts) != 3 or name_parts[0] != 'styles':
-                continue
+            try:
+                # read the identifier and check if it's a palette file
+                with open(path, "rb") as f:
+                    header = f.read(len(self.FILE_IDENTIFIER))
+                if header != self.FILE_IDENTIFIER:
+                    continue
 
-            # extract version and category from the file name
-            version  = _normalize_version( name_parts[1].strip() )
-            category = name_parts[2].strip()
-            if version and category:
-                num_loaded_files  += 1
-                num_loaded_styles += self.load_from_string(file_path.read_text(),
-                                                           category = category,
-                                                           version  = version)
-        return num_loaded_files, num_loaded_styles
+                name_parts = path.stem.replace('_',' ').replace('.',' ').split()
+                if len(name_parts) != 3 or name_parts[0] != 'styles':
+                    continue
+
+                # extract version and category from the file name
+                version  = _normalize_version( name_parts[1].strip() )
+                category = name_parts[2].strip()
+                content  = path.read_text(encoding='utf-8')
+
+                if version and category:
+                    loaded_files   += 1
+                    total_palettes += self.add_styles_from_string(content, category=category, version=version)
+
+            except (OSError, IOError) as e:
+                logger.warning(f"Could not process file {path.name}: {e}")
+
+        return loaded_files, total_palettes
 
 
-
-    def load_from_string(self,
-                         string : str,
-                         /,*,
-                         category : str                  = "",
-                         version  : str | tuple[int,...] = "0.0.0",
-                         ) -> int:
+    def add_styles_from_string(self,
+                               string : str,
+                               /,*,
+                               category : str                = "",
+                               version  : str | VersionTuple = (0,0,0),
+                               ) -> int:
         """
-        Loads style definitions from a string into the style library.
+        Adds all styles found in a configuration string.
 
         For more information about the input string format,
-        refer to `StyleSet.load_from_string()`.
-
+        refer to `StyleSet.add_styles_from_string()`.
         Args:
             string  : The input string containing style definitions to be loaded.
             category: Default category assigned to styles that do not specify one.
-            version : Default version string assigned to styles that do not specify one.
-
+            version : Default version assigned to styles that do not specify one.
         Returns:
-            The total number of styles that were successfully parsed and added to
-            the style set. Returns 0 if the string was empty or contained markers
-            not related to style definitions.
+            The number of styles successfully added.
         """
         styles = StyleSet.from_string(string, category=category, version=version)
-        return self.add_many_styles( styles )
+        return self.add_styles( styles )
+
+
+    def add_styles(self, styles: StyleSet | list[Style]) -> int:
+        """Bulk-register styles and return the count of successfully added items."""
+        return sum(1 for s in styles if self.add_style(s))
 
 
     def add_style(self, style: Style) -> bool:
         """Add a Style into the library."""
-        return self._styles_by_version[style.version].add_style(style)
+        return self._styles_by_versiontup[style.version_tuple].add_style(style)
 
 
-    def add_many_styles(self, styles: StyleSet | list[Style]) -> int:
-        """Convenience wrapper to bulk-register styles.
-        Args:
-            styles: Iterable of Style objects to be stored.
-        Returns:
-            The number of styles successfully added.
-        """
-        added_count = 0
-        for style in styles:
-            if self.add_style(style):
-                added_count += 1
-        return added_count
-
-
-    def by_version(self, version: str | tuple[int,int,int]) -> StyleSet:
-        """Returns a StyleSet that contains every style tagged with `version`.
-        Args:
-            version: A semantic version string such as "1.0.0".
-        Returns:
-            A `StyleSet` instance holding styles for the given version.
-            If no such version exists, an empty `StyleSet` is returned.
-        """
-        normalized_version = Style.normalize_version(version)
-        if normalized_version not in self._styles_by_version:
-            return StyleSet()
-        return self._styles_by_version[normalized_version]
-
+    def by_version(self, version: str | VersionTuple) -> StyleSet:
+        """Return the full StyleSet for a specific version (or empty set when not found)."""
+        versiontup = Style.make_version_tuple(version) if isinstance(version, str) else version
+        return self._styles_by_versiontup.get(versiontup, StyleSet())
 
 
     def versions(self) -> list[str]:
-        """Returns all versions currently represented inside the library.
-        Returns:
-            A list of all versions currently represented inside the library.
-        """
-        return [".".join(map(str, version)) for version in self._styles_by_version.keys()]
-
+        """Return a list of all versions currently in the library."""
+        return [ ".".join(map(str, version_tuple)) for version_tuple in self._styles_by_versiontup.keys() ]
 
     def __len__(self) -> int:
         """Returns the number of styles currently stored inside the library."""
-        return sum( len(styles) for styles in self._styles_by_version.values() )
-
-
+        return sum( len(styles) for styles in self._styles_by_versiontup.values() )
 
     def __repr__(self) -> str:
-        return (
-            f"StyleLibrary(versions={len(self._styles_by_version)}, total_styles={len(self)})"
-        )
+        """
+        Return a string representation of the PredefinedStyles instance,
+        displaying versions and their respective style counts in a structured format.
+        """
+        items = []
+        for versiontup, styles in self._styles_by_versiontup.items():
+            version = ".".join(map(str, versiontup))
+            items.append(f"  {{ version: {version}, style_count: {len(styles)} }}")
+        return f"PredefinedPalettes({{\n{ ",\n".join(items) }\n}})"
+
+
 
 
 

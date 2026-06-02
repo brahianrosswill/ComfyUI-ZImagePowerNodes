@@ -41,6 +41,12 @@ class PredefinedPalettes:
         """
         Load palette definitions from all palette config files in the give directory.
 
+        This method searches the given directory for text files that start with
+        the "@PALETTES" identifier. For each matching file, the method extracts
+        the palette definitions and adds them to the internal collection. It
+        returns a tuple containing the number of files processed and the total
+        number of palettes loaded.
+
         Args:
             directory: Path to the directory containing palette files.
         Returns:
@@ -80,9 +86,12 @@ class PredefinedPalettes:
                                  ) -> int:
         """
         Adds all palettes found in a configuration string.
+
+        For more information about the input string format,
+        refer to `PaletteSet.add_palettes_from_string()`.
         Args:
             string  : The input string containing palette definitions.
-            version : Default version assigned to palettes.
+            version : Default version assigned to palettes that do not specify one.
         Returns:
             The number of palettes successfully added.
         """
@@ -100,19 +109,19 @@ class PredefinedPalettes:
         return self._palettes_by_versiontup[palette.version_tuple].add_palette(palette)
 
 
-    def by_version(self, version: str | tuple[int, int, int]) -> PaletteSet:
-        """Return a PaletteSet for a specific version."""
-        tupver = Palette.make_version_tuple(version) if isinstance(version, str) else version
-        return self._palettes_by_versiontup.get(tupver, PaletteSet())
+    def by_version(self, version: str | VersionTuple) -> PaletteSet:
+        """Return the full PaletteSet for a specific version (or empty set when not found)."""
+        versiontup = Palette.make_version_tuple(version) if isinstance(version, str) else version
+        return self._palettes_by_versiontup.get(versiontup, PaletteSet())
 
 
     def versions(self) -> list[str]:
         """Return a list of all versions currently in the library."""
-        return [".".join(map(str, v)) for v in self._palettes_by_versiontup]
+        return [ ".".join(map(str, vertion_tuple)) for vertion_tuple in self._palettes_by_versiontup ]
 
     def __len__(self) -> int:
         """Return the total number of palettes stored."""
-        return sum(len(ps) for ps in self._palettes_by_versiontup.values())
+        return sum( len(palettes) for palettes in self._palettes_by_versiontup.values() )
 
     def __repr__(self) -> str:
         """

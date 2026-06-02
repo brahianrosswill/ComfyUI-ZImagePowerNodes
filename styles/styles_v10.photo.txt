@@ -1,4 +1,15 @@
-#!ZSTYLES
+@STYLES
+>## File    : styles_v10.photo.txt
+>## Purpose : Collection of prompt templates for consistent photographic styles (v1.0)
+>## Author  : Martin Rizzo | <martinrizzo@gmail.com>
+>## Date    : Feb 23, 2026
+>## Repo    : https://github.com/martin-rizzo/ComfyUI-ZImagePowerNodes
+>## License : MIT
+>## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+>##                          ComfyUI-ZImagePowerNodes
+>##     ComfyUI nodes designed to power the "Z-Image/Z-Image Turbo" models.
+>##_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
 
 >>>Phone Photo
 YOUR CONTEXT:

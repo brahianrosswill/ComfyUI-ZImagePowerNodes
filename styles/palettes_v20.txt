@@ -7,7 +7,7 @@
 >## License : MIT
 >## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 >##                          ComfyUI-ZImagePowerNodes
->##         ComfyUI nodes designed specifically for the "Z-Image" model.
+>##        ComfyUI nodes designed for the "Z-Image/Z-Image Turbo" models.
 >##_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 >##
 >##  1: (Highlight / Brightest) The color of maximum light or brightest point.

@@ -12,11 +12,13 @@ License : MIT
          ComfyUI nodes designed specifically for the "Z-Image" model.
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 """
-from __future__      import annotations
-from typing          import Iterator
-from collections.abc import KeysView, ValuesView
+from __future__ import annotations
 import re
 import unicodedata
+from   typing          import Iterator
+from   collections.abc import KeysView
+from   .system         import logger
+type VersionTuple = tuple[int, int, int]
 
 # Pattern used to remove non-alphanumeric characters.
 _CLEAN_PATTERN = re.compile(r"[^a-z0-9_]")
@@ -61,22 +63,45 @@ class Style:
     def __init__(self,
                  name       : str,
                  *,
-                 template   : str,
+                 template   : str | list[str],
                  description: str                        = "",
-                 tags       : list[str] | tuple[str,...] = tuple(),
+                 tags       : str                        = "",
                  category   : str                        = "",
-                 version    : str | tuple[int,...]       = "0.0.0",
+                 version    : str | VersionTuple         = (0, 0, 0),
                  order      : tuple[int, int]            = _UNDEFINED_ORDER,
                  ):
-        self.name       : str                  = name
-        self.template   : str                  = template
-        self.description: str                  = description
-        self.tags       : tuple[str, ...]      = tuple(t for t in tags if isinstance(t, str) and len(t) > 0)
-        self.category   : str                  = category
-        self.version    : tuple[int, int, int] = self.normalize_version(version)
+        self.name       : str                  = name.strip()
+        self.template   : str                  = ""
+        self.description: str                  = description.strip()
+        self.tags       : str                  = tags.strip()
+        self.category   : str                  = category.strip()
         self.order      : tuple[int, int]      = order
+        self._versiontup: VersionTuple         = (0,0,0)
+
+        # convert template to string if necesary
+        if isinstance(template, str):
+            self.template = template.strip()
+        elif isinstance(template, (list,tuple)):
+            self.template = "\n".join(template).strip()
+        else: raise ValueError("Invalid template format. Expected a string or a list/tuple of strings.")
+
+        # convert version to tuple if necessary
+        if isinstance(version,str):
+            self._versiontup = Style.make_version_tuple(version)
+        elif isinstance(version, tuple) and len(version) == 3:
+            self._versiontup = version
+        else: raise ValueError("Invalid version format. Expected a string or a tuple of 3 integers.")
 
 
+    @property
+    def version(self) -> str:
+        """Returns the version formatted as a semantic version string 'X.Y.Z'."""
+        return '.'.join(map(str, self._versiontup))
+
+    @property
+    def version_tuple(self) -> VersionTuple:
+        """Returns the version as a tuple of three integers."""
+        return self._versiontup
 
     @property
     def comma_separated_tags(self) -> str:
@@ -151,46 +176,6 @@ class Style:
         return _CLEAN_PATTERN.sub("x", name)
 
 
-    @staticmethod
-    def normalize_version(version: str | tuple[int,...]) -> tuple[int, int, int]:
-        """
-        Parse a version string or tuple into a tuple of 3 integers.
-
-        This method is used internally by Style to ensure that the version
-        number is in a consistent format. Any external code should use this
-        method to ensure matching versions with the `style.version` attribute.
-
-        Handles version numbers with optional 'v' prefix and 1, 2 or 3 elements
-        separated by periods, missing elements are filled with zeros.
-
-        Args:
-            version: A version string like "3.1", "4.2.1", "v2.3", "v2.3.1"
-                     or a tuple of 3 integers.
-        Returns:
-            A tuple of 3 integers (major, minor, patch).
-
-        Examples:
-            >>> _parse_version("3.1")
-            (3, 1, 0)
-            >>> _parse_version("v2.3.1")
-            (2, 3, 1)
-            >>> _parse_version((1, 2, 3))
-            (1, 2, 3)
-        """
-        # if already a tuple, force to 3 elements
-        if isinstance(version, tuple):
-            v = (*version, 0, 0, 0)[:3]
-        # if version is a string, parse it into a tuple of integers
-        elif isinstance(version, str):
-            parts = [int(p) if p.isdigit() else 0 for p in version.lstrip('vV').split('.')]
-            v = (*parts, 0, 0, 0)[:3]
-        else:
-            raise TypeError("Version must be a string or tuple")
-        return (v[0], v[1], v[2])
-
-
-
-
     def apply_to_prompt(self,
                         prompt : str,
                         *,
@@ -216,6 +201,42 @@ class Style:
         result = result.replace("  ", " ")                              #< fix double spaces
         return result
 
+
+    @staticmethod
+    def make_version_tuple(version_str: str) -> VersionTuple:
+        """
+        Parses a version string into a tuple of three integers (major, minor, and patch).
+
+        The version string can be in one of the following formats:
+          - Compact format    : 'v20' or '81' which are interpreted as (2, 0, 0) and (8, 1, 0).
+          - Traditional format: '2.0.4' or 'v8.1' which are interpreted as (2, 0, 4) and (8, 1, 0).
+        The leading 'v' or 'V' character is optional and will be stripped from the string.
+
+        Args:
+            version_str (str): The version string to parse.
+        Returns:
+            VersionTuple: A tuple of three integers (X, Y, Z) representing
+                          the major, minor, and patch versions.
+                          Returns (0, 0, 0) if parsing fails.
+        """
+        if not isinstance(version_str, str) or not version_str:
+            return (0, 0, 0)
+
+        # remove leading 'v' or 'V' characters
+        clean_str = version_str.strip().lstrip('vV')
+
+        if '.' in clean_str:
+            # split by '.' and convert to integers if possible
+            # '1.2.3' -> ['1', '2', '3']
+            digits = [int(p) for p in clean_str.split('.') if p.isdigit()]
+        else:
+            # for compact format, split into individual digits
+            # '123' -> [1, 2, 3] || '92' -> [9, 2]
+            digits = [int(char) for char in clean_str if char.isdigit()]
+
+        # ensure there are at least three elements by padding with zeros and return
+        digits = digits + [0, 0, 0]
+        return (digits[0], digits[1], digits[2])
 
 
     def __repr__(self) -> str:
@@ -285,9 +306,9 @@ class StyleSet:
 
     @classmethod
     def from_string(cls,
-                    string  : str,
-                    category: str                  = "",
-                    version : str | tuple[int,...] = "0.0.0"
+                    string  : str | list[str],
+                    category: str                = "",
+                    version : str | VersionTuple = (0,0,0),
                     ) -> StyleSet:
         """
         Create a new StyleSet instance from a multi-line string containing style definitions.
@@ -297,62 +318,54 @@ class StyleSet:
         Returns:
            A new `StyleSet` instance with styles loaded from the provided string.
         """
-        if not isinstance(string, str) or len(string) == 0:
-            return StyleSet()
         style_set = cls()
-        style_set.load_from_string(string, category=category, version=version)
+        style_set.add_styles_from_string(string, category=category, version=version)
         return style_set
 
 
-    def load_from_string(self,
-                         string : str,
-                         /,*,
-                         category : str                  = "",
-                         version  : str | tuple[int,...] = "0.0.0",
-                         ) -> int:
+    def add_styles_from_string(self,
+                               string : str | list[str],
+                               /,*,
+                               category: str                = "",
+                               version : str | VersionTuple = (0,0,0),
+                               ) -> int:
         """
-        Parse style definitions from a multi-line string and load them into the style set.
+        Parses style definitions from a multi-line string and adds them into the style set.
 
-        This method scans the input string for special marker prefixes that delimit style
-        definitions. Content between markers is treated as the template for the preceding
-        style.
+        This method scans the input string for special marker prefixes that
+        delimit style definitions.
 
         Marker Reference:
             ">>>" - Style definition marker.
-                    Indicates the start of a new style. Everything that follows (lines,
-                    blank lines, etc.) belongs to this style's template until another
-                    marker is encountered. The text after ">>>" becomes the style name.
-                    Example: ">>>My Style" -> creates a style named "My Style"
-            "#!"  - Shebang line (must be the first line of the input string).
-                    The shebang itself is ignored during parsing.
-                    Example: "#!ZSTYLES"
-            "{#"  - Variable definition marker.
-                    A compatibility marker with "Amazing Z-Image Workflow". Variables
-                    are parsed and stored separately; the line itself is NOT included
-                    in the style template.
-                    Example: "{#MY_BAR}"
-            ">::" - Workflow modifier marker.
-                    A compatibility marker with "Amazing Z-Image Workflow". These
-                    lines are parsed as configuration directives and NOT included
-                    in the style template.
-                    Example: ">::PIN-GROUP"
+                    Indicates the start of a new style. Everything that follows
+                    (lines, blank lines, etc.) belongs to this style's definition
+                    until another style marker is encountered.
+                    The text immediately after ">>>" becomes the style name.
+                    Example: ">>>Minimalist Dark" -> creates a style named "Minimalist Dark"
+            ">##" - Comment/Metadata marker.
+                    All lines that start with ">##" are treated as comments unless
+                    they contain a metadata definition (e.g., @DESCRIPTION).
+            "@"   - File identifier (must be the first line of the input string).
+                    The identifier line is ignored during parsing.
+                    Example: "@STYLES"
 
         Automatic Fallback Behavior:
-            If the input string contains NO ">>>" markers, the entire string is treated
-            as a single style called "Custom 1".
+            If the input string contains NO ">>>" markers, the entire string is
+            treated as a single style called "Custom 1".
 
         Args:
-            string  : The input string containing style definitions to be loaded.
-            category: Default category assigned to styles that do not specify one.
-            version : Default version string assigned to styles that do not specify one.
+            string   : The input string (or list of lines) containing style definitions.
+            category : The default category to assign to styles if not specified.
+            version  : Default version assigned to styles that do not specify one.
+
         Returns:
-            The total number of styles that were successfully parsed and added to
-            the style set. Returns 0 if the string was empty or contained markers
-            not related to style definitions.
+            The total number of styles that were successfully parsed and added
+            to the style set. Returns 0 if the string was empty or contained
+            no valid style definitions.
 
         Example:
-            >>> input_text = '''
-            ... #!ZSTYLES
+            >>> input_string = '''
+            ... @STYLES
             ...
             ... >>>Phone Photo
             ... Your photographs has android phone cam-quality.
@@ -363,13 +376,12 @@ class StyleSet:
             ... THE SELFIE: {$@}
             ... '''
             >>> style_set = StyleSet()
-            >>> count = style_set.load_from_string(input_text)
-            # Loads 2 styles: "Phone Photo" and "Selfie"
+            >>> count = style_set.add_styles_from_string(input_string)
+            # Adds 2 styles: "Phone Photo" and "Selfie"
         """
-        all_lines = string.strip().splitlines()
+        all_lines = string.strip().splitlines() if isinstance(string,str) else string
 
-        # skip shebang line if present (must be the first line)
-        # (compatibility with "Amazing Z-Image Workflow")
+        # skip file identifier line if present (must be the first line)
         if all_lines and all_lines[0].startswith("#!"):
             all_lines.pop(0)
 
@@ -382,40 +394,57 @@ class StyleSet:
         # add sentinel element to force processing of last style
         all_lines.append(">>>EOF")
 
-        load_count   : int       = 0
-        marker       : str       = ""
-        content      : list[str] = []
+        load_count      : int                = 0
+        pending_marker  : str                = ""
+        pending_content : list[str]          = []
+        pending_desc    : str                = ""
+        pending_tags    : str                = ""
+        pending_category: str                = category
+        pending_version : str | VersionTuple = version
 
         for line in all_lines:
-            line                = line.rstrip()  #< trailing whitespaces are lost at the end of each line
-            new_marker          = line
-            new_marker_detected = (
-                new_marker.startswith("{#")  or  #< variable definition       (compatibility with Amazing Z-Image Workflow)
-                new_marker.startswith(">::") or  #< action to modify workflow (compatibility with Amazing Z-Image Workflow)
-                new_marker.startswith(">>>")     #< style definition !!
-            )
+            line = line.rstrip()  #< trailing whitespaces are lost at the end of each line
 
-            # if the line does not contain any new marker then
-            # it is text that must be added to the content of the previous marker
-            if not new_marker_detected:
-                content.append(line)
-                continue
+            # if the line is a comment:
+            #   - if the comment starts with '@', attempt to extract the parameter
+            #   - otherwise, skip the line completely
+            if line.startswith(">##"):
+                comment = line[3:].strip()
+                if comment.startswith("@"):
+                    param, _, value = line[3:].partition(":")
+                    param = param.strip().upper()
+                    value = value.strip()
+                    if   param == "@DESCRIPTION": pending_desc     = value
+                    elif param == "@DESC"       : pending_desc     = value
+                    elif param == "@TAGS"       : pending_tags     = value
+                    elif param == "@CATEGORY"   : pending_category = value
+                    elif param == "@VERSION"    : pending_version  = value
 
-            # at this point a new marker is detected
-            # so the previous pending marker/content must be processed
-            if marker.startswith(">>>"):
-                style_name = marker[3:].strip()
-                style      = Style(style_name,
-                                   template = "\n".join(content).strip(),
-                                   category = category,
-                                   version  = version,
-                                   )
-                # try to add the new style
-                if self.add_style(style):
-                    load_count += 1
+            # when a new style marker is detected,
+            # the previous pending style/content must be processed
+            elif line.startswith(">>>"):
+                if pending_marker:
+                    style = Style(pending_marker[3:],
+                                  template    = pending_content,
+                                  description = pending_desc,
+                                  tags        = pending_tags,
+                                  category    = pending_category,
+                                  version     = pending_version)
+                    if self.add_style(style):
+                        load_count += 1
 
-            # the new marker is stored as pending
-            marker, content = new_marker, []
+                # reset values to default
+                pending_marker   = line
+                pending_content  = []
+                pending_desc     = ""
+                pending_tags     = ""
+                pending_category = category
+                pending_version  = version
+
+            # the line does not contain any marker,
+            # it is text that must be added to the pending content
+            else:
+                pending_content.append(line)
 
         return load_count
 
@@ -485,7 +514,7 @@ class StyleSet:
         return self._styles_by_canonical.get(canonical_name, default)
 
 
-    def by_version(self, version: str | tuple[int,...]) -> StyleSet:
+    def by_version(self, version: str | VersionTuple) -> StyleSet:
         """
         Returns a StyleSet that contains every style tagged with `version`.
 
@@ -495,10 +524,10 @@ class StyleSet:
             A `StyleSet` instance holding styles for the given version.
             If no such version exists, an empty `StyleSet` is returned.
         """
-        normalized_version = Style.normalize_version(version)
+        version_tuple = Style.make_version_tuple(version) if isinstance(version, str) else version
         styles = StyleSet()
         for style in self._styles_by_canonical.values():
-            if style.version == normalized_version:
+            if style.version_tuple == version_tuple:
                 styles.add_style(style)
         return styles
 

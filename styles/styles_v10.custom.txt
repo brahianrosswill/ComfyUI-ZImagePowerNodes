@@ -1,4 +1,4 @@
-#!ZSTYLES
+@STYLES
 
 >>>Custom 1
 {$@}

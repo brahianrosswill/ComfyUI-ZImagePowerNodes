@@ -1,4 +1,15 @@
-#!ZSTYLES
+@STYLES
+>## File    : styles_v09.illustration.txt
+>## Purpose : Collection of prompt templates for consistent illustration styles (v0.9)
+>## Author  : Martin Rizzo | <martinrizzo@gmail.com>
+>## Date    : Jan 25, 2026
+>## Repo    : https://github.com/martin-rizzo/ComfyUI-ZImagePowerNodes
+>## License : MIT
+>## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+>##                          ComfyUI-ZImagePowerNodes
+>##     ComfyUI nodes designed to power the "Z-Image/Z-Image Turbo" models.
+>##_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
 
 >>>Comic 1
 YOUR CONTEXT:

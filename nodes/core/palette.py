@@ -13,15 +13,13 @@ License : MIT
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 """
 from __future__ import annotations
-from typing import Iterator
-from .system  import logger
 import re
+from   typing   import Iterator
+from   .system  import logger
+type VersionTuple = tuple[int, int, int]
 
 # Regex to validate basic Hex color format (e.g., #FFFFFF or #FFF)
 _HEX_PATTERN = re.compile(r"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$")
-
-
-type VersionTuple = tuple[int, int, int]
 
 
 #============================== Palette CLASS ==============================#
@@ -36,11 +34,12 @@ class Palette:
         version_tuple:
     """
     def __init__(self,
-                 name       : str,
-                 content    : str = "",
-                 description: str = "",
-                 tags       : str = "",
-                 version    : str | tuple[int,int,int]   = (0, 0, 0),
+                 name: str,
+                 *,
+                 configuration: str | list[str],
+                 description  : str                = "",
+                 tags         : str                = "",
+                 version      : str | VersionTuple = (0, 0, 0),
                  ):
         self.name       : str            = name.strip()
         self.description: str            = description.strip()
@@ -56,9 +55,12 @@ class Palette:
             self._versiontup = version
         else: raise ValueError("Invalid version format. Expected a string or a tuple of 3 integers.")
 
+        # extract all text lines from configuration
+        all_lines : list[str] = configuration.splitlines() if isinstance(configuration, str) else configuration
+
         # process content line by line,
         # adding color-name and hex-value to the list
-        for line in content.splitlines():
+        for line in all_lines:
             line = line.strip()
             if not line:
                 pass
@@ -131,30 +133,39 @@ class Palette:
     @staticmethod
     def make_version_tuple(version_str: str) -> VersionTuple:
         """
-        Convert a compact version string to standard semver format (int, int, int).
+        Parses a version string into a tuple of three integers (major, minor, and patch).
+
+        The version string can be in one of the following formats:
+          - Compact format    : 'v20' or '81' which are interpreted as (2, 0, 0) and (8, 1, 0).
+          - Traditional format: '2.0.4' or 'v8.1' which are interpreted as (2, 0, 4) and (8, 1, 0).
+        The leading 'v' or 'V' character is optional and will be stripped from the string.
+
         Args:
-            version_str: A string optionally starting with 'v' followed by digits.
-                         Examples: 'v08', 'v1', 'v201', 'V42', '92'
+            version_str (str): The version string to parse.
         Returns:
-            A tuple of 3 integers (X, Y, Z).
-            Defaults to (0, 0, 0) if parsing fails.
+            VersionTuple: A tuple of three integers (X, Y, Z) representing
+                          the major, minor, and patch versions.
+                          Returns (0, 0, 0) if parsing fails.
         """
         if not isinstance(version_str, str) or not version_str:
             return (0, 0, 0)
 
-        # limpiar caracteres no numéricos iniciales (como 'v' o 'V')
+        # remove leading 'v' or 'V' characters
         clean_str = version_str.strip().lstrip('vV')
 
         if '.' in clean_str:
-            # caso con puntos: '1.2.3' -> ['1', '2', '3']
+            # split by '.' and convert to integers if possible
+            # '1.2.3' -> ['1', '2', '3']
             digits = [int(p) for p in clean_str.split('.') if p.isdigit()]
         else:
-            # caso compacto continuo: '123' -> [1, 2, 3] o '92' -> [9, 2]
+            # for compact format, split into individual digits
+            # '123' -> [1, 2, 3] || '92' -> [9, 2]
             digits = [int(char) for char in clean_str if char.isdigit()]
 
-        # garantizar minimo 3 elementos y retornar la tupla
+        # ensure there are at least three elements by padding with zeros and return
         digits = digits + [0, 0, 0]
         return (digits[0], digits[1], digits[2])
+
 
     @staticmethod
     def _normalize_color_name(name: str) -> str:
@@ -196,7 +207,7 @@ class PaletteSet:
            A new `PaletteSet` instance with palettes loaded from the provided string.
         """
         if not isinstance(string, str) or len(string) == 0:
-            return PaletteSet()
+            return cls()
         palette_set = cls()
         palette_set.add_palettes_from_string(string, version=version)
         return palette_set
@@ -204,27 +215,27 @@ class PaletteSet:
 
 
     def add_palettes_from_string(self,
-                                 string : str,
+                                 string : str | list[str],
                                  /,*,
                                  version  : str | VersionTuple = (0,0,0),
                                  ) -> int:
         """
-        Parses palette definitions from a multi-line string and add them into the palette set.
+        Parses palette definitions from a multi-line string and adds them into the palette set.
 
-        This method scans the input string for special marker prefixes that delimit
-        palette definitions.
+        This method scans the input string for special marker prefixes that
+        delimit palette definitions.
 
         Marker Reference:
             ">>>" - Palette definition marker.
                     Indicates the start of a new palette. Everything that follows
                     (lines, blank lines, etc.) belongs to this palette's definition
-                    until another marker is encountered.
+                    until another palette marker is encountered.
                     The text inmediately after ">>>" becomes the palette name.
                     Example: ">>>Desert Sands" -> creates a palette named "Desert Sands"
-            ">##" - Comment marker.
-                    All lines that start with ">##" are treated as comments and
-                    are ignored, at least that contains a metadata ":" definition.
-            "@"   - Identifier line (must be the first line of the input string).
+            ">##" - Comment/Metadata marker.
+                    All lines that start with ">##" are treated as comments unless
+                    they contain a metadata definition (e.g., @DESCRIPTION).
+            "@"   - File identifier (must be the first line of the input string).
                     The identifier line is ignored during parsing.
                     Example: "@PALETTES"
 
@@ -233,12 +244,12 @@ class PaletteSet:
             treated as a single palette called "Custom 1".
 
         Args:
-            string  : The input string containing palette definitions to be added.
-            version : Default version string assigned to palettes that do not specify one.
+            string  : The input string (or list of lines) containing palette definitions.
+            version : Default version assigned to palettes that do not specify one.
         Returns:
             The total number of palettes that were successfully parsed and added
             to the palette set. Returns 0 if the string was empty or contained
-            markers not related to palette definitions.
+            no valid palette definitions.
 
         Example:
             >>> input_text = '''
@@ -255,12 +266,12 @@ class PaletteSet:
             ... crimson: #DC143C
             ...
             >>> palette_set = PaletteSet()
-            >>> count       = palette_set.load_from_string(input_text)
+            >>> count       = palette_set.add_palettes_from_string(input_text)
             # Loads 2 palettes: "Ocean Breeze" and "Sunset Glow"
         """
-        all_lines = string.strip().splitlines()
+        all_lines : list[str] = string.strip().splitlines() if isinstance(string,str) else string
 
-        # skip shebang line if present (must be the first line)
+        # skip file identifier line if present (must be the first line)
         if all_lines and all_lines[0].startswith("@"):
             all_lines.pop(0)
 
@@ -296,9 +307,9 @@ class PaletteSet:
             elif line.startswith(">>>"):
                 if pending_marker:
                     palette = Palette(pending_marker[3:],
-                                      content     = "\n".join(pending_content).strip(),
-                                      description = pending_descrip,
-                                      version     = pending_version)
+                                      configuration = pending_content,
+                                      description   = pending_descrip,
+                                      version       = pending_version)
                     if self.add_palette(palette):
                         load_count += 1
 
