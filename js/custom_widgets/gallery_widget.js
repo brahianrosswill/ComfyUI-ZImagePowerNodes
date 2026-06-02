@@ -233,9 +233,6 @@ class GalleryWidget {
         /** @type {GalleryWidgetDelegate} External object to render the items */
         this.delegate = delegate || new GalleryWidgetDelegate();
 
-        /** @type {string} The current selected value (Empty = nothing selected) */
-        this.value = "";
-
         /** @type {number} Index of the currently selected item (-1 = nothing selected) */
         this._selectedIndex = -1;
 
@@ -268,8 +265,10 @@ class GalleryWidget {
         // load item data
         this.itemArray = [];
         this.delegate.fetchItemArray().then( itemArray => {
-            if( Array.isArray(itemArray) ) {
+            if( Array.isArray(itemArray) && itemArray.length>0 ) {
                 this.itemArray = itemArray;
+                if( this.value == null ) { this.value = itemArray[0]?.name || ""; }
+                this._selectedIndex = null;
                 this.forceUpdate();
             }
         });
