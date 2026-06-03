@@ -73,10 +73,10 @@ class StylePromptEncoder25(io.ComfyNode):
             ],
             outputs=[
                 io.Conditioning.Output(tooltip="Final encoded text that will guide the image generation process."),
-                io.String.Output("base"        , tooltip="Base text input before any modifications or style adaptations."),
-                io.String.Output("prompt"      , tooltip="Final prompt after applying the selected visual style and color palette."),
+                io.String.Output("PROMPT", tooltip="Final prompt after applying the selected visual style and color palette."),
                 io.String.Output("style_name"  , tooltip="Name of the visual style that was applied to the prompt."),
                 io.String.Output("palette_name", tooltip="Name of the color palette that was applied to the prompt."),
+                io.String.Output("base_text"   , tooltip="Base text input before any modifications or style adaptations."),
 
             ]
         )
@@ -106,11 +106,11 @@ class StylePromptEncoder25(io.ComfyNode):
 
         # apply the style template to the prompt
         if style_obj:
-            prompt = style_obj.apply_to_prompt(prompt, spicy_impact_booster=False)
+            prompt = style_obj.apply_to_prompt(prompt, palette=palette_obj, spicy_impact_booster=False)
 
         # encode the prompt using the provided text encoder (clip)
         tokens = clip.tokenize(prompt)
-        return io.NodeOutput( clip.encode_from_tokens_scheduled(tokens), text, prompt, style, palette )
+        return io.NodeOutput( clip.encode_from_tokens_scheduled(tokens), prompt, style, palette, text )
 
 
     #__ VALIDATION ________________________________________

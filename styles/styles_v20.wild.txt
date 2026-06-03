@@ -21,7 +21,8 @@ INSIDE THE PIXELATED ARCADE GAME:
 {$@}
 -->
 OUTSIDE THE PIXELATED ARCADE GAME:
-A dimly lit arcade, including other machines and neon signs, both slightly out of focus.
+A dimly lit arcade hall featuring neon lights {$IFPAL 'in $1 color and $2-colored columns, with dark areas rendered in $3'},
+including other machines and neon signs{$IFPAL " in $2 color"}{$IFPAL and windows of color $3}, both slightly out of focus.
 THE PHOTO:
 A close-up of an early 1990s arcade machine. It sits in a dimly lit arcade, its side panels covered in glossy vinyl graphics. The CRT monitor glows with its characteristic phosphorescent hue, and the joystick and buttons show slight wear. The arcade machine is viewed from a three-quarter angle, capturing its design, the bright screen, and the reflective floor tiles.
 

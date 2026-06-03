@@ -17,14 +17,19 @@ import re
 import unicodedata
 from   typing          import Iterator
 from   collections.abc import KeysView
+from   .palette        import Palette
 from   .system         import logger
 type VersionTuple = tuple[int, int, int]
 
 # Pattern used to remove non-alphanumeric characters.
 _CLEAN_PATTERN = re.compile(r"[^a-z0-9_]")
 
+# Pattern used to extract the command name from a string.
+_COMMAND_NAME_PATTERN = re.compile(r'[a-zA-Z0-9.@*#+-]+')
+
 # For undefined order, we use a tuple with two very high values.
 _UNDEFINED_ORDER = (999_999, 999_999)
+
 
 
 #=============================== Style CLASS ===============================#
@@ -91,6 +96,50 @@ class Style:
         elif isinstance(version, tuple) and len(version) == 3:
             self._versiontup = version
         else: raise ValueError("Invalid version format. Expected a string or a tuple of 3 integers.")
+
+        self._commands = self._parse_commands(self.template)
+        #print("##>> COMMANDS:", commands)
+
+
+
+    def apply_to_prompt(self,
+                        prompt : str,
+                        *,
+                        palette: Palette | None = None,
+                        spicy_impact_booster: bool = False
+                        ) -> str:
+        """
+        Applies the style to a prompt with optional spicy content boost.
+
+        Args:
+            prompt              : The input text prompt to be styled.
+            spicy_impact_booster: If True, adds spicy content to the output. Default is False.
+
+        Returns:
+            A string containing the styled prompt.
+        """
+        result = []
+
+        for command in self._commands:
+            command_name, param1, param2 = command
+            if command_name=="STR":
+                result.append( param1 )
+            elif command_name=="IFPAL" and palette:
+                result.append( palette.resolve( param1 ) )
+            elif command_name=="PROMPT" or command_name=="@":
+                result.append( param1 + prompt + param2 )
+
+        return "".join(result)
+
+        # spicy_content = ""
+        # if spicy_impact_booster:
+        #     spicy_content = "attractive and spicy content, where any woman is sexy and provocative, with"
+
+        # result = self.template
+        # result = result.replace("{$spicy-content-with}", spicy_content) #< the secret spicy dressing
+        # result = result.replace("{$@}"                 , prompt       ) #< prompt to be styled
+        # result = result.replace("  ", " ")                              #< fix double spaces
+        # return result
 
 
     @property
@@ -176,32 +225,6 @@ class Style:
         return _CLEAN_PATTERN.sub("x", name)
 
 
-    def apply_to_prompt(self,
-                        prompt : str,
-                        *,
-                        spicy_impact_booster: bool = False
-                        ) -> str:
-        """
-        Applies the style to a prompt with optional spicy content boost.
-
-        Args:
-            prompt              : The input text prompt to be styled.
-            spicy_impact_booster: If True, adds spicy content to the output. Default is False.
-
-        Returns:
-            A string containing the styled prompt.
-        """
-        spicy_content = ""
-        if spicy_impact_booster:
-            spicy_content = "attractive and spicy content, where any woman is sexy and provocative, with"
-
-        result = self.template
-        result = result.replace("{$spicy-content-with}", spicy_content) #< the secret spicy dressing
-        result = result.replace("{$@}"                 , prompt       ) #< prompt to be styled
-        result = result.replace("  ", " ")                              #< fix double spaces
-        return result
-
-
     @staticmethod
     def make_version_tuple(version_str: str) -> VersionTuple:
         """
@@ -237,6 +260,128 @@ class Style:
         # ensure there are at least three elements by padding with zeros and return
         digits = digits + [0, 0, 0]
         return (digits[0], digits[1], digits[2])
+
+
+    @staticmethod
+    def _extract_command_and_params(input_string: str, pos: int) -> tuple[int, str, str, str]:
+        """
+        Extract keyword and value using index pointers to minimize string allocations.
+
+        Args:
+            input_string : The source string to parse.
+            index        : The starting position in the string.
+
+        Returns:
+            A tuple of (keyword, value).
+        """
+        command_name = ""
+        params = ["", ""]
+
+        # Use re.finditer or match with pos to avoid slicing the input_string
+        match = _COMMAND_NAME_PATTERN.match(input_string, pos=pos)
+        if match:
+            command_name = match.group()
+            pos          = match.end()
+
+        for idx in range(len(params)):
+
+            # skip whitespaces if any
+            while pos < len(input_string) and input_string[pos].isspace():
+                pos += 1
+
+            if pos >= len(input_string):
+                break
+
+            first_char = input_string[pos]
+
+            # if end-of-comand is reached, break the parameter loop
+            if first_char == '}':
+                pos += 1
+                break
+
+            # if end-of-param is reached, the parameter is empty
+            elif first_char == '|':
+                pos += 1
+                continue
+
+            # if the param starts with quotes, extract everything enclosed in quotes
+            elif first_char in ('"', "'"):
+                quote_char = first_char
+                end_pos    = input_string.find(quote_char, pos+1)
+                if end_pos == -1:
+                    raise ValueError(f"Missing closing quotes: {quote_char}")
+                params[idx] = input_string[pos+1:end_pos]
+                pos  = end_pos+1
+
+            # if the parameter is not quoted, extract until the first pipe "|" or "}"
+            else:
+                endparam   = input_string.find('|', pos)
+                endcommand = input_string.find('}', pos)
+                end_pos = min( endparam if endparam>=0 else 99999, endcommand if endcommand>=0 else 99999 )
+                if end_pos == 99999:
+                    raise ValueError(f"Could not find end of parameter in IFPAL template tag")
+                params[idx] = input_string[pos:end_pos].strip()
+                pos = end_pos+1
+                if end_pos == endcommand:
+                    break
+
+        return pos, command_name, params[0], params[1]
+
+
+    @staticmethod
+    def _parse_commands(input_text: str) -> list[tuple[str, str, str]]:
+        """
+        Parses a string into a list of tuples, distinguishing between command blocks 
+        and plain text segments.
+
+        Args:
+            input_text : The raw string containing text and command patterns '{$...}'.
+
+        Returns:
+            A list of tuples:
+            - If command: ('COMMAND_NAME', 'param1', 'param2') 
+            (Note: for now, keeping the inner content as the command name).
+            - If plain text: ('TEXT', 'actual text segment', '')
+        """
+        pos      = 0
+        commands = []
+        while True:
+
+            # find the next command, break the loop if no command found
+            command_pos = input_text.find("{$", pos)
+            if command_pos<0:
+                break
+
+            # command found!
+            # add as simple "STRING" everything that's there until the beginning of the command
+            if command_pos>pos:
+                commands.append(( "STR",input_text[pos:command_pos],"" ))
+                pos = command_pos
+
+            # extract the whole information of the command,
+            # but if it is not recognized as a command then add it as simple "STRING"
+            end_pos, command_name, param1, param2 = Style._extract_command_and_params(input_text, pos+2)
+            if not command_name:
+                commands.append(( "STR", input_text[pos:end_pos], "" ))
+                pos = end_pos
+                continue
+
+            # finally add the found command and advance
+            commands.append(( command_name, param1, param2 ))
+            pos = end_pos
+
+
+        # add any remaining text as a simple "STRING"
+        if pos<len(input_text):
+            commands.append(( "STR", input_text[pos:], "" ))
+
+        if "{$IFPAL" in input_text:
+            print()
+            for line in commands:
+                print("###>> line:", line)
+                print()
+
+        return commands
 
 
     def __repr__(self) -> str:

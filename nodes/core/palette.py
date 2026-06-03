@@ -41,12 +41,11 @@ class Palette:
                  tags         : str                = "",
                  version      : str | VersionTuple = (0, 0, 0),
                  ):
-        self.name       : str            = name.strip()
-        self.description: str            = description.strip()
-        self.tags       : str            = tags
-        self._colors    : dict[str, str] = {}
-        self._keys      : list[str]      = []
-        self._versiontup: VersionTuple   = (0, 0, 0)
+        self.name       : str                  = name.strip()
+        self.description: str                  = description.strip()
+        self.tags       : str                  = tags
+        self._colors    : list[tuple[str,str]] = []
+        self._versiontup: VersionTuple         = (0, 0, 0)
 
         # convert version to tuple if necessary
         if isinstance(version,str):
@@ -77,6 +76,16 @@ class Palette:
                     self.add_color(name_part, hex_part)
 
 
+    def resolve(self, text: str) -> str:
+        """
+        Resolves the placeholders (?)
+        """
+        text = text.replace("$1", self._colors[0][0])
+        text = text.replace("$2", self._colors[1][0])
+        text = text.replace("$3", self._colors[2][0])
+        return text
+
+
     @property
     def version(self) -> str:
         """Returns the version formatted as a semantic version string 'X.Y.Z'."""
@@ -85,7 +94,7 @@ class Palette:
 
     @property
     def version_tuple(self) -> VersionTuple:
-        """Returns the version as a tuple of three integers."""
+        """Returns the version as a tuple of three integers. (X, Y, Z)."""
         return self._versiontup
 
 
@@ -94,40 +103,36 @@ class Palette:
         name     = self._normalize_color_name(name)
         hex_code = self._normalize_hex_code(hex_code)
         if _HEX_PATTERN.match(hex_code):
-            if name not in self._colors:
-                self._keys.append(name)
-            self._colors[name] = hex_code
+            self._colors.append(( name, hex_code ))
             return True
         return False
 
 
     def names(self) -> list[str]:
         """Returns a list of all color names in the palette."""
-        return self._keys
+        return [name for name, _ in self._colors]
 
 
     def hexs(self) -> list[str]:
         """Returns a list of all HEX codes in the palette."""
-        return [self._colors[name] for name in self._keys]
+        return [hex_code for _, hex_code in self._colors]
 
 
     def items(self) -> Iterator[tuple[str, str]]:
-        """Yields pairs of (name, hex_code)."""
-        for name in self._keys:
-            yield name, self._colors[name]
+        """Returns an iterator over the palette colors as (name, hex_code) pairs."""
+        return iter(self._colors)
 
 
     def __len__(self) -> int:
         """Returns the number of colors."""
-        return len(self._keys)
+        return len(self._colors)
 
     def __getitem__(self, index: int) -> tuple[str, str]:
         """Allows indexing like palette to get (name, hex)."""
-        name = self._keys[index]
-        return name, self._colors[name]
+        return self._colors[index]
 
     def __repr__(self) -> str:
-        return f"Palette(name={self.name!r}, colors_count={len(self)})"
+        return f"Palette(name={self.name!r}, colors_count={len(self._colors)})"
 
 
     @staticmethod
