@@ -1,0 +1,41 @@
+@STYLES
+>## File    : styles_v20.wild.txt
+>## Purpose : Collection of prompt templates for imaginative and unconventional styles (v2.0)
+>## Author  : Martin Rizzo | <martinrizzo@gmail.com>
+>## Date    : Jun 1, 2026
+>## Repo    : https://github.com/martin-rizzo/ComfyUI-ZImagePowerNodes
+>## License : MIT
+>## - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+>##                          ComfyUI-ZImagePowerNodes
+>##     ComfyUI nodes designed to power the "Z-Image/Z-Image Turbo" models.
+>##_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+
+>>> Vintage CRT // Arcade Cabinet
+YOUR CONTEXT
+A close-up of an early 1990s arcade machine. It sits in a dimly lit arcade, its side panels covered in glossy vinyl graphics. The CRT monitor glows with its characteristic phosphorescent hue, and the joystick and buttons show slight wear. The arcade machine is viewed from a three-quarter angle, capturing its design, the bright screen, and the reflective floor tiles.
+INSIDE YOUR CRT MONITOR:
+An action-packed, pixelated, yet brightly colored arcade game.
+INSIDE THE PIXELATED ARCADE GAME:
+<!--
+{$@}
+-->
+OUTSIDE THE PIXELATED ARCADE GAME:
+A dimly lit arcade, including other machines and neon signs, both slightly out of focus.
+THE PHOTO:
+A close-up of an early 1990s arcade machine. It sits in a dimly lit arcade, its side panels covered in glossy vinyl graphics. The CRT monitor glows with its characteristic phosphorescent hue, and the joystick and buttons show slight wear. The arcade machine is viewed from a three-quarter angle, capturing its design, the bright screen, and the reflective floor tiles.
+
+
+>>> Vintage CRT // VGA Monitor
+YOUR CONTEXT
+An old VGA CRT rectangular monitor sitting on a wooden desk, and a window is reflected on its screen. The monitor's casing has a raised black inscription in the upper left corner that reads "VGA". The screen has a slight curve and sweep lines typical of CRT displays.
+INSIDE YOUR MONITOR'S SCREEN:
+A low-resolution, 2D pixel art platform videogame form early 1990s.
+INSIDE THE VIDEOGAME FROM EARLY 1990s:
+<!--
+{$@}
+-->
+OUTSIDE YOUR MONITOR'S SCREEN:
+A wooden desk and a wall.
+
+
