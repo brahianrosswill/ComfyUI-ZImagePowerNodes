@@ -333,7 +333,7 @@ class PaletteSet:
         self._palettes[palette.name.lower()] = palette
         return True
 
-    def get_palette(self, name: str) -> Palette | None:
+    def get(self, name: str) -> Palette | None:
         """Retrieves a palette by name."""
         return self._palettes.get(name.lower())
 

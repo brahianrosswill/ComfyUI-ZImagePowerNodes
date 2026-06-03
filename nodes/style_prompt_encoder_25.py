@@ -14,13 +14,15 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
  - https://docs.comfy.org/custom-nodes/v3_migration
 
 """
-from typing                   import Final
-from functools                import cache
-from comfy_api.latest         import io
-from .core.style              import StyleSet
-from .data.predefined_styles  import PREDEFINED_STYLES
-from .custom_widgets          import Separator, StyleSelector, PaletteSelector
-_STL_VERSION: Final[str] = "1.0.0" #< the version of style definitions this node uses
+from typing                    import Final
+from functools                 import cache
+from comfy_api.latest          import io
+from .core.style               import StyleSet
+from .data.predefined_styles   import PREDEFINED_STYLES
+from .data.predefined_palettes import PREDEFINED_PALETTES
+from .custom_widgets           import Separator, StyleSelector, PaletteSelector
+_STL_VERSION: Final[str] = "2.0.0" #< the version of style definitions this node uses
+_PAL_VERSION: Final[str] = "2.0.0" #< the version of palette definitions this node uses
 
 
 class StylePromptEncoder25(io.ComfyNode):
@@ -56,24 +58,26 @@ class StylePromptEncoder25(io.ComfyNode):
                                               "The description should incorporate '{$@}' where the main text "
                                               "prompt will be inserted.",
                                      ),
-                #Separator.Input("separator",mode="divider"),#==========================================
-                #  Separator.Input("separator",variant="space"),
-                #  solid, dashed, space
-
-                StyleSelector.Input  ("style"),
-                PaletteSelector.Input("palette", dialog_size="small", dialog_view_mode="list"),
-
-
+                StyleSelector.Input  ("style",
+                                      version=_STL_VERSION,
+                                      tooltip="The visual style to apply to the prompt. "
+                                     ),
+                PaletteSelector.Input("palette",
+                                      version=_PAL_VERSION, dialog_size="small", dialog_view_mode="list",
+                                      tooltip="The color palette to use for enhancing the prompt. "
+                                     ),
                 io.String.Input      ("text",
                                       multiline=True, dynamic_prompts=True,
-                                      tooltip="The prompt to encode.",
+                                      tooltip="The base text prompt to be encoded and styled. "
                                      ),
             ],
             outputs=[
-                io.Conditioning.Output(tooltip="The encoded text used to guide the image generation."),
-                io.String.Output("prompt", tooltip="The prompt after applying the selected visual style."),
-                io.String.Output("style_name"),
-                io.String.Output("palette_name"),
+                io.Conditioning.Output(tooltip="Final encoded text that will guide the image generation process."),
+                io.String.Output("base"        , tooltip="Base text input before any modifications or style adaptations."),
+                io.String.Output("prompt"      , tooltip="Final prompt after applying the selected visual style and color palette."),
+                io.String.Output("style_name"  , tooltip="Name of the visual style that was applied to the prompt."),
+                io.String.Output("palette_name", tooltip="Name of the color palette that was applied to the prompt."),
+
             ]
         )
 
@@ -82,6 +86,7 @@ class StylePromptEncoder25(io.ComfyNode):
     def execute(cls,
                 clip,
                 style         : str,
+                palette       : str,
                 text          : str,
                 customization : str = "",
                 **kwargs
@@ -96,13 +101,16 @@ class StylePromptEncoder25(io.ComfyNode):
         if not style_obj:
             style_obj = PREDEFINED_STYLES.by_version(_STL_VERSION).get(style)
 
+        # find the palette that the user has selected
+        palette_obj = PREDEFINED_PALETTES.by_version(_PAL_VERSION).get(palette)
+
         # apply the style template to the prompt
         if style_obj:
             prompt = style_obj.apply_to_prompt(prompt, spicy_impact_booster=False)
 
         # encode the prompt using the provided text encoder (clip)
         tokens = clip.tokenize(prompt)
-        return io.NodeOutput( clip.encode_from_tokens_scheduled(tokens), prompt )
+        return io.NodeOutput( clip.encode_from_tokens_scheduled(tokens), text, prompt, style, palette )
 
 
     #__ VALIDATION ________________________________________
