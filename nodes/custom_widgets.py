@@ -28,10 +28,12 @@ class PaletteSelector:
 
         def __init__(self,
                      id              : str, *,
+                     version         : str | None = None,
                      height          : int | None = None,
-                     dialog_title    : str = "Select Palette",
+                     dialog_title    : str | None = None,
                      dialog_size     : str | None = None,
                      dialog_view_mode: str | None = None,
+                     tooltip         : str | None = None,
                      ):
             """
             <hr>A color palette selector widget.
@@ -44,7 +46,13 @@ class PaletteSelector:
             """
             ALLOWED_DIALOG_SIZES = ("small", "default")
             ALLOWED_DIALOG_VIEW_MODES = ("grid", "list")
+            if not dialog_title:
+                dialog_title = "Select Palette"
+
             extra_dict = {}
+
+            if version is not None:
+                extra_dict["version"] = version
 
             if height is not None:
                 extra_dict["height"] = height
@@ -62,7 +70,7 @@ class PaletteSelector:
                 if dialog_view_mode not in ALLOWED_DIALOG_VIEW_MODES:
                     raise ValueError(f"Invalid dialog view '{dialog_view_mode}'. Allowed values are {ALLOWED_DIALOG_VIEW_MODES}")
 
-            super().__init__(id, extra_dict=extra_dict)
+            super().__init__(id, extra_dict=extra_dict, tooltip=cast(str, tooltip))
 
 
     class Output(io.Output):
@@ -81,10 +89,12 @@ class StyleSelector:
 
         def __init__(self,
                      id              : str, *,
+                     version         : str | None = None,
                      height          : int | None = None,
-                     dialog_title    : str = "Select Style",
+                     dialog_title    : str | None = None,
                      dialog_size     : str | None = None,
                      dialog_view_mode: str | None = None,
+                     tooltip         : str | None = None,
                      ):
             """
             <hr>A visual style selector widget.
@@ -97,7 +107,13 @@ class StyleSelector:
             """
             ALLOWED_DIALOG_SIZES = ("small", "default")
             ALLOWED_DIALOG_VIEW_MODES = ("grid", "list")
+            if not dialog_title:
+                dialog_title = "Select Style"
+
             extra_dict = {}
+
+            if version is not None:
+                extra_dict["version"] = version
 
             if height is not None:
                 extra_dict["height"] = height
@@ -115,7 +131,7 @@ class StyleSelector:
                 if dialog_view_mode not in ALLOWED_DIALOG_VIEW_MODES:
                     raise ValueError(f"Invalid dialog view '{dialog_view_mode}'. Allowed values are {ALLOWED_DIALOG_VIEW_MODES}")
 
-            super().__init__(id, extra_dict=extra_dict)
+            super().__init__(id, extra_dict=extra_dict, tooltip=cast(str, tooltip))
 
 
 
