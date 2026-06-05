@@ -10,99 +10,60 @@
 >##        ComfyUI nodes designed for the "Z-Image/Z-Image Turbo" models.
 >##_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 >##
->##  1: (Highlight / Brightest) The color of maximum light or brightest point.
->##  2: (Primary   / Light    ) The main tone or lightest color of the object's body.
->##  3: (Mid-tone  / Neutral  ) The middle tone, the "base color" or transition hue.
->##  4: (Shadow    / Dark     ) The tone for projected shadows or deep details.
->##  5: (Accent    / Contrast ) An accent or intense contrasting color for final details.
+>##  PALETTE DEFINITION
+>##    Each new palette starts with a line prefixed by ">>>" followed by
+>##    the palette name. Example: ">>> Ocean Breeze"
+>##
+>##  COLOR ENTRY FORMAT
+>##    Every line under a palette name represents a single color.
+>##    Fields must be separated by colons (:) using the following structure:
+>##
+>##       <HEX_CODE> : <COLOR_NAME> : <OPTIONAL_TEXTURE> : <OPTIONAL_OBJECT>
+>##
+>##    * HEX_CODE         : Hexadecimal color code (e.g., #00FFFF). Mandatory.
+>##    * COLOR_NAME       : Simple english name for the color. Mandatory.
+>##    * OPTIONAL_TEXTURE : Descriptive texture string. Can be left empty.
+>##    * OPTIONAL_OBJECT  : Descriptive object/concept string. Can be left empty.
+>##
+>##  PALETTE STRUCTURE & GRADIENT RULES
+>##    Color Count : A standard palette MUST contain exactly 4 colors.
+>##    Color Order : Order colors sequentially from HIGHEST illumination (brightest)
+>##                  to LOWEST illumination (darkest).
+>##    5th Color   : An optional 5th color can be added at the end of the palette:
+>##                   - It does NOT follow the gradient rule (any intensity allowed).
+>##                   - It serves as a "Special Highlight Color".
+>##                   - Usage: Linework, accents or any special effect
+>##                   - This 5th element will be used in specific cases.
 >##
 
+
 >>>Ocean Breeze
-azure : #00FFFF
-cyan  : #87CEEB
-teal  : #008080
-navy  : #000080
-indigo: #4B0082
+#00FFFF : azure            : clear crystal water : tropical wave
+#87CEEB : sky blue         : misty fog           : puffy cloud
+#008080 : teal             : smooth sea glass    :
+#000080 : navy             :                     : deep sea trench
 
 >>>Sunset Glow
-peach  : #FFDAB9
-gold   : #FFD700
-coral  : #FF7F50
-crimson: #DC143C
-maroon : #800000
+#FFDAB9 : peach            : soft velvet      : ripe fruit
+#FFD700 : gold             : metallic glitter : golden crown
+#FF7F50 : coral            : rough coral reef :
+#DC143C : crimson          :                  : burning ember
 
->>>Forest Canopy
-sage   : #9DC183
-emerald: #50C878
-moss   : #8A9A5B
-olive  : #808000
-pine   : #01796F
+>>>Forest Trek
+#228B22 : forest green     : dense foliage : mossy pine tree
+#556B2F : dark olive green : rough bark    : military jacket
+#8B4513 : saddle brown     : muddy soil    : hiking boots
+#A0522D : sienna           :               : autumn leaf
 
->>>Midnight Noir
-silver  : #C0C0C0
-smoke   : #848884
-slate   : #708090
-charcoal: #36454F
-onyx    : #353839
+>>>Cyberpunk Neon
+#FF00FF : magenta          : glowing neon tube : cyberpunk visor
+#00FFFF : cyan             : digital glitch    : holographic projection
+#7000FF : matrix purple    :                   : synthetic leather
+#00FF00 : lime green       : laser beam        : radioactive isotope
 
->>>Desert Sands
-beige     : #F5F5DC
-tan       : #D2B48C
-sand      : #C2B280
-ochre     : #CC7722
-terracotta: #E2725B
+>>>Vintage Desert
+#EDC9AF : desert sand      : fine powder  : sand dune
+#C19A6B : camel            : woven burlap : old burlap sack
+#E2725B : terracotta       : baked clay   : ceramic pottery pot
+#800020 : burgundy         :              : antique rug
 
->>>Royal Velvet
-lavender: #E6E6FA
-violet  : #EE82EE
-amethyst: #9966CC
-plum    : #8E4585
-indigo  : #4B0082
-
->>>Neon Cyber
-electric: #00FFEF
-lime    : #BFFF00
-acid    : #CCFF00
-hotpink : #FF69B4
-magenta : #FF00FF
-
->>>Autumn Harvest
-mustard: #FFDB58
-pumpkin: #FF7518
-copper : #B87333
-bronze : #CD7F32
-rust   : #B7410E
-
->>>Volcanic Ash
-ash     : #A9A9A9
-ember   : #FF8C00
-magma   : #FF4500
-lava    : #CF1020
-obsidian: #0B0B0B
-
->>>Volcano
->## @description: Intense and energetic tones inspired by flowing magma.
->## @tags: hot, vibrant, red, dark
-Sulfur    : #F1C40F
-Lava      : #E67E22
-Magma     : #C0392B
-Deep Ember: #741212
-Obsidian  : #1B1B1B
-
->>>Amazonia
->## @description: Deep jungle greens and earthy organic tones.
->## @tags: forest, organic, green, growth
-Moss       : #DCEDC8
-Bamboo     : #8BC34A
-Leaf       : #4CAF50
-Canopy     : #2E7D32
-Undergrowth: #1B5E20
-
->>>Arctic Frost
->## @description: Crystalline blues and whites reflecting polar landscapes.
->## @tags: ice, clean, blue, winter
-frost    : #E0FFFF
-powder   : #B0E0E6
-ice      : #B0E0E6
-steelblue: #4682B4
-white    : #F8F8FF

@@ -98,7 +98,7 @@ async function fetchColorPaletteArray(version)
                 // build the colors array from the data received from the API
                 const colors = [];
                 for( let i=3; (i+1) < paldata.length; i+=2 ) {
-                    colors.push({ color: paldata[i], hex: paldata[i+1] });
+                    colors.push({ hex: paldata[i], color: paldata[i+1] });
                 }
                 return {
                     id         : index,

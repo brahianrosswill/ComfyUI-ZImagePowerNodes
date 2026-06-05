@@ -74,13 +74,13 @@ def _palettes_as_list(palettes: PaletteSet, add_none=False) -> list[str]:
             [0] name        (str): The name of the palette.
             [1] description (str): Description of the palette.
             [2] tags        (str): Tags associated with the style, comma-separated
-            [3] color1      (str): The name of the first color.
-            [4] hex1        (str): The first color in hex format.
-            [5] color2      (str): The name of the second color.
-            [6] hex2        (str): The second color in hex format.
+            [3] hex1        (str): The first color in hex format.
+            [4] color1      (str): The name of the first color.
+            [5] hex2        (str): The second color in hex format.
+            [6] color2      (str): The name of the second color.
             ....
-            [N*2+1] colorN (str): The name of the Nth color.
-            [N*2+2] hexN   (str): The Nth color in hex format.
+            [N*2+1] hexN   (str): The Nth color in hex format.
+            [N*2+2] colorN (str): The name of the Nth color.
     """
     result = []
 
@@ -94,9 +94,9 @@ def _palettes_as_list(palettes: PaletteSet, add_none=False) -> list[str]:
             palette.description, # 1: description
             palette.tags,        # 2: comma-separated list of tags
         ]
-        for color, hex in palette.items():
-            palette_data.append( color )
+        for hex, color, _, _ in palette.items():
             palette_data.append( hex   )
+            palette_data.append( color )
         result.append( palette_data )
     return result
 

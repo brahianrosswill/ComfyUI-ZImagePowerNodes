@@ -17,6 +17,7 @@ import re
 from   typing   import Iterator
 from   .system  import logger
 type VersionTuple = tuple[int, int, int]
+type ColorTuple   = tuple[str, str, str, str]
 
 # Regex to validate basic Hex color format (e.g., #FFFFFF or #FFF)
 _HEX_PATTERN = re.compile(r"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$")
@@ -41,11 +42,11 @@ class Palette:
                  tags         : str                = "",
                  version      : str | VersionTuple = (0, 0, 0),
                  ):
-        self.name       : str                  = name.strip()
-        self.description: str                  = description.strip()
-        self.tags       : str                  = tags
-        self._colors    : list[tuple[str,str]] = []
-        self._versiontup: VersionTuple         = (0, 0, 0)
+        self.name         : str              = name.strip()
+        self.description  : str              = description.strip()
+        self.tags         : str              = tags
+        self._color_tuples: list[ColorTuple] = []
+        self._versiontup  : VersionTuple     = (0, 0, 0)
 
         # convert version to tuple if necessary
         if isinstance(version,str):
@@ -64,26 +65,32 @@ class Palette:
             if not line:
                 pass
             elif ':' not in line:
-                logger.warning(f'Invalid line format in ${name} palette. Expected "<color-name>: #hexvalue".')
+                logger.warning(f'Invalid line format in ${name} palette. Expected "#hexvalue : <color-name>".')
             else:
-                # split only on the first colon found
-                parts = line.split(':', 1)
-                name_part = parts[0].strip()
-                hex_part  = parts[1].strip()
-                if not hex_part.startswith('#'):
-                    logger.warning(f'Invalid hex value in ${name} palette. Expected "#hexvalue".')
+                parts = line.split(':')
+                hex_code = parts[0].strip() if len(parts) > 1 else ''
+                color    = parts[1].strip() if len(parts) > 2 else ''
+                texture  = parts[2].strip() if len(parts) > 3 else ''
+                object   = parts[3].strip() if len(parts) > 4 else ''
+                if not hex_code.startswith('#'):
+                    logger.warning(f'Invalid hex value in {name} palette. Expected "#hexvalue".')
                 else:
-                    self.add_color(name_part, hex_part)
+                    self.add_color(hex_code,
+                                   name    = color,
+                                   texture = texture,
+                                   object  = object
+                                   )
 
 
-    def resolve(self, text: str) -> str:
-        """
-        Resolves the placeholders (?)
-        """
-        text = text.replace("$1", self._colors[0][0])
-        text = text.replace("$2", self._colors[1][0])
-        text = text.replace("$3", self._colors[2][0])
-        return text
+    def resolve_variables(self, text: str) -> str:
+        segments = text.split('$')
+        result   = []
+        for segment in segments:
+            color, text = _resolve_color_var(segment, self._color_tuples)
+            result.append( color )
+            result.append( text )
+        return ''.join(result)
+
 
 
     @property
@@ -98,41 +105,49 @@ class Palette:
         return self._versiontup
 
 
-    def add_color(self, name: str, hex_code: str) -> bool:
+    def add_color(self,
+                  hex_code: str,
+                  name    : str,
+                  *,
+                  texture : str = "",
+                  object  : str = "",
+                  ) -> bool:
         """Adds a color to the palette if the hex code is valid."""
-        name     = self._normalize_color_name(name)
         hex_code = self._normalize_hex_code(hex_code)
+        name     = self._normalize_color_name(name)
+        texture  = self._normalize_color_name(texture)
+        object   = self._normalize_color_name(object)
         if _HEX_PATTERN.match(hex_code):
-            self._colors.append(( name, hex_code ))
+            self._color_tuples.append(( hex_code, name, texture, object ))
             return True
         return False
 
 
-    def names(self) -> list[str]:
-        """Returns a list of all color names in the palette."""
-        return [name for name, _ in self._colors]
-
-
     def hexs(self) -> list[str]:
         """Returns a list of all HEX codes in the palette."""
-        return [hex_code for _, hex_code in self._colors]
+        return [color_tuple[0] for color_tuple in self._color_tuples]
 
 
-    def items(self) -> Iterator[tuple[str, str]]:
+    def names(self) -> list[str]:
+        """Returns a list of all color names in the palette."""
+        return [color_tuple[1] for color_tuple in self._color_tuples]
+
+
+    def items(self) -> Iterator[ColorTuple]:
         """Returns an iterator over the palette colors as (name, hex_code) pairs."""
-        return iter(self._colors)
+        return iter(self._color_tuples)
 
 
     def __len__(self) -> int:
         """Returns the number of colors."""
-        return len(self._colors)
+        return len(self._color_tuples)
 
-    def __getitem__(self, index: int) -> tuple[str, str]:
-        """Allows indexing like palette to get (name, hex)."""
-        return self._colors[index]
+    def __getitem__(self, index: int) -> ColorTuple:
+        """Allows indexing like palette to get (hex, name, texture, object)."""
+        return self._color_tuples[index]
 
     def __repr__(self) -> str:
-        return f"Palette(name={self.name!r}, colors_count={len(self._colors)})"
+        return f"Palette(name={self.name!r}, colors_count={len(self._color_tuples)})"
 
 
     @staticmethod
@@ -184,9 +199,6 @@ class Palette:
             return hex_code.upper()
         else:
            return '#' + hex_code.upper()
-
-
-
 
 
 #============================ PaletteSet CLASS =============================#
@@ -354,4 +366,68 @@ class PaletteSet:
         """Provides a string representation of the PaletteSet instance."""
         palette_names = list(self._palettes.keys())
         return f"PaletteSet(palettes={palette_names})"
+
+
+
+#================================= HELPERS =================================#
+
+def _resolve_color_var(line        : str,
+                       color_tuples: list[ColorTuple]
+                       ) -> tuple[str, str]:
+    """
+    Parses and resolves color variables by traversing the string character
+    by character, enforcing strict [Type][Index] formatting.
+
+    Args:
+        line:         A string starting with the color variable to resolve,
+                      e.g., "$T2:C4:H1 more text".
+        color_tuples: A list of tuples, each tuple containing four strings representing
+                      the color in different formats: (hex, name, texture, object).
+    Returns:
+        A tuple containing the resolved color name and the rest of the original
+        line after the color variable. e.g. ('dark blue', ' more text')
+    """
+    FORMAT_MAP = { "H": 0, "C": 1, "T": 2, "O": 3 }
+    COLOR_IDX_LIMIT  = len(color_tuples)
+    FORMAT_IDX_LIMIT = 4
+
+    resolved_color = ""
+    pure_text_pos  = 0
+    line_length    = len(line)
+
+    # if the line is empty, return without processing
+    if line_length<=0:
+        return "", line
+
+    # if the line starts with '$', skip the character,
+    # (it's the variable marker)
+    i = 1 if line[0] == '$' else 0
+    while i < line_length:
+        pure_text_pos = i
+
+        if line[i].isdigit():
+            # read compressed mode (only a number)
+            format_idx = 1 #< equivalent to "C"
+            color_idx  = int(line[i]) ; i += 1
+        else:
+            # read normal mode (letter+number)
+            if i>=line_length or not line[i].isalpha(): break
+            format_idx = FORMAT_MAP.get(line[i],999) ; i += 1
+            if i>=line_length or not line[i].isdigit(): break
+            color_idx = int(line[i]) ; i += 1
+
+        if not resolved_color and color_idx < COLOR_IDX_LIMIT and format_idx < FORMAT_IDX_LIMIT:
+            color = color_tuples[color_idx][format_idx]
+            if color:
+                resolved_color = color
+
+        # if the next character is not a colon ":"
+        # then the variable to replace is over
+        if i>=line_length or line[i] != ':':
+            pure_text_pos = i
+            break
+
+        i += 1
+
+    return resolved_color, line[pure_text_pos:]
 
