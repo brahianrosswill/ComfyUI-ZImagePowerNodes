@@ -98,7 +98,6 @@ class Style:
         else: raise ValueError("Invalid version format. Expected a string or a tuple of 3 integers.")
 
         self._commands = self._parse_commands(self.template)
-        #print("##>> COMMANDS:", commands)
 
 
 
@@ -124,8 +123,9 @@ class Style:
             command_name, param1, param2 = command
             if command_name=="STR":
                 result.append( param1 )
-            elif command_name=="IFPAL" and palette:
-                result.append( palette.resolve( param1 ) )
+            elif command_name=="IFPAL":
+                if palette: result.append( palette.resolve_variables( param1 ) )
+                else      : result.append( param2 )
             elif command_name=="PROMPT" or command_name=="@":
                 result.append( param1 + prompt + param2 )
 
@@ -374,12 +374,6 @@ class Style:
         # add any remaining text as a simple "STRING"
         if pos<len(input_text):
             commands.append(( "STR", input_text[pos:], "" ))
-
-        if "{$IFPAL" in input_text:
-            print()
-            for line in commands:
-                print("###>> line:", line)
-                print()
 
         return commands
 
