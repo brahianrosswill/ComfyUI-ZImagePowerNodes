@@ -9,9 +9,58 @@
 >##                          ComfyUI-ZImagePowerNodes
 >##     ComfyUI nodes designed to power the "Z-Image/Z-Image Turbo" models.
 >##_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+>##
+>## STYLE NAMES
+>##    Style names are plain text strings that may include an optional variant
+>##    separated by a double slash (//). Example: "Vintage CRT // Arcade Cabinet"
+>##
+>## TEMPLATE DEFINITION
+>##    Each new visual style must begin with a line prefixed with ">>>"
+>##    followed by the style name. Example: ">>> Landscape Photo"
+>##
+>## TEMPLATE FORMAT
+>##    Every line following the style name represents the prompt used
+>##    when that style is selected. The following variables are processed:
+>##
+>##    {$@} : Replaced by the user's input prompt.
+>##
+>##    {$IFPAL x | y} : Conditional logic for color palettes.
+>##         - If a color palette is selected, the text 'x' is used.
+>##         - If no palette is selected, the text 'y' is used.
+>##         - Within 'x', use $1, $2, $3, and $4 to reference specific
+>##           colors from the palette.
+>##         - $5 is an optional highlight color (not available in all palettes).
+>##
 
 
->>> Vintage CRT // Arcade Cabinet
+>>> Arcade Cabinet // Pong Duo
+YOUR CONTEXT
+A retro‑inspired scene with two arcade cabinets placed side‑by‑side. On the left stands a sleek white SEGA cabinet with a 16‑color CRT displaying a vibrant game. On the right sits a vintage wooden PONG cabinet, its dark screen showing the iconic white‑line graphics. Dim ambient lighting highlights the monitors while, at the far right edge of the frame, a blurred arm and back drift into focus, as if someone is just off‑camera near the lens.
+ - INSIDE THE ARCADE: A CRT monitor glows with its characteristic phosphorescent hue.
+   - INSIDE THE COLOR CRT: An action‑packed, pixelated, yet brightly colored arcade game.
+     - INSIDE THE PIXELATED GAME:
+A PIXEL‑ART 80s VIDEOGAME OF:
+<!--
+{$@}
+-->
+     - OUTSIDE THE PIXELATED GAME: THE CRT
+  OUTSIDE THE CRT: The arcade machine with a tall, colorful marquee on top showing the game name.
+OUTSIDE THE ARCADE:
+
+{$IFPAL
+Neon lighting in $1 washes the area, polished tile floor in a $2 hue, metal‑panel walls with accents of $3 and touches of $4. A blurred arm and back appear at the far right, hinting at a presence just off‑camera. |
+A dim arcade with ambient lighting and reflective floor tiles, a faint arm and back visible at the edge, suggesting someone near the camera.
+}
+THE RIGHT PONG (BLACK SCREEN):
+Classic wooden cabinet with joystick controls and two red buttons. The screen is black, featuring the iconic white‑line graphics of Pong. The marquee reads "PONG" in white letters.
+OUTSIDE THE PONG:
+{$IFPAL
+Neon highlights in $1 reflect off the floor, walls in $2, with subtle $3 accents, complementing the retro vibe. |
+A simple arcade ambience with muted lighting and a reflective floor.
+}
+
+
+>>> Arcade Cabinet
 YOUR CONTEXT
 A close-up of an early 1990s arcade machine. It sits in a dimly lit arcade, its side panels covered in glossy vinyl graphics. The CRT monitor glows with its characteristic phosphorescent hue, and the joystick and buttons show slight wear. The arcade machine is viewed from a three-quarter angle, capturing its design, the bright screen, and the reflective floor tiles.
 INSIDE YOUR CRT MONITOR:
@@ -27,6 +76,26 @@ A dimly lit arcade hall featuring neon lights, including other machines and neon
 }
 THE PHOTO:
 A close-up of an early 1990s arcade machine. It sits in a dimly lit arcade, its side panels covered in glossy vinyl graphics. The CRT monitor glows with its characteristic phosphorescent hue, and the joystick and buttons show slight wear. The arcade machine is viewed from a three-quarter angle, capturing its design, the bright screen, and the reflective floor tiles.
+
+
+>>> Arcade Cabinet // Infinite Row
+YOUR CONTEXT
+A wide-angle cinematic shot showing an endless row of early 1990s arcade machines lined up against a wall, creating a deep perspective vanishing point. Each machine features glossy vinyl graphics on its side panels, slightly worn joysticks, and buttons showing signs of heavy use. The scene is captured from a three-quarter angle, highlighting the arcade machines' designs and the reflective floor tiles.
+THE MARQUEE:
+Above every monitor, there is a backlit, rectangular marquee sign displaying the game's title in bold, stylized 1990s pixel-art typography, glowing softly in the dark hall.
+INSIDE THE CRT MONITORS:
+The screens glow with a characteristic phosphorescent hue, displaying a low-resolution, action-packed, and brightly colored pixelated arcade game.
+INSIDE THE PIXELATED ARCADE GAME SHOWED IN CRT MONITORS:
+<!--
+{$@}
+-->
+OUTSIDE THE PIXELATED ARCADE GAME:
+{$IFPAL
+The arcade hall is bathed in an atmospheric light show: vibrant $1 neon lights illuminate the ceiling, casting reflections on the polished $2 floor tiles. The walls are painted in deep $3 tones, with textured $4 metallic accents running along the baseboards and corner panels, creating a moody, high-contrast environment. |
+A dimly lit arcade hall featuring neon lights, including other machines and neon signs, both slightly out of focus.
+}
+THE PHOTO:
+A wide cinematic shot of an endless row of arcade machines in a dimly lit hall. Each machine features a glowing marquee sign at the top with the game's title. The CRT monitors glow with a characteristic phosphorescent hue, casting light on the glossy vinyl graphics of the cabinets and the reflective floor tiles. The atmosphere is heavy with nostalgia, featuring a mix of bright neon colors and deep shadows.
 
 
 >>> Vintage CRT // VGA Monitor
