@@ -125,9 +125,6 @@ class ZImagePowerNodesExtension(ComfyExtension):
         from .nodes.zsampler_turbo_2_advanced import ZSamplerTurbo2Advanced
         _register_node( ZSamplerTurbo2Advanced, nodes, subcategory )
 
-        from .nodes.style_prompt_encoder_25 import StylePromptEncoder25
-        _register_node( StylePromptEncoder25, nodes, subcategory )
-
         from .nodes.style_prompt_encoder_2 import StylePromptEncoder2
         _register_node( StylePromptEncoder2, nodes, subcategory )
 
@@ -148,23 +145,6 @@ class ZImagePowerNodesExtension(ComfyExtension):
 
         from .nodes.vae_encode_soft_inpainting import VAEEncodeSoftInpainting
         _register_node( VAEEncodeSoftInpainting, nodes, subcategory )
-
-
-        #--[ utils ]-----------------------------
-        subcategory = "utils"
-
-        from .nodes.image_labeler import ImageLabeler
-        _register_node( ImageLabeler, nodes, subcategory )
-
-        from .nodes.image_grid_builder import ImageGridBuilder
-        _register_node( ImageGridBuilder, nodes, subcategory )
-
-
-        #--[ __dev ]-----------------------------
-        subcategory = "__dev"
-
-        from .nodes.zsampler_turbo_2_laboratory import ZSamplerTurbo2Laboratory
-        _register_node( ZSamplerTurbo2Laboratory, nodes, subcategory )
 
 
         #--[ __deprecated ]----------------------
@@ -190,6 +170,29 @@ class ZImagePowerNodesExtension(ComfyExtension):
 
         from .nodes.deprecated_nodes.zsampler_turbo_1_advanced import ZSamplerTurboAdvanced
         _register_node( ZSamplerTurboAdvanced, nodes, subcategory )
+
+        from .nodes.deprecated_nodes.zsampler_turbo_2_laboratory import ZSamplerTurbo2Laboratory
+        _register_node( ZSamplerTurbo2Laboratory, nodes, subcategory )
+
+
+        #--[ __experimental ]--------------------
+        subcategory = "__experimental"
+
+        from .nodes.zsampler_turbo_X21 import ZSamplerTurboX21
+        _register_node( ZSamplerTurboX21, nodes, subcategory )
+
+        from .nodes.style_prompt_encoder_X21 import StylePromptEncoderX21
+        _register_node( StylePromptEncoderX21, nodes, subcategory )
+
+
+        #--[ utils ]-----------------------------
+        subcategory = "utils"
+
+        from .nodes.image_labeler import ImageLabeler
+        _register_node( ImageLabeler, nodes, subcategory )
+
+        from .nodes.image_grid_builder import ImageGridBuilder
+        _register_node( ImageGridBuilder, nodes, subcategory )
 
 
         # report version and the number of nodes added by this extension

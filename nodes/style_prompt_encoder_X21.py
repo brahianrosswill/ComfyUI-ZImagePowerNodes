@@ -1,6 +1,6 @@
 """
-File    : style_prompt_encoder_25.py
-Purpose : Node to get conditioning embeddings from a given style + color + prompt (version 2.5)
+File    : style_prompt_encoder_X21.py
+Purpose : Experimental node to get conditioning embeddings from a given style + color + prompt (second/third Gen).
 Author  : Martin Rizzo | <martinrizzo@gmail.com>
 Date    : May 30, 2026
 Repo    : https://github.com/martin-rizzo/ComfyUI-ZImagePowerNodes
@@ -25,9 +25,8 @@ _STL_VERSION: Final[str] = "2.0.0" #< the version of style definitions this node
 _PAL_VERSION: Final[str] = "2.0.0" #< the version of palette definitions this node uses
 
 
-class StylePromptEncoder25(io.ComfyNode):
-    xTITLE         = "Style + Palette + Prompt (Text Encoder)"
-   #xTITLE         = "Style + Palette (String Injector)"
+class StylePromptEncoderX21(io.ComfyNode):
+    xTITLE         = "Style & Prompt Encoder ^G2.1 (Experimental)"
     xCATEGORY      = ""
     xCOMFY_NODE_ID = ""
     xDEPRECATED    = False
@@ -42,9 +41,12 @@ class StylePromptEncoder25(io.ComfyNode):
             is_deprecated = cls.xDEPRECATED,
             description   = (
                 "Transforms a text prompt into embeddings, automatically adapting the prompt to match "
-                "the selected style. This node takes a prompt, adjusts its visual style according to "
-                "the chosen option, and then encodes it using the provided text encoder (clip) to "
-                "generate an embedding that will guide image generation."
+                "the selected style and, optionally, a chosen colour palette. This node takes a prompt, "
+                "adjusts its visual style according to the chosen option (applying the palette if "
+                "provided), and then encodes it using the supplied CLIP model to generate an embedding "
+                "that will guide image generation. "
+                "Because this node is experimental, its parameters, behaviour, or existence "
+                "may change or be removed entirely without prior notice. "
             ),
             inputs=[
                 io.Clip.Input        ("clip",
