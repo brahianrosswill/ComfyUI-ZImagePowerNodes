@@ -65,7 +65,7 @@ class PredefinedPalettes:
                     continue
 
                 # extract version from file name and read the content
-                parts   = path.stem.split('_')
+                parts   = path.stem.replace('.','-').replace('_','-').split('-')
                 version = next((p for p in parts if re.match(r"^v\d+$", p)), "v0")
                 content = path.read_text(encoding='utf-8')
 

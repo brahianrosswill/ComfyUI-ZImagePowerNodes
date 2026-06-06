@@ -69,13 +69,14 @@ class StyleLibrary:
                 if header != self.FILE_IDENTIFIER:
                     continue
 
-                name_parts = path.stem.replace('_',' ').replace('.',' ').split()
-                if len(name_parts) != 3 or name_parts[0] != 'styles':
+                name_parts = path.stem.replace('.','-').replace('_','-').split('-')
+                if len(name_parts) < 3 or name_parts[0] != 'styles' or not name_parts[1].startswith('v'):
+                    logger.warning(f"Invalid style filename: {path.name}")
                     continue
 
                 # extract version and category from the file name
                 version  = _normalize_version( name_parts[1].strip() )
-                category = name_parts[2].strip()
+                category = name_parts[2].strip().rstrip("0123456789")
                 content  = path.read_text(encoding='utf-8')
 
                 if version and category:
