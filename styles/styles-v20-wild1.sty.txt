@@ -39,9 +39,13 @@
 >##         - If no cheat code is in the prompt, the text 'y' is used.
 >##
 
->>> Arcade Cabinet // Retro Solo Gamer
 YOUR CONTEXT
 A high-detail, retro-styled scene focusing on a single, classic 1980s upright arcade machine made of heavy-duty polished wood. The cabinet features prominent black T-moulding along its edges. In front of the machine, a woman of short stature is deeply focused on the gameplay. She is dressed in iconic 80s fashion: a high-waisted acid-wash denim mini skirt, an oversized neon-pink off-the-shoulder sweatshirt, and leg warmers over white sneakers. Her hair is styled in a voluminous, teased-up curly mane with a colorful scrunchie. The cabinet is positioned against a dimly lit arcade wall, with the monitor's rhythmic glow illuminating her intense expression and the rich texture of the wood grain.
+
+
+>>> Arcade Cabinet // Retro Solo Gamer
+YOUR CONTEXT
+A high-detail, retro-styled scene focusing on a single, classic 1980s upright arcade machine made of heavy-duty polished wood. The cabinet features prominent black T-moulding along its edges. In front of the machine, a woman of short stature is playing. The cabinet is positioned against a dimly lit arcade wall, with the monitor's rhythmic glow illuminating her intense expression and the rich texture of the wood grain.
 - INSIDE THE ARCADE CABINET: A bulky 19-inch CRT monitor glows with its characteristic phosphorescent hue.
   - INSIDE THE CRT:
     - INSIDE THE PIXELATED GAME:
@@ -53,7 +57,10 @@ A PIXEL-ART 80s VIDEOGAME OF:
 - OUTSIDE THE CRT:
 The sturdy wooden cabinet with black T-moulding edges, a control panel featuring a classic red ball-top joystick and two concave buttons, and a lit marquee at the top showing a stylized arcade logo.
 - THE PLAYER:
-A woman of short stature, standing with a confident and focused posture, wearing an acid-wash denim skirt, neon sweatshirt, and voluminous teased hair, her silhouette cast by the vibrant light of the screen.
+{$***
+A petite woman stands with her body draped in minimal fabric: a delicate black silk tanga cutting into her hips, fishnet stockings hugging every curve above towering stiletto heels that click against the floor. Her long hair cascades in dark waves past bare shoulders, framing a face adorned with only crimson lipstick and a black satin bandana tied around her forehead like some sort of dangerous prize. The glow of the screen illuminates her exposed skin as she leans forward slightly, one leg crossed over the other in an open display of confidence |
+A woman of short stature, standing with a confident and focused posture, wearing in iconic 80s fashion: a high-waisted acid-wash denim mini skirt, an oversized neon-pink off-the-shoulder sweatshirt, and leg warmers over white sneakers. Her hair is styled in a voluminous, teased-up curly mane with a colorful scrunchie. Her silhouette cast by the vibrant light of the screen
+}
 - OUTSIDE THE ARCADE MACHINE:
 The arcade machine stands against a dimly lit wall of the arcade hall. At the far right edge of the frame, the lateral panel of another arcade cabinet is partially visible, fading into the shadows. 
 {$IFPAL

@@ -20,12 +20,17 @@ from   collections.abc import KeysView
 from   .palette        import Palette
 from   .system         import logger
 type VersionTuple = tuple[int, int, int]
+type CommandTuple = tuple[str,str,str,str]
 
 # Pattern used to remove non-alphanumeric characters.
 _CLEAN_PATTERN = re.compile(r"[^a-z0-9_]")
 
 # Pattern used to extract the command name from a string.
 _COMMAND_NAME_PATTERN = re.compile(r'[a-zA-Z0-9.@*#+-]+')
+
+# Pattern used to extract 'cheat-codes' from template or prompts.
+_CHEATCODE_PATTERN = re.compile(r"[@*#+-]+")
+
 
 # For undefined order, we use a tuple with two very high values.
 _UNDEFINED_ORDER = (999_999, 999_999)
@@ -97,6 +102,7 @@ class Style:
             self._versiontup = version
         else: raise ValueError("Invalid version format. Expected a string or a tuple of 3 integers.")
 
+        # transform the template into easy-to-process commands
         self._commands = self._parse_commands(self.template)
 
 
@@ -117,15 +123,32 @@ class Style:
         Returns:
             A string containing the styled prompt.
         """
-        result = []
+        result    = []
+        prompt    = prompt.strip()
+        cheatcode = ""
 
+        # extract any cheat-code from the user prompt
+        if prompt.startswith("**"):
+            match = _CHEATCODE_PATTERN.match(prompt, pos=2)
+            if match:
+                cheatcode = match.group()
+                prompt    = prompt[match.end():]
+
+        # process the template commands one by one
         for command in self._commands:
-            command_name, param1, param2 = command
+            command_name, command_extra, param1, param2 = command
+
             if command_name=="STR":
                 result.append( param1 )
+
             elif command_name=="IFPAL":
                 if palette: result.append( palette.resolve_variables( param1 ) )
                 else      : result.append( param2 )
+
+            elif command_name=="CHEAT":
+                if command_extra in cheatcode: result.append( param1 )
+                else                         : result.append( param2 )
+
             elif command_name=="PROMPT" or command_name=="@":
                 result.append( param1 + prompt + param2 )
 
@@ -263,7 +286,7 @@ class Style:
 
 
     @staticmethod
-    def _extract_command_and_params(input_string: str, pos: int) -> tuple[int, str, str, str]:
+    def _extract_command_and_params(input_string: str, pos: int) -> tuple[int, str, str, str, str]:
         """
         Extract keyword and value using index pointers to minimize string allocations.
 
@@ -274,14 +297,14 @@ class Style:
         Returns:
             A tuple of (keyword, value).
         """
-        command_name = ""
-        params = ["", ""]
+        command = ""
+        params  = ["", ""]
 
         # Use re.finditer or match with pos to avoid slicing the input_string
         match = _COMMAND_NAME_PATTERN.match(input_string, pos=pos)
         if match:
-            command_name = match.group()
-            pos          = match.end()
+            command = match.group()
+            pos     = match.end()
 
         for idx in range(len(params)):
 
@@ -325,11 +348,12 @@ class Style:
                 if end_pos == endcommand:
                     break
 
-        return pos, command_name, params[0], params[1]
+        command_name, _, command_extra = command.partition('.')
+        return pos, command_name.upper(), command_extra, params[0], params[1]
 
 
     @staticmethod
-    def _parse_commands(input_text: str) -> list[tuple[str, str, str]]:
+    def _parse_commands(input_text: str) -> list[CommandTuple]:
         """
         Parses a string into a list of tuples, distinguishing between command blocks 
         and plain text segments.
@@ -343,8 +367,8 @@ class Style:
             (Note: for now, keeping the inner content as the command name).
             - If plain text: ('TEXT', 'actual text segment', '')
         """
-        pos      = 0
-        commands = []
+        pos = 0
+        commands: list[CommandTuple] = []
         while True:
 
             # find the next command, break the loop if no command found
@@ -355,25 +379,33 @@ class Style:
             # command found!
             # add as simple "STRING" everything that's there until the beginning of the command
             if command_pos>pos:
-                commands.append(( "STR",input_text[pos:command_pos],"" ))
+                commands.append(( "STR", "", input_text[pos:command_pos], "" ))
                 pos = command_pos
 
             # extract the whole information of the command,
+            end_pos, command_name, command_extra, param1, param2 = Style._extract_command_and_params(input_text, pos+2)
+
+            # convert abreviated forms into valid commands
+            if command_name == "@":
+                command_name, command_extra  = "PROMPT", ""
+            elif command_name.startswith("**"):
+                command_name, command_extra = "CHEAT", command_name[2:]
+
             # but if it is not recognized as a command then add it as simple "STRING"
-            end_pos, command_name, param1, param2 = Style._extract_command_and_params(input_text, pos+2)
-            if not command_name:
-                commands.append(( "STR", input_text[pos:end_pos], "" ))
+            if not command_name in ("@", "IFPAL", "CHEAT", "PROMPT"):
+                logger.debug(f"Invalid command '({command_name})' in style template")
+                commands.append(( "STR", "", input_text[pos:end_pos], "" ))
                 pos = end_pos
                 continue
 
             # finally add the found command and advance
-            commands.append(( command_name, param1, param2 ))
+            commands.append(( command_name, command_extra, param1, param2 ))
             pos = end_pos
 
 
         # add any remaining text as a simple "STRING"
         if pos<len(input_text):
-            commands.append(( "STR", input_text[pos:], "" ))
+            commands.append(( "STR", "", input_text[pos:], "" ))
 
         return commands
 
