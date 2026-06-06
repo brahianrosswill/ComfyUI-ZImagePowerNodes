@@ -24,13 +24,42 @@
 >##
 >##    {$@} : Replaced by the user's input prompt.
 >##
->##    {$IFPAL x | y} : Conditional logic for color palettes.
+>##    {$IFPAL x | y} :
+>##         Conditional logic for color palettes.
 >##         - If a color palette is selected, the text 'x' is used.
 >##         - If no palette is selected, the text 'y' is used.
 >##         - Within 'x', use $1, $2, $3, and $4 to reference specific
 >##           colors from the palette.
 >##         - $5 is an optional highlight color (not available in all palettes).
 >##
+>##    {**<symbol-char> x | y} :
+>##         Quick Modifier (cheats).
+>##         - If the user's prompt includes the corresponding cheat code,
+>##           the text 'x' is used.
+>##         - If no cheat code is in the prompt, the text 'y' is used.
+>##
+
+>>> Arcade Cabinet // Retro Solo Gamer
+YOUR CONTEXT
+A high-detail, retro-styled scene focusing on a single, classic 1980s upright arcade machine made of heavy-duty polished wood. The cabinet features prominent black T-moulding along its edges. In front of the machine, a woman of short stature is deeply focused on the gameplay. She is dressed in iconic 80s fashion: a high-waisted acid-wash denim mini skirt, an oversized neon-pink off-the-shoulder sweatshirt, and leg warmers over white sneakers. Her hair is styled in a voluminous, teased-up curly mane with a colorful scrunchie. The cabinet is positioned against a dimly lit arcade wall, with the monitor's rhythmic glow illuminating her intense expression and the rich texture of the wood grain.
+- INSIDE THE ARCADE CABINET: A bulky 19-inch CRT monitor glows with its characteristic phosphorescent hue.
+  - INSIDE THE CRT:
+    - INSIDE THE PIXELATED GAME:
+A PIXEL-ART 80s VIDEOGAME OF:
+<!--
+{$@}
+-->
+    - OUTSIDE THE PIXELATED GAME: The glass bezel with retro sci-fi artwork surrounding the glowing screen.
+- OUTSIDE THE CRT:
+The sturdy wooden cabinet with black T-moulding edges, a control panel featuring a classic red ball-top joystick and two concave buttons, and a lit marquee at the top showing a stylized arcade logo.
+- THE PLAYER:
+A woman of short stature, standing with a confident and focused posture, wearing an acid-wash denim skirt, neon sweatshirt, and voluminous teased hair, her silhouette cast by the vibrant light of the screen.
+- OUTSIDE THE ARCADE MACHINE:
+The arcade machine stands against a dimly lit wall of the arcade hall. At the far right edge of the frame, the lateral panel of another arcade cabinet is partially visible, fading into the shadows. 
+{$IFPAL
+The dark arcade floor reflects the neon lights in $1 and $2 hues, with wall accents in $3 and $4, casting a warm, atmospheric glow on the wooden side panels of the machine. |
+The dimly lit arcade hall is filled with the hum of electronics, reflective floor tiles, and faint shadows of other machines, creating a quintessential 80s atmosphere.
+}
 
 
 >>> Arcade Cabinet // Pong Duo
