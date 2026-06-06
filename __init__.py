@@ -92,7 +92,7 @@ def _register_node(node_class      : type,
     comfy_node_id  = f"{class_name} {__PROJECT_ID}"
 
     if deprecated:
-        title = f"❌{title} [Deprecated]"
+        title = f"❌[DEPRECATED] {title}"
     else:
         title = f"{__PROJECT_EMOJI}| {title}"
 
