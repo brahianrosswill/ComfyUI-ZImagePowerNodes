@@ -15,11 +15,11 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 """
-from typing                       import Any
-from comfy_api.latest             import io
-from ..custom_widgets             import Separator
-from ..core.progress_bar          import ProgressPreview
-from ..core.zsampler_turbo_legacy import zsampler_turbo_legacy
+from typing               import Any
+from comfy_api.latest     import io
+from ..custom_widgets     import Separator
+from ..core.progress_bar  import ProgressPreview
+from ..core.zsampler_turbo_legacy_method import zsampler_turbo_legacy_method
 
 
 
@@ -108,15 +108,15 @@ class ZSamplerTurbo(io.ComfyNode):
         progress_preview = ProgressPreview.from_model( model )
 
         # run the legacy Z-Sampler Turbo process on the latent image
-        latent_output = zsampler_turbo_legacy(latent_input, model, positive,
-                                              seed                      = seed,
-                                              steps                     = steps,
-                                              denoise                   = denoise,
-                                              initial_noise_calibration = initial_noise_calibration,
-                                              noise_bias_estimation     = noise_bias_estimation,
-                                              noise_bias_sample_size    = 256 if lowres_bias else "image_size",
-                                              noise_bias_scale          = noise_bias_scale,
-                                              noise_overdose            = noise_overdose,
-                                              progress_preview          = progress_preview,
-                                              )
+        latent_output = zsampler_turbo_legacy_method(latent_input, model, positive,
+                                    seed                      = seed,
+                                    steps                     = steps,
+                                    denoise                   = denoise,
+                                    initial_noise_calibration = initial_noise_calibration,
+                                    noise_bias_estimation     = noise_bias_estimation,
+                                    noise_bias_sample_size    = 256 if lowres_bias else "image_size",
+                                    noise_bias_scale          = noise_bias_scale,
+                                    noise_overdose            = noise_overdose,
+                                    progress_preview          = progress_preview,
+                                    )
         return io.NodeOutput(latent_output)

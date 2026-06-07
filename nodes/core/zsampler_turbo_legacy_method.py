@@ -1,5 +1,5 @@
 """
-File    : zsampler_turbo_legacy.py
+File    : zsampler_turbo_legacy_method.py
 Purpose : The legacy method for the "Z-Sampler Turbo" process.
           This code is deprecated and may be removed in the future,
           it is kept only for backward compatibility.
@@ -21,20 +21,20 @@ from typing         import Any
 from .progress_bar  import ProgressPreview
 
 
-def zsampler_turbo_legacy(latent_input             : dict[str, Any],
-                          model                    : Any,
-                          positive                 : list,
-                          *,
-                          seed                     : int,
-                          steps                    : int,
-                          denoise                  : float,
-                          initial_noise_calibration: float,
-                          noise_bias_estimation    : str,
-                          noise_bias_sample_size   : str | int | None,
-                          noise_bias_scale         : float,
-                          noise_overdose           : float,
-                          progress_preview         : ProgressPreview
-                          ) -> dict[str, Any]:
+def zsampler_turbo_legacy_method(latent_input             : dict[str, Any],
+                                 model                    : Any,
+                                 positive                 : list,
+                                 *,
+                                 seed                     : int,
+                                 steps                    : int,
+                                 denoise                  : float,
+                                 initial_noise_calibration: float,
+                                 noise_bias_estimation    : str,
+                                 noise_bias_sample_size   : str | int | None,
+                                 noise_bias_scale         : float,
+                                 noise_overdose           : float,
+                                 progress_preview         : ProgressPreview
+                                 ) -> dict[str, Any]:
     """
     This code is deprecated and may be removed in the future,
     it is kept only for backward compatibility.

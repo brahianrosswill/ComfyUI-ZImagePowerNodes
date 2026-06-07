@@ -12,7 +12,6 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 """
 import torch
 import torch.nn.functional as F
-import numpy as np
 import comfy.utils
 import comfy.sample
 import comfy.samplers
@@ -20,6 +19,14 @@ import comfy.sampler_helpers
 from comfy.samplers import KSAMPLER, sampler_object
 from typing         import Any, TypeAlias
 from .progress_bar  import ProgressPreview
+from .zsampler_turbo_corehelp import EulerAss_KSAMPLER, \
+                                     generate_noise, \
+                                     inject_freq_noise, \
+                                     truncate_sigmas_by_step_range, \
+                                     truncate_sigmas_by_value_range, \
+                                     refine_sigma_sequence, \
+                                     merge_sigmas, \
+                                     scramble_tensor
 ComfyLatent      : TypeAlias = dict[str, Any]
 ComfyModel       : TypeAlias = Any
 ComfyConditioning: TypeAlias = list[ tuple[torch.Tensor,dict] ]
@@ -134,11 +141,12 @@ def zsampler_turbo_core(latent_input             : ComfyLatent,
     # if no sampler was specified, we use "euler" in each stage
     if sampler_names is None:
         sampler_names = ("euler", "euler", "euler")
-    samplers = tuple( sampler_object(name) for name in sampler_names if isinstance(name,str) )
 
-    # validate that at least three samplers are selected (one for each stage)
+    # convert sampler names to sampler objects,
+    # ensuring that at least three samplers were provided
+    samplers = tuple( EulerAss_KSAMPLER() if name == "euler_ass" else sampler_object(name) for name in sampler_names if isinstance(name,str) )
     if len(samplers) < 3:
-        raise ValueError("If `sampler_names` parameter is specified, it should contain at least three samplers.")
+        raise ValueError("If `sampler_names` parameter is specified, it should contain at least three valid samplers.")
 
     # validate `inject_noise_freqs/scales`
     if extra_noise_freqs is not None:
@@ -399,7 +407,7 @@ def execute_3_stage_denoising(comfy_latent: ComfyLatent,
     # if inpainting is detected, combine stage1 and stage2 into stage1.
     # this action eliminates all stage2 processes including turbo creativity
     if isinstance(sigma_limits, (list,tuple)) and max(sigma_limits[0],sigma_limits[1]) < 1.0:
-        sigmas1 = _merge_sigmas(sigmas1, sigmas2)
+        sigmas1 = merge_sigmas(sigmas1, sigmas2)
         sigmas2 = None
 
 
@@ -591,7 +599,7 @@ def _stage2_core(comfy_latent : ComfyLatent,
     # == PRE-PROCESSING 1 ==
     # if requested, scramble the input latent image as a first process
     if any(scramble_counts):
-        latents = _scramble_tensor(latents, scramble_counts, seed=noise_seed)
+        latents = scramble_tensor(latents, scramble_counts, seed=noise_seed)
 
     # == PRE-PROCESSING 2 ==
     # if requested, run preprocess sampling steps with high sigmas (0.949)
@@ -791,11 +799,11 @@ def _iterative_denoising(latents     : torch.Tensor,
 
     # apply extra noise injection if it was required
     if extra_noise_scales and extra_noise_freqs:
-        latents = _inject_freq_noise(latents,
-                                     seed         = noise_seed,
-                                     noise_freqs  = extra_noise_freqs,
-                                     noise_scales = extra_noise_scales,
-                                     )
+        latents = inject_freq_noise(latents,
+                                    seed         = noise_seed,
+                                    noise_freqs  = extra_noise_freqs,
+                                    noise_scales = extra_noise_scales,
+                                    )
 
     # force a full denoising (with the last sigma to zero) if it was required
     if force_final_denoise and sigmas[-1] != 0:
@@ -820,13 +828,13 @@ def _iterative_denoising(latents     : torch.Tensor,
                                      device         = "cpu")
 
 
-    # this component modifies the progress report sent by comfyui
+    # this wrapper modifies the progress report sent by comfyui
     # to show an external progress from 0 to 100
     steps = _num_steps(sigmas)
     progress_wrapper = ProgressPreview( steps+1, parent=(progress_preview, 100/(steps+2), 100) )
-    disable_pbar = not comfy.utils.PROGRESS_BAR_ENABLED
 
     # generates the denoised latent using a native function from comfyui
+    disable_pbar = not comfy.utils.PROGRESS_BAR_ENABLED
     latents = comfy.sample.sample_custom(model, comfy_noise, cfg, sampler, sigmas, positive, negative,
                                          latents, noise_mask=noise_mask, callback=progress_wrapper,
                                          disable_pbar=disable_pbar, seed=noise_seed)
@@ -839,123 +847,6 @@ def _iterative_denoising(latents     : torch.Tensor,
             latents = latents * original_mask + ( 1.0 - original_mask ) * original_samples
 
     return latents
-
-
-#============================ IMAGE SCRAMBLING =============================#
-
-def _scramble_tensor(x     : torch.Tensor,
-                     counts: tuple[int,int,int,int],
-                     *,
-                     seed  : int,
-                     ) -> torch.Tensor:
-    """
-    Scrambles the input latent image tensor.
-
-    The function scrambles the tensor by dividing it into fragments,
-    randomly reordering and flipping them, and then combining them while
-    preserving the overall standard deviation and mean of the original tensor.
-
-    Args:
-        x     : Input tensor of shape (B, C, H, W) representing the latent image.
-        counts: Tuple of four signed integers (left, top, right, bottom) that
-                 control how many fragments are combined for each alignment.
-                 Zero means “no fragments for this side”, a positive value adds
-                 normal fragments, a negative value adds fragments that are also
-                 randomly flipped (horizontally and vertically).
-                 Passing `(0,0,0,0)` leaves the tensor unchanged.
-        seed  : The seed for random number generation to ensure reproducibility.
-    Returns:
-        A new tensor with the same shape as `x`, where fragments of the
-        original image are scrambled in a random and potentially flipped manner.
-    """
-    ANCHOR_NAMES = ('left', 'top', 'right', 'bottom' )
-    if x.dim() != 4:
-        raise ValueError("Input tensor must be (B, C, H, W).")
-
-    # if all counts are zero, return the tensor as is
-    if not any(counts):
-        return x
-
-    x_scale   = x.std (dim=(2,3), keepdim=True)
-    x_bias    = x.mean(dim=(2,3), keepdim=True)
-    generator = torch.Generator().manual_seed(seed)
-
-    result = torch.zeros_like(x)
-    for anchor_idx in range(4):
-        for i in range( abs(counts[anchor_idx]) ):
-            result +=  _random_tensor_fragment(x, generator,
-                                              size   = (0.50,0.75),
-                                              anchor = ANCHOR_NAMES[anchor_idx],
-                                              random_horizontal_flip = counts[anchor_idx]<0,
-                                              random_vertical_flip   = counts[anchor_idx]<0
-                                              )
-
-    result_scale = result.std (dim=(2,3), keepdim=True)
-    result_bias  = result.mean(dim=(2,3), keepdim=True)
-
-    # re-scale/shift to match original features
-    scale_factor  = x_scale / result_scale.clamp(min=1e-6)
-    combined_bias = x_bias - (result_bias * scale_factor)
-    return result * scale_factor + combined_bias
-
-
-def _random_tensor_fragment(x                      : torch.Tensor,
-                            generator              : torch.Generator,
-                            size                   : tuple[float, float] = (0.50, 0.75),
-                            anchor                 : str = 'left',
-                            random_horizontal_flip : bool = True,
-                            random_vertical_flip   : bool = True,
-                            ) -> torch.Tensor:
-    """
-    Extracts a random rectangular fragment from a 4-dimensional tensor.
-
-    This function generates a random fragment by selecting a random rectangle
-    within the tensor and then resizing it to match the original tensor's dimensions.
-
-    Args:
-        x         : Input tensor of shape (B, C, H, W) representing an image or feature map.
-        generator : Random number generator for reproducibility.
-        size      : Minimum and maximum relative size of the fragment as a
-                     ratio of the input tensor's width. Defaults to (0.50, 0.75)
-        anchor    : Specifies the side to which the fragment is anchored.
-                     Can be either 'left' or 'right'. Defaults to 'left'.
-    Returns:
-        A tensor of the same shape as the input tensor, containing a randomly selected fragment.
-    """
-    if x.dim() != 4:
-        raise ValueError("Input tensor must be 4-D (B, C, H, W).")
-    if anchor not in {"left", "top", "right", "bottom"}:
-        raise ValueError("anchor must be either 'left' or 'right'.")
-
-    B, C, H, W = x.shape
-
-    # give the rectangle a random size within the provided limits.
-    min_size, max_size = size
-    ratio = torch.rand(1, generator=generator, device=x.device) * (max_size - min_size) + min_size
-    frag_width  = int(W * ratio)
-    frag_height = int(H * ratio)
-
-    # place the rectangle in a random position inside the tensor
-    if anchor == "left" or anchor == "right":
-        top  = torch.randint(0, H - frag_height + 1, (1,), generator=generator, device="cpu").item()
-        left = 0 if anchor == "left" else W - frag_width
-    else:
-        left = torch.randint(0, W - frag_width + 1, (1,), generator=generator, device="cpu").item()
-        top  = 0 if anchor == "top" else H - frag_height
-
-    # fragment = (B, C, fh, fw)
-    fragment = x[..., top:top + frag_height, left:left + frag_width]
-
-    # optional random horizontal flip
-    if random_horizontal_flip and torch.rand(1, generator=generator, device="cpu").item() > 0.5:
-        fragment = torch.flip(fragment, dims=[-1])
-
-    # optional random vertical flip
-    if random_vertical_flip and torch.rand(1, generator=generator, device="cpu").item() > 0.5:
-        fragment = torch.flip(fragment, dims=[-2])
-
-    # return = (B, C, H, W)
-    return F.interpolate(fragment, size=(H, W), mode='bilinear', align_corners=False)
 
 
 #============================ NOISE PROCESSING =============================#
@@ -1035,290 +926,6 @@ def estimate_initial_noise_features(comfy_latent : ComfyLatent,
     return bias, scale
 
 
-def generate_noise(seed           : int,
-                   shape          : tuple[int, ...],
-                   *,
-                   noise_bias     : torch.Tensor | float | int | None = None,
-                   noise_scale    : torch.Tensor | float | int | None = None,
-                   batch_subseeds : list[int] | None                  = None,
-                   dtype          : torch.dtype,
-                   layout         : torch.layout,
-                   device         : str | torch.device = "cpu"
-                   ):
-    """
-    Generate batched noise with optional per-sample 'virtual' sub-seeds.
-    """
-    generator = torch.manual_seed(seed)
-    return generate_noise_(generator, shape, dtype, layout, noise_bias, noise_scale, batch_subseeds, device)
-
-
-def generate_noise_(generator      : torch.Generator,
-                    shape          : tuple[int, ...],
-                    dtype          : torch.dtype,
-                    layout         : torch.layout,
-                    noise_bias     : torch.Tensor | float | int | None = None,
-                    noise_scale    : torch.Tensor | float | int | None = None,
-                    batch_subseeds : list[int] | None                  = None,
-                    device         : str | torch.device                = "cpu"
-                    ):
-    """
-    Generate batched noise with optional per-sample 'virtual' sub-seeds.
-
-    Args:
-        generator      : A `torch.Generator` object for generating random numbers.
-        shape          : Noise shape. The first dimension is the batch size.
-        dtype          : The floating-point dtype of the generated tensor.
-        layout         : torch.strided or torch.sparse_coo, etc.
-        noise_bias     : Optional constant offset added to the noise.
-                          if `None` or not provided, this is set to 0.0
-        noise_scale    : Optional scale factor applied to the raw normal noise.
-                          if `None` or not provided, this is set to 1.0
-        batch_subseeds : Optional list of small integers (0, 1, 2, …) that act as virtual seeds
-                          for every sample in the batch. Repetitions are allowed; repeated indices
-                          yield identical noise for those samples. If `None` or empty, every sample
-                          receives independent noise.
-        device         : Target device for the generated tensor.
-    Returns:
-        A noise tensor of the requested shape, already biased and scaled.
-    """
-    if batch_subseeds:
-        # batch subseeds were provided, indicating the virtual seed value for
-        # generating noise for each batch element. These values should be small
-        # integers like [0, 1, 2, 3] or [0, 1, 0, 1], or even [0, 0, 0, 0] if
-        # identical noise is desired for all elements in the batch.
-        unique_subseeds, inverse = np.unique(batch_subseeds, return_inverse=True)
-        max_subseed              = unique_subseeds.max()
-        subnoise_shape           = [1] + list(shape)[1:]
-        subnoises : list[torch.Tensor] = []
-        for subseed in range(max_subseed+1):
-            subnoise = torch.randn(subnoise_shape, dtype=dtype, layout=layout, generator=generator, device=device)
-            if subseed in unique_subseeds:
-                subnoises.append(subnoise)
-        noise = torch.cat( [subnoises[i] for i in inverse] )
-    else:
-        # if no batch subseeds are provided, generate a single noise tensor for
-        # the entire batch with fully random values.
-        noise = torch.randn(shape, dtype=dtype, layout=layout, generator=generator, device=device)
-
-     # apply noise bias and scale if provided
-    if noise_scale is not None: noise *= noise_scale
-    if noise_bias  is not None: noise += noise_bias
-    return noise
-
-
-def _inject_freq_noise(x    : torch.Tensor,
-                       seed : int,
-                       *,
-                       noise_freqs : int   | tuple[int,...]   = 1024,
-                       noise_scales: float | tuple[float,...] = 1.0,
-                       ) -> torch.Tensor:
-    """
-    Injects noise at specified "frequencies" into the input tensor `x`.
-
-    This function generates noise at different resolutions based on the provided
-    frequencies, resulting in a range of low-frequency noise effects when applied
-    to the input tensor.
-
-    Args:
-        x            : Input tensor to which noise will be added.
-        seed         : Seed for random noise generation to ensure reproducibility.
-        noise_freqs  : Frequency factors that determine the resolutions at which
-                       noise is generated. Multiple frequencies can be specified as a tuple,
-                       resulting in multiple layers of noise with varying smoothness.
-                       A lower value results in smoother noise. For example, a noise_freq of 1024
-                       means noise is injected into every pixel, while a noise_freq of 512 means
-                       noise is injected every second pixel, with intermediate pixels being interpolated.
-        noise_scales : Scale factors for the noise intensities corresponding to each frequency.
-                       Multiple scales can be specified as a tuple. Default is 1.0.
-                       A 0.0 value disables noise injection for that particular scale and frequency pair.
-
-    Returns:
-        The input tensor x with low-frequency noise injected according to
-        the provided frequencies and scales.
-    """
-    h, w  = x.shape[-2:]
-
-    # force `freqs` and `scales` to be tuples
-    freqs : tuple[int, ...]   = noise_freqs  if isinstance(noise_freqs , tuple) else (noise_freqs,)
-    scales: tuple[float, ...] = noise_scales if isinstance(noise_scales, tuple) else (noise_scales,)
-    if len(freqs) != len(scales):
-        raise ValueError("noise_freqs and noise_scales must have the same length")
-
-    # iterate over pairs of frequency/scale injecting the corresponding noise
-    for freq, scale in zip(freqs, scales):
-        if scale <= 0.0  or  freq < (1024/h)  or  freq < (1024/w):
-            continue
-
-        # generate a small size noise
-        low_res_shape = ( *x.shape[:-2], (h * freq) // 1024, (w * freq) // 1024 )
-        seed += 1
-        noise = generate_noise(seed,
-                               noise_scale = scale,
-                               shape       = low_res_shape,
-                               dtype       = x.dtype,
-                               layout      = x.layout,
-                               device      = x.device)
-
-        # inject the noise, interpolating it to the input tensor size
-        x = x + F.interpolate(noise,
-                              size          = (h, w),
-                              mode          = 'bilinear',
-                              align_corners = False)
-
-    return x
-
-
-#============================ SIGMA OPERATIONS =============================#
-
-def truncate_sigmas_by_step_range(sigmas    : torch.Tensor | None,
-                                  step_range: tuple[int,int] | list[int] | None,
-                                  *,
-                                  first_sigma_step: int = 0,
-                                  ) -> torch.Tensor | None:
-    """
-    Truncate sigmas tensor based on step range.
-
-    Args:
-        sigmas          : Tensor of sigma values.
-        step_range      : Tuple or list of (start_step, end_step) inclusive-exclusive.
-        first_sigma_step: The step number of the first sigma value in the tensor.
-
-    Returns:
-        Truncated sigmas tensor, or None if sigmas is invalid.
-    """
-    if sigmas is None or sigmas.numel() <= 1:
-        return None
-    if not isinstance(step_range, (list, tuple)) or len(step_range) < 2:
-        return sigmas
-
-    start_step = max(0, step_range[0] - first_sigma_step)  # first step (inclusive)
-    end_step   = max(0, step_range[1] - first_sigma_step)  # last step (exclusive)
-    sigmas = sigmas[start_step:end_step + 1]
-    if sigmas.numel()<2:
-        return None
-    return sigmas
-
-
-def truncate_sigmas_by_value_range(sigmas      : torch.Tensor | None,
-                                   value_range : list[float] | tuple[float,float] | None,
-                                   ) -> torch.Tensor | None:
-    """
-    Truncates a *descending* tensor of sigmas inside a restricted range.
-
-    The returned tensor keeps the original order and contains only the values
-    that fall between `limits[0]` and `limits[1]`; if the original tensor
-    is clipped at either end, the corresponding limit value is appended
-    so that the final result always includes both boundaries.
-    If no value satisfies this condition the function returns `None`.
-
-    Args:
-        sigmas:
-            1-D tensor with sigma values sorted in **descending** order.
-        limits:
-            Sequence with at least two elements.
-            The first and second elements are used as the `(min, max)` range
-            that defines the interval for filtering.
-
-    Returns:
-        A new tensor with the sigmas that lie inside `[min, max]`.
-        The tensor preserves the original descending order.
-        If `sigmas` is `None` the function returns `None`.
-        If `sigmas` is totally outside the limits, the function returns `None`.
-    """
-    if sigmas is None or sigmas.numel()<=1:
-        return None
-
-    if value_range is None:
-        return sigmas
-    if not isinstance(value_range, (list, tuple)) or len(value_range) < 2:
-        raise ValueError("`limits` must be a list or tuple with at least 2 elements")
-    if not (sigmas[0] >= sigmas[-1]):
-        raise ValueError("`sigmas` must be sorted in descending order")
-
-    # extract the lower and upper limits
-    lower, upper = value_range[0], value_range[1]
-    if lower > upper:
-        lower, upper = upper, lower
-
-    # if the range of sigmas is totally outside the limits
-    # then none of the sigmas should be returned
-    if sigmas[-1] >= upper or lower >= sigmas[0]:
-        return None
-
-    # create the mask to filter out values outside the range
-    valid_mask = (upper > sigmas) & (sigmas > lower)
-    if valid_mask.all():
-        return sigmas
-
-    # filter the tensor using the mask
-    truncated_sigmas = sigmas[valid_mask]
-
-    # add the lower/upper limits to the tensor if it was actually truncated
-    if not valid_mask[0]:
-        upper_sigma = torch.tensor([upper], dtype=sigmas.dtype, device=sigmas.device)
-        truncated_sigmas = torch.cat((upper_sigma, truncated_sigmas))
-    if not valid_mask[-1]:
-        lower_sigma = torch.tensor([lower], dtype=sigmas.dtype, device=sigmas.device)
-        truncated_sigmas = torch.cat((truncated_sigmas, lower_sigma))
-
-    return truncated_sigmas
-
-
-def refine_sigma_sequence(sigmas: list[float] | None, insert_count: int) -> list[float]:
-    """
-    Refines a sequence of sigmas by inserting midpoints between neighbors.
-
-    Args:
-        sigmas      : List of sigmas (e.g., [0.948, 0.858, ..., 0.0])
-        insert_count: Total number of new sigmas to insert into the list
-    Returns:
-        A new list containing the original points plus the added midpoints
-    """
-    if not sigmas or len(sigmas)<2:
-        sigmas = [1.0, 0.0]
-
-    # keep looping until there are no more sigmas to insert
-    while insert_count > 0:
-        new_sequence = [ sigmas[0] ]
-
-        for i in range(len(sigmas) - 1):
-            # insert a midpoint between current sigma and next sigma
-            if insert_count > 0:
-                new_sequence.append( (sigmas[i] + sigmas[i+1]) / 2 )
-                insert_count -= 1
-            # re-insert the original sigma
-            new_sequence.append( sigmas[i+1] )
-
-        sigmas = new_sequence
-
-    return sigmas
-
-def _merge_sigmas(sigmas1: torch.Tensor | None, 
-                  sigmas2: torch.Tensor | None
-                  ) -> torch.Tensor | None:
-    """
-    Merges two descendingly ordered sigma tensors, removing overlapping values.
-    Args:
-        sigmas1: First tensor of sigmas.
-        sigmas2: Second tensor of sigmas.
-    Returns:
-        Combined tensor with overlapping values removed and maintained in descending order.
-        If both tensors are None, returns None.
-    """
-    if sigmas1 is None:
-        return sigmas2
-    if sigmas2 is None:
-        return sigmas1
-
-    # ensure tensors are on the same device and data type for concatenation
-    sigmas2 = sigmas2.to(device=sigmas1.device, dtype=sigmas1.dtype)
-
-    # find the cut-off point where elements in sigmas1 are
-    # strictly greater than the first element of sigmas2
-    cut = (sigmas1 > sigmas2[0]).sum()
-    return torch.cat((sigmas1[:cut], sigmas2))
-
-
 #================================= HELPERS =================================#
 
 def _num_steps(sigmas: torch.Tensor | None) -> int:
@@ -1341,14 +948,13 @@ def _valid_conditioning(conditioning: ComfyConditioning | None, *,
         return conditioning
     return default
 
-
-def _is_empty_conditioning(comfy_conditioning: ComfyConditioning | None) -> bool:
-    """Returns True if the conditioning tensor is empty or None."""
-    if comfy_conditioning is None:
-        return True
-    if isinstance(comfy_conditioning,(list,tuple)) and len(comfy_conditioning) == 0:
-        return True
-    return False
+# def _is_empty_conditioning(comfy_conditioning: ComfyConditioning | None) -> bool:
+#     """Returns True if the conditioning tensor is empty or None."""
+#     if comfy_conditioning is None:
+#         return True
+#     if isinstance(comfy_conditioning,(list,tuple)) and len(comfy_conditioning) == 0:
+#         return True
+#     return False
 
 
 #============================== SIGMA PRESETS ==============================#
