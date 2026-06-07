@@ -19,7 +19,7 @@ import comfy.sampler_helpers
 from comfy.samplers import KSAMPLER, sampler_object
 from typing         import Any, TypeAlias
 from .progress_bar  import ProgressPreview
-from .zsampler_turbo_corehelp import EulerAss_KSAMPLER, \
+from .zsampler_turbo_corehelp import EulerAss, \
                                      generate_noise, \
                                      inject_freq_noise, \
                                      truncate_sigmas_by_step_range, \
@@ -138,13 +138,14 @@ def zsampler_turbo_core(latent_input             : ComfyLatent,
     # negative conditioning, here we set it to `positive` for simplicity
     negative = positive
 
-    # if no sampler was specified, we use "euler" in each stage
-    if sampler_names is None:
-        sampler_names = ("euler", "euler", "euler")
+    ## if no sampler was specified, we use "euler" in each stage
+    # if sampler_names is None:
+    #    sampler_names = ("euler", "euler", "euler_ass")
+    sampler_names = ("euler_ass", "euler_ass", "euler_ass")
 
     # convert sampler names to sampler objects,
     # ensuring that at least three samplers were provided
-    samplers = tuple( EulerAss_KSAMPLER() if name == "euler_ass" else sampler_object(name) for name in sampler_names if isinstance(name,str) )
+    samplers = tuple( EulerAss() if name == "euler_ass" else sampler_object(name) for name in sampler_names if isinstance(name,str) )
     if len(samplers) < 3:
         raise ValueError("If `sampler_names` parameter is specified, it should contain at least three valid samplers.")
 

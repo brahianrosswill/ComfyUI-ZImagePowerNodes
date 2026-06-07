@@ -12,45 +12,175 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 """
 import torch
 import torch.nn.functional as F
-from typing         import Any
+from typing         import Callable
 from torch          import Tensor
 from comfy.samplers import KSAMPLER, sampler_object
 
 
-# Euler Ancestral Spectral Sampler
-class EulerAss_KSAMPLER(KSAMPLER):
+#==================== EULER Ancestral Spectral Sampler =====================#
 
-    def __init__(self):
-       def sampler_bridge(model, x, sigmas, *args, **kwargs):
-            return self._my_sampler_function(model, x, sigmas, *args, **kwargs)
+class EulerAss(KSAMPLER):
+    """
+    Euler Ancestral Spectral Sampler
 
-       self._euler_ancestral = sampler_object("euler_ancestral")
-       super().__init__(sampler_function = sampler_bridge,
-                        extra_options    = self._euler_ancestral.extra_options.copy(),
-                        inpaint_options  = self._euler_ancestral.inpaint_options.copy()
-                        )
+    This is Euler Ancestral but slightly modified so that the applied
+    noise has an adjusted spectral distribution.
 
-    def _my_sampler_function(self,
-                             model : object,
-                             x     : Tensor,
-                             sigmas: Tensor,
-                             *args,
-                             extra_args: dict[str, Any] | None = None,
-                             **kwargs,
-                             ):
-        print("##>> Euler Ancestral Sampler!")
-        print("##>> args  :", args)
-        print("##>> kwargs:", kwargs)
-        return self._euler_ancestral.sampler_function(
-            model,
-            x,
-            sigmas,
-            *args,
-            #noise_sampler = noise_sampler,
-            extra_args=extra_args,
-            **kwargs,
-        )
+    Args:
+        alpha_tilting:   Frequency tilt applied to the spectrum.
+                         If a single value is provided, it represents a constant tilt.
+                         If a tuple is given, it represents the start and end tilting
+                         values for a step-varying effect. Default is (0.1, -1.0).
+        alpha_sharpness: Sharpness of the exponential alpha interpolation curve
+                         used when `alpha_tilting` is a tuple with two values.
+                         A value of 1.0 indicates linear interpolation. Default is 1.0.
+        sigma_range:     Optional tuple of two floats (sigma_start, sigma_end) for the
+                         sigma range used to calculate the alpha interpolation.
+                         Typically leaving this empty. Default is (0.9999, 0.0).
+    Notes:
+        This implementation is heavily inspired by the frequency-decoupled energy
+        transfer paradigm described in the paper "Colored Noise Diffusion Sampling".
+        However, it represents a standalone adaptation and is not an exact replication
+        of the full, dynamic timestep-dependent framework proposed in the original paper.
+    References:
+        Inspired by: Davidson H., Issachar N., & Benaim S. (2026). "Colored Noise Diffusion
+        Sampling". arXiv preprint arXiv:2605.30332. https://arxiv.org/abs/2605.30332
+    """
+    def __init__(self,
+                 alpha_tilting  : tuple[float,float] | float = (0.1, -1.0),
+                 alpha_sharpness: float                      = 1.0,
+                 sigma_range    : tuple[float,float]         = (0.9999, 0.0)
+                 ):
+        # duplicate Euler Ancestral object but with a modified sampler
+        euler_ancestral = sampler_object("euler_ancestral")
+        super().__init__(sampler_function = (lambda *a,**kw: self._eulera_sampler_with_custom_noise(*a, **kw)),
+                         extra_options    = euler_ancestral.extra_options.copy(),
+                         inpaint_options  = euler_ancestral.inpaint_options.copy()
+                         )
+        self._euler_ancestral    = euler_ancestral
+        self._ea_alpha_tilting   = alpha_tilting
+        self._ea_alpha_sharpness = alpha_sharpness
+        self._ea_sigma_range     = sigma_range
 
+
+    def _eulera_sampler_with_custom_noise(self,
+                                          model : object,
+                                          noise : Tensor,
+                                          sigmas: Tensor,
+                                          *args,**kwargs,
+                                          ) -> Tensor:
+        """Execute the Euler Ancestral sampler but with custom noise.
+
+        This method is registered by the class `__init__` and is invoked by ComfyUI
+        multiple times during the denoising process.
+        """
+        # get the base noise sampler provided by ComfyUI
+        base_noise_sampler = kwargs.pop("noise_sampler", None)
+        if base_noise_sampler is None:
+            base_noise_sampler = (lambda *a,**kw: torch.randn_like(noise))
+
+        # get my custom noise sampler
+        custom_noise_sampler = (lambda *a,**kw: self._custom_noise_sampler(base_noise_sampler, *a, **kw))
+
+        # use Euler Ancestral but with my custom noise sampler
+        return self._euler_ancestral.sampler_function(model, noise, sigmas, *args,
+                                                      noise_sampler = custom_noise_sampler,
+                                                      **kwargs)
+
+
+    def _custom_noise_sampler(self,
+                              base_noise_sampler: Callable,
+                              sigma             : Tensor,
+                              *args, **kwargs
+                              ) -> Tensor:
+        """Generates noise with an adjusted spectral distribution.
+
+        This method is registered by `_eulera_sampler_with_custom_noise(...)` and
+        is invoked by ComfyUI multiple times during the denoising process.
+        Args:
+            base_noise_sampler: The original function used by ComfyUI to generate noise.
+            sigma             : The sigma value for which the noise should be spectrally adjusted.
+            *args, **kwargs   : Additional arguments to be passed to the base_noise_sampler.
+        Returns:
+            A tensor of custom noise with an adjusted spectral distribution.
+        """
+        sigma_f       = float(sigma.mean().detach().cpu())
+        alpha_tilting = self._ea_alpha_tilting
+
+        # calculate the value `alpha` corresponding to the current sampling step's sigma value
+        if isinstance(alpha_tilting, (list, tuple)) and len(alpha_tilting) == 2:
+            start_sigma, end_sigma = self._ea_sigma_range
+            range    = end_sigma - start_sigma
+            progress = max(0.0, min(1.0, (sigma_f - start_sigma) / range)) if range != 0 else 1.0
+            alpha = alpha_tilting[0] + (progress**self._ea_alpha_sharpness) * (alpha_tilting[1] - alpha_tilting[0])
+        else:
+            alpha = float(alpha_tilting)
+
+        # use the base sampler to generate standard noise and then adjust its spectral distribution
+        noise = base_noise_sampler(sigma, *args, **kwargs)
+        return self.adjust_spectral_distribution(noise, alpha=alpha, force_zero_mean=False)
+
+
+    @staticmethod
+    def adjust_spectral_distribution(noise: Tensor,
+                                     *,
+                                     alpha                : float,
+                                     power_gamma          : float = 0.5,
+                                     normalize_per_channel: bool  = False,
+                                     force_zero_mean      : bool  = False,
+                                     energy_scale         : float = 1.0,
+                                     eps                  : float = 1e-06,
+                                     ) -> Tensor:
+        """
+        Apply frequency-based scaling to a noise tensor, shaping its spectral power distribution.
+        Args:
+            noise                : The input tensor with the noise to adjust the spectral power distribution.
+                                   shape = [batch, channels, height, width]
+            alpha                : Scaling factor that dictates the decay of power across frequencies.
+            power_gamma          : Base exponent for frequency scaling. Default is 0.5.
+            normalize_per_channel: If False (default/recommended), normalize each sample/image as
+                                   a unit (Instance Normalization).
+                                   If True, normalizes each channel independently, keeping channels
+                                   independent (Channel Normalization). Default is False.
+            force_zero_mean      : If True, the function will subtract the mean of the noise tensor
+                                   before applying the spectral adjustments. Default is False.
+            energy_scale         : Scaling factor for the final energy. Default is 1.0.
+            eps                  : Small constant for numerical stability during division or clamping.
+        Returns:
+            A tensor with adjusted frequency characteristics.
+        """
+        device, dtype = noise.device, noise.dtype
+        B, C, H, W    = noise.shape
+
+        # define spatial normalization dimensions
+        norm_dims = (2, 3) if normalize_per_channel else (1, 2, 3)
+
+        # create 2D frequency grid (squared frequency magnitude)
+        u = torch.fft.fftfreq(H, device=device, dtype=dtype).view(H, 1)
+        v = torch.fft.fftfreq(W, device=device, dtype=dtype).view(1, W)
+        spectral_scale_grid = u**2 + v**2
+
+        # avoid division by zero in the DC component (frequency)
+        spectral_scale_grid[0, 0] = 1.0
+
+        # calculate the filter magnitude
+        # [note: in 2d physics often use "(alpha+1.0)" to match 1D energy decay]
+        spectral_filter = spectral_scale_grid ** (power_gamma * alpha)
+
+        # optional spatial domain mean normalization
+        if force_zero_mean:
+            noise = noise - noise.mean(dim=norm_dims, keepdim=True)
+
+        # transform to frequency domain, filter, and return to spatial domain
+        noise_fft = torch.fft.fft2(noise, dim=(-2, -1))
+        noise_fft = noise_fft / spectral_filter  #< automatic broadcasting over [B, C, H, W]
+
+        # return to spatial domain (keep the real part)
+        filtered = torch.fft.ifft2(noise_fft, dim=(-2, -1)).real
+
+        # final intensity/energy normalization
+        std = filtered.std(dim=norm_dims, keepdim=True).clamp(min=eps)
+        return filtered * (energy_scale / std)
 
 
 #============================ NOISE PROCESSING =============================#
