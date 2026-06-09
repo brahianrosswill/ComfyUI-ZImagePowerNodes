@@ -12,7 +12,7 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 """
 import torch
 import torch.nn.functional as F
-from typing         import Callable
+from typing         import Callable, cast
 from torch          import Tensor
 from comfy.samplers import KSAMPLER, sampler_object
 
@@ -181,6 +181,16 @@ class EulerAss(KSAMPLER):
         # final intensity/energy normalization
         std = filtered.std(dim=norm_dims, keepdim=True).clamp(min=eps)
         return filtered * (energy_scale / std)
+
+
+
+def sampler_from_name(name: str) -> KSAMPLER:
+    if isinstance(name, str) and name == "euler_ass":
+        return EulerAss()
+    elif isinstance(name, str):
+        return sampler_object(name)
+    else:
+        raise ValueError(f"Sampler name must be a string, not '{type(name)}'")
 
 
 #============================ NOISE PROCESSING =============================#

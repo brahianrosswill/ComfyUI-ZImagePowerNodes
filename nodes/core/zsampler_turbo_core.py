@@ -16,10 +16,11 @@ import comfy.utils
 import comfy.sample
 import comfy.samplers
 import comfy.sampler_helpers
-from comfy.samplers import KSAMPLER, sampler_object
-from typing         import Any, TypeAlias
+from comfy.samplers import KSAMPLER
+from typing         import Any, TypeAlias, cast
 from .progress_bar  import ProgressPreview
 from .zsampler_turbo_corehelp import EulerAss, \
+                                     sampler_from_name, \
                                      generate_noise, \
                                      inject_freq_noise, \
                                      truncate_sigmas_by_step_range, \
@@ -62,7 +63,7 @@ def zsampler_turbo_core(latent_input             : ComfyLatent,
                         stage2_preproc_steps     : int                                     = 0,
                         extra_noise_freqs        : tuple[int  ,...] | None                 = None,
                         extra_noise_scales       : tuple[float,...] | None                 = None,
-                        sampler_names            : tuple[KSAMPLER|str, ...] | None         = None,
+                        samplers                 : tuple[str|object, ...] | None           = None,
                         progress_preview         : ProgressPreview
                         ) -> dict[str, Any]:
     """
@@ -126,8 +127,8 @@ def zsampler_turbo_core(latent_input             : ComfyLatent,
         extra_noise_scales      : Optional scales for extra noise injected into the latent image in each stage.
                                    The first two values correspond to stage1 and stage2, while all following
                                    values correspond to stage3. If `None` (default), no extra noise is injected.
-        sampler_names           : Optional tuple of strings with the names of the samplers to be used in each stage.
-                                   If `None` (default) then "euler" is used in all stages.
+        samplers                : Optional tuple of KSAMPLERs (or strings with the names of the samplers) to be
+                                  used in each stage. If `None` (default) then "euler" is used in all stages.
         progress_preview        : A `ProgressPreview` object for displaying progress during the denoising process.
 
     Returns:
@@ -139,15 +140,14 @@ def zsampler_turbo_core(latent_input             : ComfyLatent,
     negative = positive
 
     ## if no sampler was specified, we use "euler" in each stage
-    # if sampler_names is None:
-    #    sampler_names = ("euler", "euler", "euler_ass")
-    sampler_names = ("euler_ass", "euler_ass", "euler_ass")
+    if samplers is None:
+       samplers = ("euler", "euler", "euler")
 
     # convert sampler names to sampler objects,
     # ensuring that at least three samplers were provided
-    samplers = tuple( EulerAss() if name == "euler_ass" else sampler_object(name) for name in sampler_names if isinstance(name,str) )
-    if len(samplers) < 3:
-        raise ValueError("If `sampler_names` parameter is specified, it should contain at least three valid samplers.")
+    sampler_objs = tuple( sampler_from_name(s) if isinstance(s,str) else cast(KSAMPLER,s) for s in samplers )
+    if len(sampler_objs) < 3:
+        raise ValueError("If `samplers` parameter is specified, it should contain at least three valid samplers.")
 
     # validate `inject_noise_freqs/scales`
     if extra_noise_freqs is not None:
@@ -231,7 +231,7 @@ def zsampler_turbo_core(latent_input             : ComfyLatent,
     return execute_3_stage_denoising(latent_input, model, positive, negative,
                                      seed                     = seed,
                                      cfg                      = 1.0,
-                                     samplers                 = samplers,
+                                     samplers                 = sampler_objs,
                                      sigmas1                  = sigmas1,
                                      sigmas2                  = sigmas2,
                                      sigmas3                  = sigmas3,

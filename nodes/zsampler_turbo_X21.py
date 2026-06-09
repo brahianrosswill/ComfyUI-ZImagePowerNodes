@@ -15,12 +15,13 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 """
-from typing                    import Any
-from comfy_api.latest          import io
-from .custom_widgets           import Separator
-from .core.progress_bar        import ProgressPreview
-from .core.zsampler_turbo_core import zsampler_turbo_core
-from .custom_widgets           import Separator
+from typing                        import Any
+from comfy_api.latest              import io
+from .custom_widgets               import Separator
+from .core.progress_bar            import ProgressPreview
+from .core.zsampler_turbo_core     import zsampler_turbo_core
+from .core.zsampler_turbo_corehelp import EulerAss
+from .custom_widgets               import Separator
 
 
 class ZSamplerTurboX21(io.ComfyNode):
@@ -100,18 +101,31 @@ class ZSamplerTurboX21(io.ComfyNode):
                                               "the new scheduler is optimized for general quality, this old version "
                                               "may produce better results in specific cases. ",
                                      ),
-                io.Boolean.Input     ("noise_injection",
-                                      default=False, label_on="yes", label_off="no",
-                                      tooltip="Enables noise injection in the final stage. This can enhance fine "
-                                              "details and realism, but may also generate artificial-looking color "
-                                              "spots in smooth areas. ",
+                io.Combo.Input       ("spectral_tilt",
+                                      options=["no", "stage3", "stages23", "stages123"],
+                                      tooltip=""
                                      ),
-                io.Boolean.Input     ("alternative_refiner",
-                                      default=False, label_on="yes", label_off="no",
-                                      tooltip="Enables an alternative refiner using the DPM++ SDE sampler during the "
-                                              "final stage. This enhances contrast and sharpness in fine details but "
-                                              "increases overall processing time. ",
+                io.Float.Input       ("spectral_tilt_start",
+                                      default=0.1, min=-10, max=10, step=0.1,
+                                      ),
+                io.Float.Input       ("spectral_tilt_end",
+                                      default=-1.0, min=-10, max=10, step=0.1,
                                      ),
+                io.Float.Input       ("spectral_tilt_sharpness",
+                                      default=1.0, min=0.0, max=10.0, step=0.1,
+                                     ),
+                # io.Boolean.Input     ("noise_injection",
+                #                       default=False, label_on="yes", label_off="no",
+                #                       tooltip="Enables noise injection in the final stage. This can enhance fine "
+                #                               "details and realism, but may also generate artificial-looking color "
+                #                               "spots in smooth areas. ",
+                #                      ),
+                # io.Boolean.Input     ("alternative_refiner",
+                #                       default=False, label_on="yes", label_off="no",
+                #                       tooltip="Enables an alternative refiner using the DPM++ SDE sampler during the "
+                #                               "final stage. This enhances contrast and sharpness in fine details but "
+                #                               "increases overall processing time. ",
+                #                      ),
             ],
             outputs=[
                 io.Latent.Output(display_name="latent_output",
@@ -124,16 +138,20 @@ class ZSamplerTurboX21(io.ComfyNode):
     #__ FUNCTION __________________________________________
     @classmethod
     def execute(cls,
-                latent_input         : dict[str, Any],
-                model                : Any,
-                positive             : list,
-                seed                 : int,
-                steps                : int,
-                ibias                : float,
-                turbo_creativity     : bool,
-                old_scheduler        : bool,
-                noise_injection      : bool,
-                alternative_refiner  : bool,
+                latent_input           : dict[str, Any],
+                model                  : Any,
+                positive               : list,
+                seed                   : int,
+                steps                  : int,
+                ibias                  : float,
+                turbo_creativity       : bool,
+                old_scheduler          : bool,
+                spectral_tilt          : str,
+                spectral_tilt_start    : float,
+                spectral_tilt_end      : float,
+                spectral_tilt_sharpness: float,
+                noise_injection       : bool = False,
+                alternative_refiner   : bool = False,
                 *,
                 positive_stg2 : list | None = None,
                 positive_stg3 : list | None = None,
@@ -182,14 +200,25 @@ class ZSamplerTurboX21(io.ComfyNode):
         #
         weak_stg2_prompt_influence = (positive_stg3 is None)
 
+        # set samplers for each stage
+        samplers: list[str|object] = [ "euler" , "euler", "euler" ]
+        alpha_tilting = (spectral_tilt_start, spectral_tilt_end)
+        if "1" in spectral_tilt: samplers[0] = EulerAss(alpha_tilting, alpha_sharpness=spectral_tilt_sharpness)
+        if "2" in spectral_tilt: samplers[1] = EulerAss(alpha_tilting, alpha_sharpness=spectral_tilt_sharpness)
+        if "3" in spectral_tilt: samplers[2] = EulerAss(alpha_tilting, alpha_sharpness=spectral_tilt_sharpness)
+
+        # set "dpmpp_sde" as the stage3 sampler
+        if alternative_refiner:
+            samplers[2] = "dpmpp_sde"
+
 
         # run the Z-Sampler Turbo core method on the latent image
         latent_output = zsampler_turbo_core(
             latent_input,
             model,
             positive,
-            seed          = seed,
-            steps         = steps,
+            seed  = seed,
+            steps = steps,
             initial_noise_bias_level  = initial_noise_bias_level,
             initial_noise_overdose    = initial_noise_overdose,
             noise_est_sample_size     = "full_size",
@@ -202,7 +231,7 @@ class ZSamplerTurboX21(io.ComfyNode):
             stage2_preproc_steps      = 1 if stage2_keep_coherence else 0,
             extra_noise_freqs         = inject_noise_freqs,
             extra_noise_scales        = inject_noise_scales,
-            sampler_names             = ("euler", "euler",  "euler" if not alternative_refiner else "dpmpp_sde"),
+            samplers                  = (*samplers,),
             progress_preview = ProgressPreview.from_model(model),
         )
 

@@ -203,7 +203,7 @@ class ZSamplerTurbo2Simple(io.ComfyNode):
             stage2_preproc_steps      = 1 if stage2_keep_coherence else 0,
             extra_noise_freqs         = inject_noise_freqs,
             extra_noise_scales        = inject_noise_scales,
-            sampler_names             = ("euler", "euler",  "euler" if not alternative_refiner else "dpmpp_sde"),
+            samplers             = ("euler", "euler",  "euler" if not alternative_refiner else "dpmpp_sde"),
             progress_preview = ProgressPreview.from_model(model),
         )
 
