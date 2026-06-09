@@ -26,7 +26,7 @@ _PAL_VERSION: Final[str] = "2.0.0" #< the version of palette definitions this no
 
 
 class StylePromptEncoderX21(io.ComfyNode):
-    xTITLE         = "Style & Prompt Encoder ^G2.1 (Experimental)"
+    xTITLE         = "Style & Prompt Encoder ^G2.1"
     xCATEGORY      = ""
     xCOMFY_NODE_ID = ""
     xDEPRECATED    = False

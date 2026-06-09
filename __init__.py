@@ -61,7 +61,8 @@ from .nodes.core.system  import logger
 def _register_node(node_class      : type,
                    node_class_list : list[type],
                    node_subcategory: str,
-                   deprecated      : bool | None = None
+                   deprecated      : bool | None = None,
+                   experimental    : bool | None = None,
                    ):
     """
     Registers a node in the given `node_class_list` with appropriate title based on its category and status.
@@ -82,6 +83,11 @@ def _register_node(node_class      : type,
     if deprecated == None:
         deprecated = "deprecated" in node_subcategory.lower()
 
+    # if `experimental` is not provided, it will be automatically
+    # determined based on the subcategory where it's being registered
+    if experimental == None:
+        experimental = "experimental" in node_subcategory.lower()
+
     # add a '/' to the beginning of node_subcategory if it doesn't already start with one
     if node_subcategory and not node_subcategory.startswith("/"):
         node_subcategory = "/" + node_subcategory
@@ -93,6 +99,8 @@ def _register_node(node_class      : type,
 
     if deprecated:
         title = f"❌[DEPRECATED] {title}"
+    elif experimental:
+        title = f"⚗️🔬| Experimental: {title}"
     else:
         title = f"{__PROJECT_EMOJI}| {title}"
 

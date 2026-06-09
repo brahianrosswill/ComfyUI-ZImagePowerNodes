@@ -25,7 +25,7 @@ from .custom_widgets               import Separator
 
 
 class ZSamplerTurboX21(io.ComfyNode):
-    xTITLE         = "Z-Sampler Turbo ^G2.1 (Experimental)"
+    xTITLE         = "Z-Sampler Turbo ^G2.1"
     xCATEGORY      = ""
     xCOMFY_NODE_ID = ""
     xDEPRECATED    = False
