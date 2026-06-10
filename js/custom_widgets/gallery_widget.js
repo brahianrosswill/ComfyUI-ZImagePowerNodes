@@ -66,8 +66,9 @@ class GalleryWidgetDelegate {
      * Gets the displayed description text for the given item.
      * Subclasses MUST implement this method to provide custom description logic.
      *
-     * @param {Object} item  - The item data object containing item properties such as name and category
-     * @param {string} value - The current value of the widget, as reported to the backend
+     * @param {Object} item    - The item data object containing item properties such as name and category
+     * @param {string} value   - The current value of the widget, as reported to the backend
+     * @param {Object} options - An object containing the options with which the widget was configured
      * @returns {string}
      *     A string representing the item's description, with one or two lines separated
      *     by a newline character ('\n').
@@ -77,7 +78,7 @@ class GalleryWidgetDelegate {
      *         return `${item.name}\n${item.category}`;
      *     }
      */
-    getItemText(_item, _value) {
+    getItemText(_item, _value, _options) {
         return "getItemText(..) missing";
     }
 
@@ -89,14 +90,16 @@ class GalleryWidgetDelegate {
      * of the provided rectangle area.
      *
      * @param {CanvasRenderingContext2D} ctx - The canvas 2D rendering context
-     * @param {Object} rect  - The rectangle object defining the drawing area (left, top, width, height)
-     * @param {Object} item  - The data of the item to be drawn
-     * @param {string} value - The current value of the widget as reported to the backend
+     * @param {Object}   rect    - The rectangle object defining the drawing area (left, top, width, height)
+     * @param {Object}   item    - The data of the item to be drawn
+     * @param {string}   value   - The current value of the widget as reported to the backend
+     * @param {Object}   options - An object containing the options with which the widget was configured
+     * @param {Function} requestImage - A function to request an image from a URL
      * @returns {number}
      *     The width (in pixels) occupied by the thumbnail, representing the
      *     space used on the right side of the drawing area.
      */
-    drawItemThumbnail(ctx, rect, _item, _value) {
+    drawItemThumbnail(ctx, rect, _item, _value, _options, _requestImage) {
         const thumbWidth = 32;
         const rect_right = rect.left + rect.width;
         ctx.fillStyle = '#FF4D4D';
@@ -114,17 +117,18 @@ class GalleryWidgetDelegate {
      * single centered line if `line2` is empty.
      *
      * @param {CanvasRenderingContext2D} ctx - The canvas 2D rendering context
-     * @param {Object} rect  - The rectangle object defining the drawing area (top, left, width, height)
-     * @param {string} line1 - The primary text content to be drawn
-     * @param {string} line2 - The optional secondary text content
-     * @param {Object} item  - The data of the item to be drawn
-     * @param {string} value - The current value of the widget as reported to the backend
+     * @param {Object} rect    - The rectangle object defining the drawing area (top, left, width, height)
+     * @param {string} line1   - The primary text content to be drawn
+     * @param {string} line2   - The optional secondary text content
+     * @param {Object} item    - The data of the item to be drawn
+     * @param {string} value   - The current value of the widget as reported to the backend
+     * @param {Object} options - An object containing the options with which the widget was configured
      * @returns {number}
      *     The width (in pixels) occupied by the widest rendered text element,
      *     which represents the space used by the text on the right side of
      *     the drawing area.
      */
-    drawItemText(ctx, rect, line1, line2, _item, _value) {
+    drawItemText(ctx, rect, line1, line2, _item, _value, _options) {
         const rightEdge   = rect.left + rect.width;
         const top         = rect.top    - 2;
         const height      = rect.height + 4;
@@ -253,7 +257,8 @@ class GalleryWidget {
 
         /** @type {Object} The configuration options passed to the widget */
         this.options = {
-            height : 48,
+            height          : 48,
+            allow_variations: false,
             ...options
         };
 
@@ -393,19 +398,19 @@ class GalleryWidget {
         this.delegate.drawContainerAndArrows(ctx, rect, padding, this.arrowButtonWidth, selectedIndex>0, selectedIndex<lastIndex);
 
         // draw item thumbnail
-        const thumbWidth = this.delegate.drawItemThumbnail(ctx, rect, item, this.value, (url) => this.requestImage(url) );
+        const thumbWidth = this.delegate.drawItemThumbnail(ctx, rect, item, this.value, this.options, (url) => this.requestImage(url) );
         if( typeof thumbWidth === 'number' ) {
             rect.width -= (thumbWidth + spacing);
         }
 
         // get item text (can be one or two lines)
-        let itemText = this.delegate.getItemText(item, this.value);
+        let itemText = this.delegate.getItemText(item, this.value, this.options);
         if( typeof itemText === 'string' ) itemText = itemText.split('\n');
         const line1 = itemText.length > 0 ? itemText[0] : "";
         const line2 = itemText.length > 1 ? itemText[1] : "";
 
         // draw item text on the right side
-        const textWidth = this.delegate.drawItemText(ctx, rect, line1, line2, item, this.value);
+        const textWidth = this.delegate.drawItemText(ctx, rect, line1, line2, item, this.value, this.options);
         if( typeof textWidth === 'number' ) {
             rect.width -= Math.ceil(textWidth);
         }

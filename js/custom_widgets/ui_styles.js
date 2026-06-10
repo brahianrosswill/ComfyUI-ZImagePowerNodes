@@ -189,8 +189,6 @@ class StyleDialogDelegate extends GalleryDialogDelegate {
  */
 function requireVisualStyleGalleryDialog(version, size="default", viewMode="default") {
 
-    console.log("##>> requireStyles:", size, viewMode);
-
     // check if the dialog is already registered for the specified version
     const dialog = _dialogsByVersion.get(version);
     if(   dialog   ) {
@@ -221,9 +219,15 @@ class StyleWidgetDelegate extends GalleryWidgetDelegate {
         return fetchVisualStyleArray(this.version);
     }
 
-    getItemText(item, _value) {
+    getItemText(item, value, options) {
         if( !item ) { return "Undefined"; }
-        return `${item.name}\n${item.category}`;
+        if( options.allow_variations ) {
+            const parts = item.name.split("//");
+            const name      = parts[0]?.trim() || "";
+            const variation = parts[1]?.trim() || "";
+            return `${name}\n${variation}`;
+        }
+        return item.name;
     }
 
     getItemThumbnailURL(item, _value) {
@@ -233,13 +237,17 @@ class StyleWidgetDelegate extends GalleryWidgetDelegate {
     /**
      * Draws the image/thumbnail for a specific item.
      *
-     * @param {CanvasRenderingContext2D} ctx   - The canvas 2D rendering context
-     * @param {Object}                   rect  - The rectangle object defining the drawing area (left, top, width, height)
-     * @param {Object}                   item  - The item data to render
-     * @param {string}                   value - The current value of the widget (not used in this method)
-     * @param {Function}          requestImage - A function to request an image from a URL
+     * @param {CanvasRenderingContext2D} ctx - The canvas 2D rendering context
+     * @param {Object}   rect    - The rectangle object defining the drawing area (left, top, width, height)
+     * @param {Object}   item    - The data of the item to be drawn
+     * @param {string}   value   - The current value of the widget as reported to the backend
+     * @param {Object}   options - An object containing the options with which the widget was configured
+     * @param {Function} requestImage - A function to request an image from a URL
+     * @returns {number}
+     *     The width (in pixels) occupied by the thumbnail, representing the
+     *     space used on the right side of the drawing area.
      */
-    drawItemThumbnail(ctx, rect, item, value, requestImage) {
+    drawItemThumbnail(ctx, rect, item, value, options, requestImage) {
         const thumbSize = 32;
         const rect_right = rect.left + rect.width;
 

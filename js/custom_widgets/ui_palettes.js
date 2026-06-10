@@ -252,7 +252,7 @@ class PaletteWidgetDelegate extends GalleryWidgetDelegate {
      * @param {CanvasRenderingContext2D} ctx  - The canvas 2D rendering context
      * @param {Object}                   rect - The rectangle object defining the drawing area (left, top, width, height)
      */
-    drawItemThumbnail(ctx, rect, item, _value) {
+    drawItemThumbnail(ctx, rect, item, _value, _options) {
         const numberOfColors = item?.colors?.length || 0;
         if( numberOfColors == 0 ) { return 0; }
         const thumbSize      = 32;

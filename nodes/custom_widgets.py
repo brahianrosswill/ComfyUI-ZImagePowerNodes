@@ -28,21 +28,29 @@ class PaletteSelector:
 
         def __init__(self,
                      id              : str, *,
-                     version         : str | None = None,
-                     height          : int | None = None,
-                     dialog_title    : str | None = None,
-                     dialog_size     : str | None = None,
-                     dialog_view_mode: str | None = None,
-                     tooltip         : str | None = None,
+                     version         : str  | None = None,
+                     height          : int  | None = None,
+                     dialog_title    : str  | None = None,
+                     dialog_size     : str  | None = None,
+                     dialog_view_mode: str  | None = None,
+                     allow_variations: bool | None = None,
+                     tooltip         : str  | None = None,
                      ):
             """
             <hr>A color palette selector widget.
+
             Args:
-                id (str):               A unique identifier for the input component.
-                dialog_title (str):     The title of the dialog window that will be displayed to select the palette.
-                dialog_size (str):      The size of the dialog window. Can be either "small" or "default"
-                dialog_view_mode (str): The view mode for the dialog window. Can be either "grid" or "list".
-                                        If provided, the user cannot change the view mode.
+                id (str):                A unique identifier for the input component.
+                version (str):           The version of the palette database to load (e.g., "1.0").
+                height (int):            The height of the widget in pixels.
+                dialog_title (str):      The title of the dialog window displayed for palette selection.
+                dialog_size (str):       The size of the dialog window. Supported values: "small" or "default".
+                dialog_view_mode (str):  The view mode for the dialog window. Supported values: "grid" or "list".
+                                         If provided, the user cannot change the view mode.
+                allow_variations (bool): If True, the widget treats "//" as a separator in palette names.
+                                         The left part is considered the primary name, and the right part
+                                         is considered its variation.
+                tooltip (str):           A tooltip description for the widget.
             """
             ALLOWED_DIALOG_SIZES = ("small", "default")
             ALLOWED_DIALOG_VIEW_MODES = ("grid", "list")
@@ -70,6 +78,9 @@ class PaletteSelector:
                 if dialog_view_mode not in ALLOWED_DIALOG_VIEW_MODES:
                     raise ValueError(f"Invalid dialog view '{dialog_view_mode}'. Allowed values are {ALLOWED_DIALOG_VIEW_MODES}")
 
+            if allow_variations is not None:
+                extra_dict["allow_variations"] = allow_variations
+
             super().__init__(id, extra_dict=extra_dict, tooltip=cast(str, tooltip))
 
 
@@ -89,21 +100,29 @@ class StyleSelector:
 
         def __init__(self,
                      id              : str, *,
-                     version         : str | None = None,
-                     height          : int | None = None,
-                     dialog_title    : str | None = None,
-                     dialog_size     : str | None = None,
-                     dialog_view_mode: str | None = None,
-                     tooltip         : str | None = None,
+                     version         : str  | None = None,
+                     height          : int  | None = None,
+                     dialog_title    : str  | None = None,
+                     dialog_size     : str  | None = None,
+                     dialog_view_mode: str  | None = None,
+                     allow_variations: bool | None = None,
+                     tooltip         : str  | None = None,
                      ):
             """
             <hr>A visual style selector widget.
+
             Args:
-                id (str):               A unique identifier for the input component.
-                dialog_title (str):     The title of the dialog window that will be displayed to select the style.
-                dialog_size (str):      The size of the dialog window. Can be either "small" or "default"
-                dialog_view_mode (str): The view mode for the dialog window. Can be either "grid" or "list".
-                                        If provided, the user cannot change the view mode.
+                id (str):                A unique identifier for the input component.
+                version (str):           The version of the style database to load (e.g., "1.0").
+                height (int):            The height of the widget in pixels.
+                dialog_title (str):      The title of the dialog window displayed for style selection.
+                dialog_size (str):       The size of the dialog window. Supported values: "small" or "default".
+                dialog_view_mode (str):  The view mode for the dialog window. Supported values: "grid" or "list".
+                                         If provided, the user cannot change the view mode.
+                allow_variations (bool): If True, the widget treats "//" as a separator in style names.
+                                         The left part is considered the primary name, and the right part
+                                         is considered its variation.
+                tooltip (str):           A tooltip description for the widget.
             """
             ALLOWED_DIALOG_SIZES = ("small", "default")
             ALLOWED_DIALOG_VIEW_MODES = ("grid", "list")
@@ -130,6 +149,9 @@ class StyleSelector:
                 extra_dict["dialog_view_mode"] = dialog_view_mode
                 if dialog_view_mode not in ALLOWED_DIALOG_VIEW_MODES:
                     raise ValueError(f"Invalid dialog view '{dialog_view_mode}'. Allowed values are {ALLOWED_DIALOG_VIEW_MODES}")
+
+            if allow_variations is not None:
+                extra_dict["allow_variations"] = allow_variations
 
             super().__init__(id, extra_dict=extra_dict, tooltip=cast(str, tooltip))
 
