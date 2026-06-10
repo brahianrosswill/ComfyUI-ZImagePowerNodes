@@ -10,13 +10,17 @@
 >##     ComfyUI nodes designed to power the "Z-Image/Z-Image Turbo" models.
 >##_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 >##
->## STYLE NAMES
->##    Style names are plain text strings that may include an optional variant
->##    separated by a double slash (//). Example: "Vintage CRT // Arcade Cabinet"
+>## HOW TO WRITE A STYLE TEMPLATE
+>##    Focus exclusively on visual aesthetic, atmospheric mood, and technical
+>##    characteristics (e.g., lighting, texture, lens, weather, sensations,..).
+>##    Avoid mentioning specific subjects, objects, or characters, as these are
+>##    provided by the user via the {$@} variable. Think of the template as a
+>##    "lens" or "filter": it defines how the scene feels and looks, not what
+>##    is happening in it.
 >##
 >## TEMPLATE DEFINITION
 >##    Each new visual style must begin with a line prefixed with ">>>"
->##    followed by the style name. Example: ">>> Landscape Photo"
+>##    followed by the style name(*). Example: ">>> Landscape Photo"
 >##
 >## TEMPLATE FORMAT
 >##    Every line following the style name represents the prompt used
@@ -34,13 +38,14 @@
 >##
 >##    {**<symbol-char> x | y} :
 >##         Quick Modifier (cheats).
->##         - If the user's prompt includes the corresponding cheat code,
->##           the text 'x' is used.
->##         - If no cheat code is in the prompt, the text 'y' is used.
+>##         - If the user's prompt is prefixed with the corresponding
+>##           cheat code, the text 'x' is used.
+>##         - If no cheat code prefix is detected, the text 'y' is used.
 >##
-
-YOUR CONTEXT
-A high-detail, retro-styled scene focusing on a single, classic 1980s upright arcade machine made of heavy-duty polished wood. The cabinet features prominent black T-moulding along its edges. In front of the machine, a woman of short stature is deeply focused on the gameplay. She is dressed in iconic 80s fashion: a high-waisted acid-wash denim mini skirt, an oversized neon-pink off-the-shoulder sweatshirt, and leg warmers over white sneakers. Her hair is styled in a voluminous, teased-up curly mane with a colorful scrunchie. The cabinet is positioned against a dimly lit arcade wall, with the monitor's rhythmic glow illuminating her intense expression and the rich texture of the wood grain.
+>## (*)NOTE
+>## Style names are plain text strings that may include an optional variant
+>## separated by double slash (//). Example:">>>Vintage CRT // Arcade Cabinet"
+>##
 
 
 >>> Arcade Cabinet // Retro Solo Gamer
