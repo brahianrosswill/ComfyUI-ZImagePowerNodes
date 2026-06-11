@@ -167,10 +167,14 @@ class GalleryDialog {
     /**
      * Creates a new instance, registering a delegate object to customize the dialog behavior.
      * @param {GalleryDialogDelegate} delegate - The object that provides the item data and renderer.
+     * @param {string} [icon]   - The icon to display as a prefix of the dialog title.
+     *                             * For PrimeIcons   : Use "pi.[icon name]" e.g., "pi.pi-image"; (see https://primevue.org/icons/#list)
+     *                             * For Pictogrammers: Use "mdi.[icon name]" e.g., "mdi.mdi-image"; (see https://pictogrammers.com/library/mdi)
+     *                             * An empty string removes the icon from the title
      * @param {string} size     - Optional size of the dialog window. Can be "default" or "small".
      * @param {string} viewMode - Optional view mode of the items. Can be "default", "list", or "grid".
      */
-    constructor(delegate, size="default", viewMode="default") {
+    constructor(delegate, icon="mdi.mdi-image-multiple-outline", size="default", viewMode="default") {
 
         // ensure parameters are of the correct type
         if (!(delegate instanceof GalleryDialogDelegate)) {
@@ -178,6 +182,7 @@ class GalleryDialog {
         }
         this.delegate   = delegate;
         this.viewMode   = viewMode;
+        this.icon       = icon;
         this.size       = size;
         this._instance  = null;
     }
@@ -198,7 +203,7 @@ class GalleryDialog {
     launch(title, selectedName, onSelect) {
         // create the instance only once (singleton instance logic)
         if( !this._instance ) {
-             this._instance = new _GalleryDialog(this.delegate, this.size, this.viewMode);
+             this._instance = new _GalleryDialog(this.delegate, this.icon, this.size, this.viewMode);
         }
         // relaunch the dialog
         const dialog  = this._instance;
@@ -220,10 +225,14 @@ class _GalleryDialog extends ComfyDialog {
     /**
      * Creates a new instance, registering a delegate object to customize the dialog behavior.
      * @param {GalleryDialogDelegate} delegate - The object that provides the item data and renderer.
+     * @param {string} [icon]     - The icon to display as a prefix of the dialog title.
+     *                              * For PrimeIcons   : Use "pi.[icon name]" e.g., "pi.pi-image"; (see https://primevue.org/icons/#list)
+     *                              * For Pictogrammers: Use "mdi.[icon name]" e.g., "mdi.mdi-image"; (see https://pictogrammers.com/library/mdi)
+     *                              * An empty string removes the icon from the title
      * @param {string} [size]     - Optional size of the dialog window. Can be "default" or "small".
      * @param {string} [viewMode] - Optional view mode of the items. Can be "default", "list", or "grid".
      */
-    constructor(delegate, size="default", viewMode="default") {
+    constructor(delegate, icon, size, viewMode) {
         super();
         ensureCSSLoaded();
 
@@ -247,7 +256,7 @@ class _GalleryDialog extends ComfyDialog {
         this.resultIndex = null;
 
         /** @type {Array<object>} An array of elements that match the search text. */
-        this.resultElements = [];
+        this.resultItems = [];
 
         /** @type {number} Number of columns used in the search results grid. */
         this.resultColumns = 4;
@@ -303,13 +312,13 @@ class _GalleryDialog extends ComfyDialog {
 
         // create the custom dialog.
         //   icons can be taken from PrimeIcons or Pictogrammers MDT
-        //   PrimeIcons       : e.g. "i.pi.pi-image"   (https://primevue.org/icons)
-        //   Pictogrammers MDI: e.g. "i.mdi.mdi-image" (https://pictogrammers.com/library/mdi)
+        //   PrimeIcons       : e.g. "pi.pi-image"   (https://primevue.org/icons)
+        //   Pictogrammers MDI: e.g. "mdi.mdi-image" (https://pictogrammers.com/library/mdi)
         this.element = makeCustomDialog(
-            DIALOG_ID                 , //< ID of the DOM element where the dialog is located
-            TITLE_ID                  , //< ID of the DOM element where the title is located
-            ''                        , //< title
-            'i.mdi.mdi-image-multiple', //< icon
+            DIALOG_ID, //< ID of the DOM element where the dialog is located
+            TITLE_ID , //< ID of the DOM element where the title is located
+            ''       , //< title
+            icon     , //< icon
 
             // DIALOG
             html( size==="small" ? "div.zipn-dialog.zipn-dialog--small" : "div.zipn-dialog",
@@ -373,7 +382,7 @@ class _GalleryDialog extends ComfyDialog {
      * @returns {number|null} The selected element's ID or null if no selection exists.
      */
     getSelectionID() {
-        const resultID = (this.resultIndex != null) ? this.resultElements[this.resultIndex]?.id : null;
+        const resultID = (this.resultIndex != null) ? this.resultItems[this.resultIndex]?.id : null;
         return (this.hoveredCardID != null) ? this.hoveredCardID : resultID;
     }
 
@@ -457,11 +466,11 @@ class _GalleryDialog extends ComfyDialog {
         this.cacheBuster = Math.floor(Date.now() / 3600000);
 
         // apply filters and re-render gallery
-        this.resultElements = _GalleryDialog.applyFilter( this.elementsByID, this.textFilter, this.categoryFilter );
-        _GalleryDialog.renderResults( this.searchResultsEl, this.viewMode, this.resultElements, this.delegate, this.initialCardID, this.cacheBuster );
+        this.resultItems = _GalleryDialog.filterItems( this.textFilter, this.categoryFilter, this.searchNameIndex );
+        _GalleryDialog.renderResults( this.searchResultsEl, this.viewMode, this.resultItems, this.delegate, this.initialCardID, this.cacheBuster );
 
         // disable focus if there are no results
-        if( this.resultElements.length == 0 ) { this.resultIndex = null; }
+        if( this.resultItems.length == 0 ) { this.resultIndex = null; }
 
         // update the visual aspect of the card shown as active
         this.updateSelection(shouldScroll,true);
@@ -510,30 +519,33 @@ class _GalleryDialog extends ComfyDialog {
         }).join('');
     }
 
-
     /**
-     * Applies a filter to an array of elements based on text and category criteria.
-     * @param {Object[]} allElements - An array of element objects, each containing properties
-     *                                such as id, name, description, category, etc.
-     * @param {string}   textFilter - A string that filters elements by matching element names
-     *                                against search terms.
-     * @param {string}     category - The selected category for filtering the elements
-     *                                (e.g., "photo", "illustration", etc.). An empty
-     *                                string indicates no specific category filter.
-     * @returns {Object[]}
-     *   Returns an array of element objects that match the given text and category filters.
+     * Filters items based on a search query and a category.
+     * @param {string} query          - The search string provided by the user.
+     * @param {string} categoryFilter - The category to filter by, or empty string for no filter.
+     * @param {Array<[string, object]>} searchNameIndex - Array of tuples containing search string and their corresponding item.
+     * @returns {Array<object>}
+     *     A list of items matching both the query terms and the category.
      */
-    static applyFilter(allElements, textFilter, category) {
-        const terms = textFilter.toLowerCase().split(' ');
-        //const tags  = terms.filter(t => t.startsWith('#'));
-        const words = terms.filter(t => !t.startsWith('#'));
-        return allElements.filter(element => {
-            const matchesCategory = category === "" || element.category === category;
-            const matchesWords    = words.every(word => element.lowerName.includes(word));
-            const matchesTags     = true; //tags.length === 0 || tags.some(tag => element.tags.includes(tag));
-            return matchesCategory && matchesWords && matchesTags;
-        });
+    static filterItems(query, categoryFilter, searchNameIndex) {
+        const queryParts  = query ? _toSearchString(query).split(/\s+/).filter(Boolean) : [];
+        const searchWords = queryParts.filter(part => !part.startsWith('#'));
+        const searchTags  = queryParts.filter(part => part.startsWith('#'));
+        return searchNameIndex
+            .filter(([itemName, item]) => {
+                if( categoryFilter && item.category !== categoryFilter ) {
+                    return false;
+                }
+                if( searchTags.length === 0 ) {
+                    return searchWords.every(word => itemName.includes(word));
+                }
+                const matchesAllWords = searchWords.every(word => itemName.includes(word));
+                const matchesAnyTag   = item.tags && searchTags.some(searchTag => item.tags.includes(searchTag));
+                return matchesAllWords && matchesAnyTag;
+            })
+            .map(([, item]) => item);
     }
+
 
     //-- EVENTS -----------------------------------------------------------
 
@@ -549,7 +561,7 @@ class _GalleryDialog extends ComfyDialog {
         this.isOpen              = true;
         this.initialElementName  = initialElementName;
         this.initialCardID       = null;
-        this.resultElements      = [];
+        this.resultItems      = [];
         this.resultIndex         = null;
         this.hoveredCardID       = null;
         this.oldSelectionID      = null;
@@ -562,13 +574,10 @@ class _GalleryDialog extends ComfyDialog {
         // load style data from server and focus on the initial style
         this.delegate.fetchItemArray().then( items =>
         {
-            // check each item if it doesn't have the `lowerName` property
-            // generate it in base to the `name` property
-            for (let item of items) {
-                if (!item.lowerName) {
-                    item.lowerName = (item.name || '').toLowerCase();
-                }
-            }
+            // build the search index used by the search bar
+            this.searchNameIndex = items.map(item => {
+                return [ _toSearchString(item.name), item ];
+            });
 
             // process the received data
             this.onReceivedStyles(items);
@@ -581,7 +590,7 @@ class _GalleryDialog extends ComfyDialog {
                 this.updateSelection();
                 requestAnimationFrame( () => {
                 //requestAnimationFrame( () => {
-                    const focusedCardID = this.resultIndex != null ? this.resultElements[this.resultIndex]?.id : null;
+                    const focusedCardID = this.resultIndex != null ? this.resultItems[this.resultIndex]?.id : null;
                     const focusedCardEl = this.elementFromCardID(focusedCardID);
                     if( focusedCardEl ) { focusedCardEl.scrollIntoView({ block: 'start' }); }
                 //});
@@ -687,14 +696,14 @@ class _GalleryDialog extends ComfyDialog {
             else if( key === 'ArrowDown'  ) { resultIndex+=this.resultColumns; }
             else if( key === 'ArrowLeft'  ) { resultIndex--; }
             else if( key === 'ArrowRight' ) { resultIndex++; }
-            if( resultIndex >= this.resultElements.length ) { resultIndex = oldResultIndex; }
+            if( resultIndex >= this.resultItems.length ) { resultIndex = oldResultIndex; }
             if( resultIndex <  0                        ) { resultIndex = oldResultIndex; }
 
         }
         // if there is no selection (e.g. just opened the dialog) and user presses down,
         // first search result gets selected
         else if( this.resultIndex == null && key === 'ArrowDown' ) {
-            if( this.resultElements ) { resultIndex = 0; }
+            if( this.resultItems ) { resultIndex = 0; }
         }
 
         // if the selected search result index is modified, update its on-screen representation
@@ -775,7 +784,7 @@ class _GalleryDialog extends ComfyDialog {
      * @returns {number} The index of the card with the specified ID, or -1 if not found.
      */
     findIndexFromCardID(elementID) {
-        return elementID != null ? this.resultElements.findIndex(card => card.id == elementID) : -1;
+        return elementID != null ? this.resultItems.findIndex(card => card.id == elementID) : -1;
     }
 
     /**
@@ -927,13 +936,13 @@ function ensureCSSLoaded() {
  * @param {string} dialogId  - The ID for the dialog element.
  * @param {string} titleId   - The ID for the title element within the dialog.
  * @param {string} title     - The title to be displayed in the dialog header.
- * @param {string} iconClass - The CSS class for the icon that will appear next to the title.
+ * @param {string} icon      - The CSS class for the icon that will appear next to the title.
  * @param {string|HTMLElement[]} content - The content of the dialog, which can be a string or an array of HTML elements.
  * @param {Function} onClose - A callback function to be executed when the dialog is closed.
  * @returns {HTMLElement} 
  *     Returns the main container element for the dialog mask.
  */
-function makeCustomDialog(dialogId, titleId, title, iconClass, content, onClose) {
+function makeCustomDialog(dialogId, titleId, title, icon, content, onClose) {
 
     const dialogOutsideArea = html("div.p-dialog-mask.p-overlay-mask.p-overlay-mask-enter", {
         parent: document.body,
@@ -955,7 +964,6 @@ function makeCustomDialog(dialogId, titleId, title, iconClass, content, onClose)
         }
     });
     const headerActions = html("div.p-dialog-header-actions");
-    //const _closeButton  = html("button.p-button.p-component.p-button-icon-only.p-button-secondary.p-button-rounded.p-button-text.p-dialog-close-button", {
     const _closeButton  = html("button.zipn-close-button", {
         parent    : headerActions,
         type      : "button",
@@ -963,16 +971,15 @@ function makeCustomDialog(dialogId, titleId, title, iconClass, content, onClose)
         onclick   : onClose, //< execute `onClose` when close button is clicked
         innerHTML : '<i class="pi pi-times"></i>'
     });
+    const iconAndTitle = [
+        icon ? html( "i."+icon, {style:{"font-size":"1.25rem", "margin-right":".5rem"}} ) : "",
+        html("span", { id: titleId, textContent: title })
+    ];
     const dialogHeader = html("div.p-dialog-header",
     [
         html("div", [
             html("div", { id: "frame-title-container" }, [
-                html("h1", [
-                    html(iconClass, {
-                        style: { "font-size": "1.25rem", "margin-right": ".5rem" }
-                    }),
-                    html("span", { id: titleId, textContent: title })
-                ])
+                html("h1", iconAndTitle.filter(Boolean))
             ])
         ]),
         headerActions
@@ -1074,4 +1081,10 @@ function normalizeDOMnodes(content) {
         return Array.from(content);
     }
     throw new TypeError(`Content must be a string, Node, NodeList or array. Got: ${typeof content}`);
+}
+
+
+function _toSearchString(text) {
+    if( typeof text !== 'string' ) return '';
+    return text.normalize('NFD').toLowerCase().replace(/[\u0300-\u036f]|[^a-z0-9#]/g, ' ').trim();
 }

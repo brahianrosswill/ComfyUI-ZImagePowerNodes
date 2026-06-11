@@ -31,6 +31,7 @@ class PaletteSelector:
                      version         : str  | None = None,
                      height          : int  | None = None,
                      dialog_title    : str  | None = None,
+                     dialog_icon     : str  | None = None,
                      dialog_size     : str  | None = None,
                      dialog_view_mode: str  | None = None,
                      allow_variations: bool | None = None,
@@ -44,6 +45,10 @@ class PaletteSelector:
                 version (str):           The version of the palette database to load (e.g., "1.0").
                 height (int):            The height of the widget in pixels.
                 dialog_title (str):      The title of the dialog window displayed for palette selection.
+                dialog_icon (str):       The icon to display as a prefix of the dialog title.
+                                         * For PrimeIcons   : Use "pi.[icon name]" e.g., "pi.pi-image"; (see https://primevue.org/icons/#list)
+                                         * For Pictogrammers: Use "mdi.[icon name]" e.g., "mdi.mdi-image"; (see https://pictogrammers.com/library/mdi)
+                                         * An empty string removes the icon from the title
                 dialog_size (str):       The size of the dialog window. Supported values: "small" or "default".
                 dialog_view_mode (str):  The view mode for the dialog window. Supported values: "grid" or "list".
                                          If provided, the user cannot change the view mode.
@@ -67,6 +72,9 @@ class PaletteSelector:
 
             if dialog_title is not None:
                 extra_dict["dialog_title"] = dialog_title
+
+            if dialog_icon is not None:
+                extra_dict["dialog_icon"] = dialog_icon
 
             if dialog_size is not None:
                 extra_dict["dialog_size"] = dialog_size
@@ -103,6 +111,7 @@ class StyleSelector:
                      version         : str  | None = None,
                      height          : int  | None = None,
                      dialog_title    : str  | None = None,
+                     dialog_icon     : str  | None = None,
                      dialog_size     : str  | None = None,
                      dialog_view_mode: str  | None = None,
                      allow_variations: bool | None = None,
@@ -139,6 +148,9 @@ class StyleSelector:
 
             if dialog_title is not None:
                 extra_dict["dialog_title"] = dialog_title
+
+            if dialog_icon is not None:
+                extra_dict["dialog_icon"] = dialog_icon
 
             if dialog_size is not None:
                 extra_dict["dialog_size"] = dialog_size

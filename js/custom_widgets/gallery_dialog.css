@@ -36,7 +36,7 @@
   padding-bottom: 4px;
   display       : inline-block;
   border-bottom : 3px solid var(--base-foreground);
-  text-transform: uppercase;
+  border-bottom : 3px solid color-mix(in srgb,  var(--base-foreground) 33%, var(--p-dialog-background));
 }
 
 .p-dialog-header button {

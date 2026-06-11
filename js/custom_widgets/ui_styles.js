@@ -50,7 +50,7 @@ const _dialogsByVersion = new Map();
  *       - name       : The name of the style (string)
  *       - category   : The category of the style (string)
  *       - description: Description of the style (string)
- *       - tags       : Array of tags associated with the style (Array<string>)
+ *       - tags       : An string of comma-separated tags associated with the style (string)
  *       - thumbnail  : URL for the style's thumbnail image (string)
  *
  * @example
@@ -96,14 +96,13 @@ async function fetchVisualStyleArray(version)
 
             const THUMBNAIL_BASE_URL = "/zi_power/styles/samples";
             return styles.map((style, index) => {
-                const tagsString    = style[3] || "";
                 const thumbFileName = style[4] || "";
                 return {
                     id         : index,
                     name       : style[0] || "Unknown",
                     category   : style[1] || "Uncategorized",
                     description: style[2] || "",
-                    tags       : tagsString ? tagsString.split(",").map(t => t.trim()) : [],
+                    tags       : style[3] || "",
                     thumbnail  : thumbFileName  ? `${THUMBNAIL_BASE_URL}?file=${thumbFileName}` : ""
                 };
             });
@@ -143,7 +142,7 @@ class StyleDialogDelegate extends GalleryDialogDelegate {
      *       - name       : The display name of the item (string)
      *       - category   : The category the item belongs to (string)
      *       - description: A detailed description of the item (string)
-     *       - tags       : Array of tags associated with the item (Array<string>)
+     *       - tags       : An string of comma-separated tags associated with the style (string)
      *       - thumbnail  : URL for the item's thumbnail image (string)
      */
     async fetchItemArray() {
@@ -187,7 +186,7 @@ class StyleDialogDelegate extends GalleryDialogDelegate {
  *         console.log("Selected Style: " + selectedStyle);
  *     });
  */
-function requireVisualStyleGalleryDialog(version, size="default", viewMode="default") {
+function requireVisualStyleGalleryDialog(version, icon, size, viewMode) {
 
     // check if the dialog is already registered for the specified version
     const dialog = _dialogsByVersion.get(version);
@@ -196,7 +195,7 @@ function requireVisualStyleGalleryDialog(version, size="default", viewMode="defa
     }
     // If no dialog exists for this version, create a new one
     const newDelegate = new StyleDialogDelegate(version);
-    const newDialog   = new GalleryDialog(newDelegate, size, viewMode);
+    const newDialog   = new GalleryDialog(newDelegate, icon, size, viewMode);
     _dialogsByVersion.set(version, newDialog);
     return newDialog;
 }
@@ -282,6 +281,7 @@ function addVisualStyleGalleryWidget(node, name, data) {
     {
         // launch dialog and update widget value
         const styleDialog = requireVisualStyleGalleryDialog(version,
+                                                            options.dialog_icon,
                                                             options.dialog_size,
                                                             options.dialog_view_mode
                                                             );

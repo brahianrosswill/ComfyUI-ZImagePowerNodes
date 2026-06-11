@@ -49,7 +49,7 @@ const _dialogRegistry = new Map();
  *       - id         : Unique identifier for the palette (the index in the list)
  *       - name       : The name of the color palette (string)
  *       - description: Description of the color palette (string)
- *       - tags       : Array of tags associated with the palette (Array<string>)
+ *       - tags       : An string of comma-separated tags associated with the palette (string)
  *       - colors     : Array of color objects, each containing a name and a hex code (Array<{name: string, hex: string}>)
  * @example
  *   // Using async/await
@@ -94,7 +94,7 @@ async function fetchColorPaletteArray(version)
             {
                 const name        = paldata[0] || "Unknown";
                 const description = paldata[1] || "";
-                const tagsString  = paldata[2] || "";
+                const tags        = paldata[2] || "";
                 // build the colors array from the data received from the API
                 const colors = [];
                 for( let i=3; (i+1) < paldata.length; i+=2 ) {
@@ -105,7 +105,7 @@ async function fetchColorPaletteArray(version)
                     name       : name,
                     category   : "",
                     description: description,
-                    tags       : tagsString ? tagsString.split(",").map(t => t.trim()) : [],
+                    tags       : tags,
                     colors     : colors
                 };
             });
@@ -145,7 +145,7 @@ class PaletteGalleryDialogDelegate extends GalleryDialogDelegate {
      *       - name       : The display name of the item (string)
      *       - category   : The category the item belongs to (string)
      *       - description: A detailed description of the item (string)
-     *       - tags       : Array of tags associated with the item (Array<string>)
+     *       - tags       : An string of comma-separated tags associated with the palette (string)
      *       - thumbnail  : URL for the item's thumbnail image (string)
      */
     async fetchItemArray() {
@@ -197,9 +197,7 @@ class PaletteGalleryDialogDelegate extends GalleryDialogDelegate {
  *         console.log("Selected Palette: " + selectedPalette);
  *     });
  */
-function requireColorPaletteGalleryDialog(version, size="default", viewMode="default") {
-
-    console.log("##>> requirePalettes:", size, viewMode);
+function requireColorPaletteGalleryDialog(version, icon, size, viewMode) {
 
     // check if the dialog is already registered for the specified version
     const dialog = _dialogRegistry.get(version);
@@ -208,7 +206,7 @@ function requireColorPaletteGalleryDialog(version, size="default", viewMode="def
     }
     // If no dialog exists for this version, create a new one
     const newDelegate = new PaletteGalleryDialogDelegate(version);
-    const newDialog   = new GalleryDialog(newDelegate, size, viewMode);
+    const newDialog   = new GalleryDialog(newDelegate, icon, size, viewMode);
     _dialogRegistry.set(version, newDialog);
     return newDialog;
 }
@@ -235,7 +233,7 @@ class PaletteWidgetDelegate extends GalleryWidgetDelegate {
      *       - name       : The display name of the item (string)
      *       - category   : The category the item belongs to (string)
      *       - description: A detailed description of the item (string)
-     *       - tags       : Array of tags associated with the item (Array<string>)
+     *       - tags       : An string of comma-separated tags associated with the palette (string)
      *       - thumbnail  : URL for the item's thumbnail image (string)
      */
     async fetchItemArray() {
@@ -282,12 +280,14 @@ function addColorPaletteGalleryWidget(node, name, data) {
     const type    = data[0];
     const options = data[1] || {};
     const version = options.version || '2.0';
+
     let   widget  = new GalleryWidget(type, node, name, options, new PaletteWidgetDelegate(version), (widget) =>
     {
         // launch dialog and update widget value
         const paletteDialog = requireColorPaletteGalleryDialog(version,
+                                                               options.dialog_icon,
                                                                options.dialog_size,
-                                                               options.dialog_view_mode
+                                                               options.dialog_view_mode,
                                                                );
         paletteDialog.launch( widget.options.dialog_title, widget.value, (selectedPalette) => {
             widget.forceUpdate( selectedPalette );
