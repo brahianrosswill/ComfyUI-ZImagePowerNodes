@@ -14,8 +14,10 @@ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
    - https://docs.comfy.org/custom-nodes/v3_migration#custom-types
 
 """
-from typing           import cast
+from typing           import cast, Any
 from comfy_api.latest import io
+_ALLOWED_DIALOG_SIZES      = ("small", "default")
+_ALLOWED_DIALOG_VIEW_MODES = ("grid", "list")
 
 
 #========================= PALETTE SELECTOR WIDGET =========================#
@@ -57,37 +59,39 @@ class PaletteSelector:
                                          is considered its variation.
                 tooltip (str):           A tooltip description for the widget.
             """
-            ALLOWED_DIALOG_SIZES = ("small", "default")
-            ALLOWED_DIALOG_VIEW_MODES = ("grid", "list")
             if not dialog_title:
                 dialog_title = "Select Palette"
 
-            extra_dict = {}
+            extra_dict: dict[str,Any] = {
+                "dialog": {}
+            }
 
             if version is not None:
-                extra_dict["version"] = version
+                extra_dict["version"]           = version
+                extra_dict["dialog"]["version"] = version
 
             if height is not None:
                 extra_dict["height"] = height
 
             if dialog_title is not None:
-                extra_dict["dialog_title"] = dialog_title
+                extra_dict["dialog"]["title"] = dialog_title
 
             if dialog_icon is not None:
-                extra_dict["dialog_icon"] = dialog_icon
+                extra_dict["dialog"]["icon"] = dialog_icon
 
             if dialog_size is not None:
-                extra_dict["dialog_size"] = dialog_size
-                if dialog_size not in ALLOWED_DIALOG_SIZES:
-                    raise ValueError(f"Invalid dialog size '{dialog_size}'. Allowed values are {ALLOWED_DIALOG_SIZES}")
+                extra_dict["dialog"]["size"] = dialog_size
+                if dialog_size not in _ALLOWED_DIALOG_SIZES:
+                    raise ValueError(f"Invalid dialog size '{dialog_size}'. Allowed values are {_ALLOWED_DIALOG_SIZES}")
 
             if dialog_view_mode is not None:
-                extra_dict["dialog_view_mode"] = dialog_view_mode
-                if dialog_view_mode not in ALLOWED_DIALOG_VIEW_MODES:
-                    raise ValueError(f"Invalid dialog view '{dialog_view_mode}'. Allowed values are {ALLOWED_DIALOG_VIEW_MODES}")
+                extra_dict["dialog"]["view_mode"] = dialog_view_mode
+                if dialog_view_mode not in _ALLOWED_DIALOG_VIEW_MODES:
+                    raise ValueError(f"Invalid dialog view '{dialog_view_mode}'. Allowed values are {_ALLOWED_DIALOG_VIEW_MODES}")
 
             if allow_variations is not None:
-                extra_dict["allow_variations"] = allow_variations
+                extra_dict["allow_variations"]           = allow_variations
+                extra_dict["dialog"]["allow_variations"] = allow_variations
 
             super().__init__(id, extra_dict=extra_dict, tooltip=cast(str, tooltip))
 
@@ -133,37 +137,39 @@ class StyleSelector:
                                          is considered its variation.
                 tooltip (str):           A tooltip description for the widget.
             """
-            ALLOWED_DIALOG_SIZES = ("small", "default")
-            ALLOWED_DIALOG_VIEW_MODES = ("grid", "list")
             if not dialog_title:
                 dialog_title = "Select Style"
 
-            extra_dict = {}
+            extra_dict: dict[str,Any] = {
+                "dialog": {}
+            }
 
             if version is not None:
                 extra_dict["version"] = version
+                extra_dict["dialog"]["version"] = version
 
             if height is not None:
                 extra_dict["height"] = height
 
             if dialog_title is not None:
-                extra_dict["dialog_title"] = dialog_title
+                extra_dict["dialog"]["title"] = dialog_title
 
             if dialog_icon is not None:
-                extra_dict["dialog_icon"] = dialog_icon
+                extra_dict["dialog"]["icon"] = dialog_icon
 
             if dialog_size is not None:
-                extra_dict["dialog_size"] = dialog_size
-                if dialog_size not in ALLOWED_DIALOG_SIZES:
-                    raise ValueError(f"Invalid dialog size '{dialog_size}'. Allowed values are {ALLOWED_DIALOG_SIZES}")
+                extra_dict["dialog"]["size"] = dialog_size
+                if dialog_size not in _ALLOWED_DIALOG_SIZES:
+                    raise ValueError(f"Invalid dialog size '{dialog_size}'. Allowed values are {_ALLOWED_DIALOG_SIZES}")
 
             if dialog_view_mode is not None:
-                extra_dict["dialog_view_mode"] = dialog_view_mode
-                if dialog_view_mode not in ALLOWED_DIALOG_VIEW_MODES:
-                    raise ValueError(f"Invalid dialog view '{dialog_view_mode}'. Allowed values are {ALLOWED_DIALOG_VIEW_MODES}")
+                extra_dict["dialog"]["view_mode"] = dialog_view_mode
+                if dialog_view_mode not in _ALLOWED_DIALOG_VIEW_MODES:
+                    raise ValueError(f"Invalid dialog view '{dialog_view_mode}'. Allowed values are {_ALLOWED_DIALOG_VIEW_MODES}")
 
             if allow_variations is not None:
-                extra_dict["allow_variations"] = allow_variations
+                extra_dict["allow_variations"]           = allow_variations
+                extra_dict["dialog"]["allow_variations"] = allow_variations
 
             super().__init__(id, extra_dict=extra_dict, tooltip=cast(str, tooltip))
 
@@ -239,9 +245,14 @@ class StyleGalleryButton:
     class Input(io.Input):
 
         def __init__(self,
-                     id     : str,
-                     tooltip: str | None = None,
-                     version: str | None = None,
+                     id              : str,
+                     version         : str  | None = None,
+                     dialog_title    : str  | None = None,
+                     dialog_icon     : str  | None = None,
+                     dialog_size     : str  | None = None,
+                     dialog_view_mode: str  | None = None,
+                     allow_variations: bool | None = None,
+                     tooltip         : str  | None = None,
                      ):
             """
             <hr>A button that launches the style gallery.
@@ -256,10 +267,35 @@ class StyleGalleryButton:
                                          compatibility with older versions of the styles. If not
                                          provided, the latest version will be used.
             """
-            extra_dict = {}
+            extra_dict: dict[str,Any] = {
+                "title": "Select Style",
+                "dialog": {},
+            }
 
             if version is not None:
                 extra_dict["version"] = version
+
+            if dialog_title is not None:
+                extra_dict["title"] = dialog_title
+
+            if dialog_title is not None:
+                extra_dict["dialog"]["title"] = dialog_title
+
+            if dialog_icon is not None:
+                extra_dict["dialog"]["icon"] = dialog_icon
+
+            if dialog_size is not None:
+                extra_dict["dialog"]["size"] = dialog_size
+                if dialog_size not in _ALLOWED_DIALOG_SIZES:
+                    raise ValueError(f"Invalid dialog size '{dialog_size}'. Allowed values are {_ALLOWED_DIALOG_SIZES}")
+
+            if dialog_view_mode is not None:
+                extra_dict["dialog"]["view_mode"] = dialog_view_mode
+                if dialog_view_mode not in _ALLOWED_DIALOG_VIEW_MODES:
+                    raise ValueError(f"Invalid dialog view '{dialog_view_mode}'. Allowed values are {_ALLOWED_DIALOG_VIEW_MODES}")
+
+            if allow_variations is not None:
+                extra_dict["dialog"]["allow_variations"] = allow_variations
 
             super().__init__(id, extra_dict=extra_dict, tooltip=cast(str, tooltip))
 

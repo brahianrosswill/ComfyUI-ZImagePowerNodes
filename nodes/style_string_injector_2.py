@@ -46,7 +46,7 @@ class StyleStringInjector2(io.ComfyNode):
                                          tooltip="The visual style you want for your image.",
                                         ),
                 StyleGalleryButton.Input("gallery",
-                                         version="1.0",
+                                         version="1.0", dialog_title="Select Style",
                                          tooltip="Open the style gallery to see all available styles."
                                         ),
                 io.String.Input         ("string",

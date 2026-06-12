@@ -16,13 +16,20 @@
  * find it useful, a quick shout-out to this project or a mention of my name
  * would be greatly appreciated. :)
  *
+ * Note that although the code is currently compatible with Nodes 2.0, it
+ * uses deprecated ComfyUI functions that may be removed at some point.
+ * I intend to migrate the code to full compatibility as soon as official
+ * Nodes 2.0 documentation becomes available.
  *_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
  */
 export { GalleryDialog, GalleryDialogDelegate };
 import { ComfyDialog, $el as html } from "../../../scripts/ui.js"; //< deprecated ??
-const DIALOG_ID = 'zipn-style-gallery-dialog'; //< ID of the DOM element where the dialog is located
-const TITLE_ID  = 'zipn-style-gallery-title';  //< ID of the DOM element where the title is located
-
+const DIALOG_CONTENT_CLASS       = 'zipn-dialog';
+const DIALOG_TITLE_CLASS         = 'zipn-dialog__title';
+const DIALOG_ICON_HOLDER_CLASS   = 'zipn-dialog__icon';
+const VIEWMODE_BTTN_HOLDER_CLASS = 'zipn-dialog__viewmode';
+const DEFAULT_TITLE      = 'Dialog';
+const DEFAULT_TITLE_ICON = 'mdi.mdi-image-multiple-outline';
 
 
 /**
@@ -132,7 +139,7 @@ class GalleryDialogDelegate {
      * @returns {string}
      *    The HTML string representing the content of the details panel.
      */
-    htmlItemDetailsPane(item, cacheBuster) {
+    htmlItemDetailsPane(item, name, options, cacheBuster) {
         const imageHTML = this.htmlItemImage(item, 'zipn-image', cacheBuster);
         return `
            <h1>${item?.name || ""}</h1>
@@ -160,59 +167,44 @@ class GalleryDialogDelegate {
  *   const gallery = new GalleryDialog(new MyDelegate());
  *
  *   // The actual _GalleryDialog is created only when this is invoked
- *   gallery.launch("Title", "default", (item) => console.log(item));
+ *   gallery.launch({}, "default", (item) => console.log(item));
  */
 class GalleryDialog {
 
     /**
      * Creates a new instance, registering a delegate object to customize the dialog behavior.
      * @param {GalleryDialogDelegate} delegate - The object that provides the item data and renderer.
-     * @param {string} [icon]   - The icon to display as a prefix of the dialog title.
-     *                             * For PrimeIcons   : Use "pi.[icon name]" e.g., "pi.pi-image"; (see https://primevue.org/icons/#list)
-     *                             * For Pictogrammers: Use "mdi.[icon name]" e.g., "mdi.mdi-image"; (see https://pictogrammers.com/library/mdi)
-     *                             * An empty string removes the icon from the title
-     * @param {string} size     - Optional size of the dialog window. Can be "default" or "small".
-     * @param {string} viewMode - Optional view mode of the items. Can be "default", "list", or "grid".
      */
-    constructor(delegate, icon="mdi.mdi-image-multiple-outline", size="default", viewMode="default") {
-
-        // ensure parameters are of the correct type
-        if (!(delegate instanceof GalleryDialogDelegate)) {
+    constructor(delegate) {
+        // ensure delegate has the right type
+        if( !(delegate instanceof GalleryDialogDelegate) ) {
             throw new TypeError('delegate must be an instance of GalleryDialogDelegate');
         }
-        this.delegate   = delegate;
-        this.viewMode   = viewMode;
-        this.icon       = icon;
-        this.size       = size;
-        this._instance  = null;
+        this._instance = null;
+        this.delegate  = delegate;
     }
-
 
     /**
      * Launches the gallery dialog with the provided configuration.
-     *
-     * @param {string}   title - Title of the dialog.
+     * @param {Object}   options      - Permite sobreescribir las opciones pasadas en el constructor.
      * @param {string}   selectedName - Default selected element name.
-     * @param {Function} onSelect - Callback executed when an element is selected.
+     * @param {Function} onSelect     - Callback executed when an element is selected.
      * @example
      *   const myGalleryDialog = new GalleryDialog( new MyGalleryDialogDelegate() );
-     *   myGalleryDialog.launch("Select an Image", "default", (item) => {
-     *     console.log("Selected:", item);
+     *   const currentItemName = "default";
+     *   myGalleryDialog.launch({}, currentItemName, (selectedItemName) => {
+     *     console.log("Selected:", selectedItemName);
      *   });
      */
-    launch(title, selectedName, onSelect) {
+    launch(options, selectedName, onSelect) {
+
         // create the instance only once (singleton instance logic)
         if( !this._instance ) {
-             this._instance = new _GalleryDialog(this.delegate, this.icon, this.size, this.viewMode);
+             this._instance = new _GalleryDialog(this.delegate);
         }
-        // relaunch the dialog
-        const dialog  = this._instance;
-        const titleEl = dialog.element?.querySelector(`#${TITLE_ID}`);
-        if (titleEl) { titleEl.textContent = title; }
-        dialog.onSelectElement = onSelect;
-        dialog.onOpen(selectedName);
+        // launch/relaunch the dialog
+        this._instance.onLaunch(options, selectedName, onSelect);
     }
-
 }
 
 
@@ -225,16 +217,10 @@ class _GalleryDialog extends ComfyDialog {
     /**
      * Creates a new instance, registering a delegate object to customize the dialog behavior.
      * @param {GalleryDialogDelegate} delegate - The object that provides the item data and renderer.
-     * @param {string} [icon]     - The icon to display as a prefix of the dialog title.
-     *                              * For PrimeIcons   : Use "pi.[icon name]" e.g., "pi.pi-image"; (see https://primevue.org/icons/#list)
-     *                              * For Pictogrammers: Use "mdi.[icon name]" e.g., "mdi.mdi-image"; (see https://pictogrammers.com/library/mdi)
-     *                              * An empty string removes the icon from the title
-     * @param {string} [size]     - Optional size of the dialog window. Can be "default" or "small".
-     * @param {string} [viewMode] - Optional view mode of the items. Can be "default", "list", or "grid".
      */
-    constructor(delegate, icon, size, viewMode) {
+    constructor(delegate) {
         super();
-        ensureCSSLoaded();
+        _ensureCSSLoaded();
 
         //---- INTERNAL STATE VARIABLES -------------------
         // - should be re-initialized every time the dialog is launched
@@ -270,11 +256,11 @@ class _GalleryDialog extends ComfyDialog {
         /** @type {string} Active category filter ("photo", "illustration", "wild", "custom"). Empty means all categories. */
         this.categoryFilter = "";
 
-        /** @type {"grid"|"list"} View mode of the dialog, either "grid" or "list". */
-        this.viewMode = "grid";
+        /** @type {("grid"|"list")} User-selected view mode for the dialog, allows switching between grid and list view. */
+        this.viewModeSelected = "grid";
 
-        /** @type {boolean} Whether the user is allowed to change the view mode. */
-        this.userCanChangeViewMode = true;
+        /** @type {(""|"grid"|"list")} Forced view mode that disables user option to change view mode. Empty string means view mode can be changed by user. */
+        this.viewModeForced = "";
 
         //---- INTERNAL VARIABLES -------------------------
 
@@ -301,27 +287,15 @@ class _GalleryDialog extends ComfyDialog {
          *     The array contains pairs of category name and button element. */
         this.categoryButtons = [];
 
-        /** @type {Function|null} Callback function for when an element is selected. */
-        this.onSelectElement = null;
+        /** @type {Function|null} Callback function invoked when the user selects an item. */
+        this.onSelectItem = null;
 
-        // if a fixed view mode is set, el usuario can't change it
-        if( viewMode=="list" || viewMode=="grid" ) {
-            this.viewMode              = viewMode;
-            this.userCanChangeViewMode = false;
-        }
-
-        // create the custom dialog.
-        //   icons can be taken from PrimeIcons or Pictogrammers MDT
-        //   PrimeIcons       : e.g. "pi.pi-image"   (https://primevue.org/icons)
-        //   Pictogrammers MDI: e.g. "mdi.mdi-image" (https://pictogrammers.com/library/mdi)
-        this.element = makeCustomDialog(
-            DIALOG_ID, //< ID of the DOM element where the dialog is located
-            TITLE_ID , //< ID of the DOM element where the title is located
-            ''       , //< title
-            icon     , //< icon
-
-            // DIALOG
-            html( size==="small" ? "div.zipn-dialog.zipn-dialog--small" : "div.zipn-dialog",
+        // create the custom dialog
+        this.element = _makeCustomDialog(
+            DIALOG_TITLE_CLASS,
+            DIALOG_ICON_HOLDER_CLASS,
+            //-- DIALOG -------------------------
+            html(`div.${DIALOG_CONTENT_CLASS}`,
                 {}, [
 
                 // UPPER TOOLBAR
@@ -340,8 +314,8 @@ class _GalleryDialog extends ComfyDialog {
                     html("div.zipn-dialog__statusbar")
                 ]),
             ]),
-
-            () => this.close() //< close callback
+            //-- CLOSE CALLBACK -----------------
+            () => this.close()
         );
 
         //---- DIALOG ELEMENTS ----------------------------
@@ -358,7 +332,7 @@ class _GalleryDialog extends ComfyDialog {
         //---- EVENT LISTENERS ----------------------------
 
         const CARD_SELECTOR = '.zipn-grid-card, .zipn-list-card';
-        setupCardHoverListeners( this.searchResultsEl, CARD_SELECTOR,
+        _setupCardHoverListeners( this.searchResultsEl, CARD_SELECTOR,
             (card     ) => { this.onCardEnter(card); },
             (_card    ) => { },
             (card     ) => { this.onCardClick(card); },
@@ -369,13 +343,6 @@ class _GalleryDialog extends ComfyDialog {
         this.searchInputEl.addEventListener('blur'   , ()  => { this.onInputLostFocus(); } );
     }
 
-    /**
-     * Closes the dialog.
-     */
-    close() {
-        this.onClose();
-        super.close();
-    }
 
     /**
      * Returns the ID of the currently selected element.
@@ -386,6 +353,20 @@ class _GalleryDialog extends ComfyDialog {
         return (this.hoveredCardID != null) ? this.hoveredCardID : resultID;
     }
 
+    /**
+     * Returns a string representing the current view mode ("list" or "grid")
+     */
+    getViewMode() {
+        return this.viewModeForced || this.viewModeSelected;
+    }
+
+    /**
+     * Closes the dialog.
+     */
+    close() {
+        this.onClose();
+        super.close();
+    }
 
     /**
      * Updates the selected element and displays its details in the dialog.
@@ -413,9 +394,9 @@ class _GalleryDialog extends ComfyDialog {
         }
 
         // update details pane
-        const element     = detailsID != null ? this.elementsByID[ detailsID ] : null;
+        const item        = detailsID != null ? this.elementsByID[ detailsID ] : null;
         const cacheBuster = this.cacheBuster ? '&cache=' + this.cacheBuster : '';
-        this.detailsPaneEL.innerHTML = this.delegate.htmlItemDetailsPane(element, cacheBuster);
+        this.detailsPaneEL.innerHTML = this.delegate.htmlItemDetailsPane(item, item.name, this.options, cacheBuster);
     }
 
     /**
@@ -434,11 +415,11 @@ class _GalleryDialog extends ComfyDialog {
     updateSearchResults(command) {
         let shouldScroll = false;
 
-        // if the command starts with "$", change the view mode
+        // if the command starts with "$", change the selected view mode
         if( command.startsWith('$') ) {
             const viewMode = command.substring(1);
-            if( viewMode == this.viewMode ) { return; }
-            this.viewMode = viewMode;
+            if( viewMode == this.viewModeSelected ) { return; }
+            this.viewModeSelected = viewMode;
             this.resultColumns = (viewMode=="grid" ? 4 : 1);
             this.updateToolbar();
             shouldScroll = { behavior: 'instant', block: 'center' };
@@ -467,7 +448,7 @@ class _GalleryDialog extends ComfyDialog {
 
         // apply filters and re-render gallery
         this.resultItems = _GalleryDialog.filterItems( this.textFilter, this.categoryFilter, this.searchNameIndex );
-        _GalleryDialog.renderResults( this.searchResultsEl, this.viewMode, this.resultItems, this.delegate, this.initialCardID, this.cacheBuster );
+        _GalleryDialog.renderResults( this.searchResultsEl, this.getViewMode(), this.resultItems, this.delegate, this.initialCardID, this.cacheBuster );
 
         // disable focus if there are no results
         if( this.resultItems.length == 0 ) { this.resultIndex = null; }
@@ -551,17 +532,66 @@ class _GalleryDialog extends ComfyDialog {
 
     /**
      * Called when the dialog is launched or re-opened.
-     *
-     * Initializes variables and loads elements data from the server.
-     * @param {string} initialElementName - The name of the initial element to be selected.
+     * Configures the dialog according to options, initializes variables, and loads items from the server.
+     * @param {Object}  options             - Optional configuration object for the gallery dialog
+     * @param {string}  [options.title]     - The title to display in the dialog header
+     * @param {string}  [options.icon]      - Icon to show before the title in the dialog header.
+     *                                        * For PrimeIcons   : Use "pi.[icon name]" e.g., "pi.pi-image"; (see https://primevue.org/icons/#list)
+     *                                        * For Pictogrammers: Use "mdi.[icon name]" e.g., "mdi.mdi-image"; (see https://pictogrammers.com/library/mdi)
+     *                                        * Or empty string to hide the icon
+     * @param {string}  [options.size]      - Force a size for the dialog window. Supported values: "small"
+     * @param {string}  [options.view_mode] - Force a view mode of the dialog. Supported values: "list", or "grid"
+     * @param {boolean} [options.allow_variations] - If True, enables grouping item by base with variations
+     * @param {string}  initialItemName - Name of the item to show selected when dialog opens
+     * @param {Function} onSelect       - Callback function to execute when an item is selected
      */
-    onOpen(initialElementName) {
+    onLaunch(options, initialItemName, onSelect) {
+        const dialogContentEl      = this.element?.querySelector(`.${DIALOG_CONTENT_CLASS}`);
+        const dialogTitleEl        = this.element?.querySelector(`.${DIALOG_TITLE_CLASS}`);
+        const dialogIconHolder     = this.element?.querySelector(`.${DIALOG_ICON_HOLDER_CLASS}`);
+        const viewModeButtonHolder = this.element?.querySelector(`.${VIEWMODE_BTTN_HOLDER_CLASS}`);
+
+        // store the item selection callback and the configuration options
+        this.onSelectItem = onSelect;
+        this.options = {
+            title           : DEFAULT_TITLE,
+            icon            : DEFAULT_TITLE_ICON,
+            size            : "default",
+            view_mode       : "default",
+            allow_variations: false,
+            ...options
+        };
+
+        // update dialog title [options.title]
+        if( dialogTitleEl ) { dialogTitleEl.textContent = this.options.title; }
+
+        // update dialog icon [options.icon]
+        const iconEl = html(`i.${this.options.icon}`, {style:{"font-size":"1.25rem", "margin-right":".5rem"}});
+        dialogIconHolder?.replaceChildren( iconEl );
+
+        // handle view-mode forced configuration [options.view_mode]
+        // if a forced view-mode is set, remove view mode buttons
+        if( this.options.view_mode==="list" || this.options.view_mode==="grid" ) {
+            this.viewModeForced = this.options.view_mode;
+            this.gridButtonEl = null;
+            this.listButtonEl = null;
+            viewModeButtonHolder?.replaceChildren();
+        } else {
+            this.viewModeForced = "";
+            this.gridButtonEl = this.createToolButton("zipn-grid-btn", 'pi pi-image', "", "Grid View", () => { this.updateSearchResults("$grid"); });
+            this.listButtonEl = this.createToolButton("zipn-list-btn", 'pi pi-list' , "", "List View", () => { this.updateSearchResults("$list"); });
+            const viewModeButtonHolder = this.element?.querySelector(`.${VIEWMODE_BTTN_HOLDER_CLASS}`);
+            viewModeButtonHolder?.replaceChildren(_GalleryDialog.DIVIDER, this.gridButtonEl, this.listButtonEl );
+        }
+
+        // handle dialog size configuration [options.size]
+        dialogContentEl.classList.toggle('zipn-dialog--small', this.options.size === 'small');
 
         // initialize variables as if the dialog had just been created
         this.isOpen              = true;
-        this.initialElementName  = initialElementName;
+        this.initialElementName  = initialItemName;
         this.initialCardID       = null;
-        this.resultItems      = [];
+        this.resultItems         = [];
         this.resultIndex         = null;
         this.hoveredCardID       = null;
         this.oldSelectionID      = null;
@@ -758,7 +788,7 @@ class _GalleryDialog extends ComfyDialog {
         const selectionID = this.getSelectionID();
         const element     = selectionID != null ? this.elementsByID[selectionID] : null;
         if( element ) {
-            this.onSelectElement?.(element.name);
+            this.onSelectItem?.(element.name);
             this.close();
         }
     }
@@ -869,6 +899,9 @@ class _GalleryDialog extends ComfyDialog {
             }
         }
 
+        // add view-mode buttons holder
+        toolbarElementList.push( html(`span.${VIEWMODE_BTTN_HOLDER_CLASS}`) );
+
         // add viewmode buttons
         if( this.userCanChangeViewMode ) {
             this.gridButtonEl = this.createToolButton("zipn-grid-btn", 'pi pi-image', "", "Grid View", () => { this.updateSearchResults("$grid"); });
@@ -890,8 +923,9 @@ class _GalleryDialog extends ComfyDialog {
             buttonEl.classList.toggle('p-highlight', category == this.categoryFilter );
         }
         // update view mode buttons
-        this.listButtonEl?.classList.toggle('p-highlight', this.viewMode == "list" );
-        this.gridButtonEl?.classList.toggle('p-highlight', this.viewMode == "grid" );
+        const viewMode = this.getViewMode();
+        this.listButtonEl?.classList.toggle('p-highlight', viewMode === "list" );
+        this.gridButtonEl?.classList.toggle('p-highlight', viewMode === "grid" );
     }
 
 
@@ -908,7 +942,7 @@ let _cssLoaded = false;
 /**
  * Ensures that the gallery dialog stylesheet is loaded and injected into the document.
  */
-function ensureCSSLoaded() {
+function _ensureCSSLoaded() {
     // check if CSS is already loaded to avoid duplicates
     if( _cssLoaded ) { return; }
     try {
@@ -931,18 +965,17 @@ function ensureCSSLoaded() {
  *
  * This implementation utilizes deprecated ComfyUI functions since there is
  * currently no documented method to create custom dialogs. Some ideas and
- * concepts for this implementation were inspired by ComfYUI-Manager project.
+ * concepts for this implementation were inspired by the ComfYUI-Manager project.
  *
- * @param {string} dialogId  - The ID for the dialog element.
- * @param {string} titleId   - The ID for the title element within the dialog.
- * @param {string} title     - The title to be displayed in the dialog header.
- * @param {string} icon      - The CSS class for the icon that will appear next to the title.
- * @param {string|HTMLElement[]} content - The content of the dialog, which can be a string or an array of HTML elements.
- * @param {Function} onClose - A callback function to be executed when the dialog is closed.
- * @returns {HTMLElement} 
- *     Returns the main container element for the dialog mask.
+ * @param {string}               titleElClass    - CSS class for the dialog title element.
+ * @param {string}               iconHolderClass - CSS class for the icon holder in the dialog header.
+ * @param {string|HTMLElement[]} dialogContent   - The content of the dialog, which can be provided
+ *                                                 as a string or an array of HTML elements.
+ * @param {Function}             onClose         - Callback function to be executed when the dialog is closed.
+ * @returns {HTMLElement}
+ *    The main DOM element for the created dialog.
  */
-function makeCustomDialog(dialogId, titleId, title, icon, content, onClose) {
+function _makeCustomDialog(titleElClass, iconHolderClass, dialogContent, onClose) {
 
     const dialogOutsideArea = html("div.p-dialog-mask.p-overlay-mask.p-overlay-mask-enter", {
         parent: document.body,
@@ -971,22 +1004,21 @@ function makeCustomDialog(dialogId, titleId, title, icon, content, onClose) {
         onclick   : onClose, //< execute `onClose` when close button is clicked
         innerHTML : '<i class="pi pi-times"></i>'
     });
-    const iconAndTitle = [
-        icon ? html( "i."+icon, {style:{"font-size":"1.25rem", "margin-right":".5rem"}} ) : "",
-        html("span", { id: titleId, textContent: title })
-    ];
     const dialogHeader = html("div.p-dialog-header",
     [
         html("div", [
             html("div", { id: "frame-title-container" }, [
-                html("h1", iconAndTitle.filter(Boolean))
+                html("h1", [
+                    html( "span."+iconHolderClass  ),
+                    html( "span."+titleElClass )
+                ])
             ])
         ]),
         headerActions
     ]);
-    const contentFrame = html("div.p-dialog-content", {}, normalizeDOMnodes(content));
+    const contentFrame = html("div.p-dialog-content", {}, _normalizeDOMnodes(dialogContent));
     const dialogFrame  = html("div.p-dialog.p-component.global-dialog", {
-            id    : dialogId,
+            //id    : dialogId,
             parent: dialogOutsideArea,
             style : {
                 'display'       : 'flex',
@@ -1026,7 +1058,7 @@ function makeCustomDialog(dialogId, titleId, title, icon, content, onClose) {
  * @param {(card: HTMLElement) => void} onCardClick - Callback function when clicking on a card.
  * @param {(container: HTMLElement) => void} [onContainerLeave] - Optional callback function when moving the mouse away from the container.
  */
-function setupCardHoverListeners(containerEl, cardSelector, onCardEnter, onCardLeave, onCardClick, onContainerLeave) {
+function _setupCardHoverListeners(containerEl, cardSelector, onCardEnter, onCardLeave, onCardClick, onContainerLeave) {
 
     const hasPointer = true; //!!window.PointerEvent;
     const events = {
@@ -1066,7 +1098,7 @@ function setupCardHoverListeners(containerEl, cardSelector, onCardEnter, onCardL
  * @returns {Node[]}
  *    An array of DOM nodes
  */
-function normalizeDOMnodes(content) {
+function _normalizeDOMnodes(content) {
     if( !content ) { return []; }
 
     if (typeof content === 'string') {

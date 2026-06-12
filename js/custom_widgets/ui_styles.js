@@ -169,33 +169,27 @@ class StyleDialogDelegate extends GalleryDialogDelegate {
     }
 }
 
-
 /**
- * Returns the gallery dialog instance for a specific visual style version.
- * @param {string} version    - The version identifier of the visual styles to show in the gallery
- * @param {string} [size]     - Optional size of the dialog window. Can be "default" or "small".
- * @param {string} [viewMode] - Optional view mode of the items. Can be "default", "list", or "grid".
+ * Returns a style selection dialog containing the specified style database version.
+ * @param {string} version - Version of the style database to show (e.g., "1.0")
  * @returns {GalleryDialog}
- *     The dialog instance for the specified version
- *
- * Usage example:
- *     const styleVersion = "1.0"; //< version of the style definitions
- *     const styleDialog  = requireVisualStyleGalleryDialog(styleVersion);
- *     const currentStyle = "Anime";
- *     styleDialog.launch("Select Style", currentStyle, (selectedStyle) => {
- *         console.log("Selected Style: " + selectedStyle);
- *     });
+ *   The gallery dialog instance for the specified version
+ * @example
+ *   const styleDialog  = requireVisualStyleGalleryDialog("1.2");
+ *   const currentStyle = "Anime";
+ *   styleDialog.launch( {}, currentStyle, (selectedStyle) => {
+ *       console.log("Selected Style: " + selectedStyle);
+ *   });
  */
-function requireVisualStyleGalleryDialog(version, icon, size, viewMode) {
+function requireVisualStyleGalleryDialog(version) {
 
-    // check if the dialog is already registered for the specified version
+    // check if a dialog is already registered for the specified version
     const dialog = _dialogsByVersion.get(version);
-    if(   dialog   ) {
-        return dialog;
-    }
+    if( dialog ) { return dialog; }
+
     // If no dialog exists for this version, create a new one
     const newDelegate = new StyleDialogDelegate(version);
-    const newDialog   = new GalleryDialog(newDelegate, icon, size, viewMode);
+    const newDialog   = new GalleryDialog(newDelegate);
     _dialogsByVersion.set(version, newDialog);
     return newDialog;
 }
@@ -274,19 +268,17 @@ class StyleWidgetDelegate extends GalleryWidgetDelegate {
 
 
 function addVisualStyleGalleryWidget(node, name, data) {
-    const type    = data[0];
-    const options = data[1] || {};
-    const version = options.version || '1.0';
-    let   widget  = new GalleryWidget(type, node, name, options, new StyleWidgetDelegate(version), (self) =>
+    const type           = data[0];
+    const options        = data[1] || {};
+    const version        = options.version || '1.0';
+    const dialog_options = options.dialog || {};
+    let   widget  = new GalleryWidget(type, node, name, options, new StyleWidgetDelegate(version), (widget) =>
     {
         // launch dialog and update widget value
-        const styleDialog = requireVisualStyleGalleryDialog(version,
-                                                            options.dialog_icon,
-                                                            options.dialog_size,
-                                                            options.dialog_view_mode
-                                                            );
-        styleDialog.launch( self.options.dialog_title, self.value, (selectedStyle) => {
-            self.forceUpdate( selectedStyle );
+        const styleDialog  = requireVisualStyleGalleryDialog(version);
+        const currentStyle = widget.value;
+        styleDialog.launch( dialog_options, currentStyle, (selectedStyle) => {
+            widget.forceUpdate( selectedStyle );
         });
     });
     widget = node.addCustomWidget( widget );

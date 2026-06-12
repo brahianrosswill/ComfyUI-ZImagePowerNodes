@@ -184,29 +184,26 @@ class PaletteGalleryDialogDelegate extends GalleryDialogDelegate {
 }
 
 /**
- * Returns the gallery dialog for the specified version of the color palettes
- * @param {string} version - The version of the color palettes to show in the gallery dialog
+ * Returns a palette selection dialog containing the specified palette database version
+ * @param {string} version - Version of the palette database to show (e.g., "1.0")
  * @returns {GalleryDialog}
- *     The dialog instance for the specified version
- *
- * Usage example:
- *     const paletteVersion = "1.0"; //< version of the palette definitions
- *     const paletteDialog  = requireColorPaletteGalleryDialog(paletteVersion);
- *     const currentPalette = "Volcano";
- *     paletteDialog.launch("Select a Palette", currentPalette, (selectedPalette) => {
- *         console.log("Selected Palette: " + selectedPalette);
- *     });
+ *   The gallery dialog instance for the specified version
+ * @example
+ *   const paletteDialog  = requireColorPaletteGalleryDialog("1.2");
+ *   const currentPalette = "Volcano";
+ *   paletteDialog.launch({}, currentPalette, (selectedPalette) => {
+ *       console.log("Selected Palette: " + selectedPalette);
+ *   });
  */
-function requireColorPaletteGalleryDialog(version, icon, size, viewMode) {
+function requireColorPaletteGalleryDialog(version) {
 
-    // check if the dialog is already registered for the specified version
+    // check if a dialog is already registered for the specified version
     const dialog = _dialogRegistry.get(version);
-    if(   dialog   ) {
-        return dialog;
-    }
-    // If no dialog exists for this version, create a new one
+    if( dialog ) { return dialog; }
+
+    // if no dialog exists for this version, create a new one
     const newDelegate = new PaletteGalleryDialogDelegate(version);
-    const newDialog   = new GalleryDialog(newDelegate, icon, size, viewMode);
+    const newDialog   = new GalleryDialog(newDelegate);
     _dialogRegistry.set(version, newDialog);
     return newDialog;
 }
@@ -277,19 +274,16 @@ class PaletteWidgetDelegate extends GalleryWidgetDelegate {
 }
 
 function addColorPaletteGalleryWidget(node, name, data) {
-    const type    = data[0];
-    const options = data[1] || {};
-    const version = options.version || '2.0';
-
+    const type           = data[0];
+    const options        = data[1] || {};
+    const version        = options.version || '1.0';
+    const dialog_options = options.dialog || {};
     let   widget  = new GalleryWidget(type, node, name, options, new PaletteWidgetDelegate(version), (widget) =>
     {
         // launch dialog and update widget value
-        const paletteDialog = requireColorPaletteGalleryDialog(version,
-                                                               options.dialog_icon,
-                                                               options.dialog_size,
-                                                               options.dialog_view_mode,
-                                                               );
-        paletteDialog.launch( widget.options.dialog_title, widget.value, (selectedPalette) => {
+        const paletteDialog  = requireColorPaletteGalleryDialog(version);
+        const currentPalette = widget.value;
+        paletteDialog.launch( dialog_options, currentPalette, (selectedPalette) => {
             widget.forceUpdate( selectedPalette );
         });
     });

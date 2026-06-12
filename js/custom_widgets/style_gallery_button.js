@@ -72,13 +72,14 @@ function addStyleGalleryButton(node, name, data) {
         //     console.log("Alternative action with shift key pressed");
         //     return;
         // }
+        const options        = button.options;
+        const prevWidget     = button.node.widgets[options.prev_index];
+        const version        = options.version || "1.0";
+        const dialog_options = options.dialog || {};
 
-        const options    = button.options;
-        const prevWidget = button.node.widgets[options.prev_index];
-
-        const styleDialog  = requireVisualStyleGalleryDialog(options.version);
+        const styleDialog  = requireVisualStyleGalleryDialog(version);
         const currentStyle = prevWidget.value?.replace(/^"|"$/g, '');
-        styleDialog.launch( options.dialog_title, currentStyle, (selectedStyle) =>
+        styleDialog.launch( dialog_options, currentStyle, (selectedStyle) =>
         {
             // ensure the selected style name is properly quoted
             if( selectedStyle!="" && selectedStyle!="-" && selectedStyle!="none" ) {

@@ -60,7 +60,7 @@ class StylePromptEncoder2(io.ComfyNode):
                                          tooltip="The style you want for your image.",
                                         ),
                 StyleGalleryButton.Input("gallery",
-                                         version="1.0",
+                                         version="1.0", dialog_title="Select Style",
                                          tooltip="Open the style gallery to see all available styles."
                                         ),
 
