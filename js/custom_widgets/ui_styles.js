@@ -46,7 +46,7 @@ const _dialogsByVersion = new Map();
  * @returns {Promise<Array<Object>>}
  *     Resolves to the array of formatted styles.
  *     Each element in the array is an object with the following properties:
- *       - id         : Unique identifier for the style (the index in the list)
+ *       - idx        : Unique identifier for the style (the index in the list)
  *       - name       : The name of the style (string)
  *       - category   : The category of the style (string)
  *       - description: Description of the style (string)
@@ -98,7 +98,7 @@ async function fetchVisualStyleArray(version)
             return styles.map((style, index) => {
                 const thumbFileName = style[4] || "";
                 return {
-                    id         : index,
+                    idx        : index,
                     name       : style[0] || "Unknown",
                     category   : style[1] || "Uncategorized",
                     description: style[2] || "",
@@ -138,7 +138,7 @@ class StyleDialogDelegate extends GalleryDialogDelegate {
      * Fetches an array with data about each item to be displayed in the gallery.
      * @returns {Promise<Array<Object>>}
      *   A promise that resolves to an array of objects with the following properties:
-     *       - id         : Unique identifier for the item (the index in the list)
+     *       - idx        : Unique identifier for the item (the index in the list)
      *       - name       : The display name of the item (string)
      *       - category   : The category the item belongs to (string)
      *       - description: A detailed description of the item (string)
@@ -214,7 +214,7 @@ class StyleWidgetDelegate extends GalleryWidgetDelegate {
 
     getItemText(item, value, options) {
         if( !item ) { return "Undefined"; }
-        if( options.allow_variations ) {
+        if( options.allow_variants ) {
             const parts = item.name.split("//");
             const name      = parts[0]?.trim() || "";
             const variation = parts[1]?.trim() || "";

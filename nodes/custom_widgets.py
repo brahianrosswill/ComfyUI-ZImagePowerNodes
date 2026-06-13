@@ -36,7 +36,7 @@ class PaletteSelector:
                      dialog_icon     : str  | None = None,
                      dialog_size     : str  | None = None,
                      dialog_view_mode: str  | None = None,
-                     allow_variations: bool | None = None,
+                     allow_variants: bool | None = None,
                      tooltip         : str  | None = None,
                      ):
             """
@@ -54,7 +54,7 @@ class PaletteSelector:
                 dialog_size (str):       The size of the dialog window. Supported values: "small" or "default".
                 dialog_view_mode (str):  The view mode for the dialog window. Supported values: "grid" or "list".
                                          If provided, the user cannot change the view mode.
-                allow_variations (bool): If True, the widget treats "//" as a separator in palette names.
+                allow_variants (bool): If True, the widget treats "//" as a separator in palette names.
                                          The left part is considered the primary name, and the right part
                                          is considered its variation.
                 tooltip (str):           A tooltip description for the widget.
@@ -89,9 +89,9 @@ class PaletteSelector:
                 if dialog_view_mode not in _ALLOWED_DIALOG_VIEW_MODES:
                     raise ValueError(f"Invalid dialog view '{dialog_view_mode}'. Allowed values are {_ALLOWED_DIALOG_VIEW_MODES}")
 
-            if allow_variations is not None:
-                extra_dict["allow_variations"]           = allow_variations
-                extra_dict["dialog"]["allow_variations"] = allow_variations
+            if allow_variants is not None:
+                extra_dict["allow_variants"]           = allow_variants
+                extra_dict["dialog"]["allow_variants"] = allow_variants
 
             super().__init__(id, extra_dict=extra_dict, tooltip=cast(str, tooltip))
 
@@ -118,7 +118,7 @@ class StyleSelector:
                      dialog_icon     : str  | None = None,
                      dialog_size     : str  | None = None,
                      dialog_view_mode: str  | None = None,
-                     allow_variations: bool | None = None,
+                     allow_variants: bool | None = None,
                      tooltip         : str  | None = None,
                      ):
             """
@@ -132,7 +132,7 @@ class StyleSelector:
                 dialog_size (str):       The size of the dialog window. Supported values: "small" or "default".
                 dialog_view_mode (str):  The view mode for the dialog window. Supported values: "grid" or "list".
                                          If provided, the user cannot change the view mode.
-                allow_variations (bool): If True, the widget treats "//" as a separator in style names.
+                allow_variants (bool): If True, the widget treats "//" as a separator in style names.
                                          The left part is considered the primary name, and the right part
                                          is considered its variation.
                 tooltip (str):           A tooltip description for the widget.
@@ -167,9 +167,9 @@ class StyleSelector:
                 if dialog_view_mode not in _ALLOWED_DIALOG_VIEW_MODES:
                     raise ValueError(f"Invalid dialog view '{dialog_view_mode}'. Allowed values are {_ALLOWED_DIALOG_VIEW_MODES}")
 
-            if allow_variations is not None:
-                extra_dict["allow_variations"]           = allow_variations
-                extra_dict["dialog"]["allow_variations"] = allow_variations
+            if allow_variants is not None:
+                extra_dict["allow_variants"]           = allow_variants
+                extra_dict["dialog"]["allow_variants"] = allow_variants
 
             super().__init__(id, extra_dict=extra_dict, tooltip=cast(str, tooltip))
 
@@ -251,7 +251,7 @@ class StyleGalleryButton:
                      dialog_icon     : str  | None = None,
                      dialog_size     : str  | None = None,
                      dialog_view_mode: str  | None = None,
-                     allow_variations: bool | None = None,
+                     allow_variants: bool | None = None,
                      tooltip         : str  | None = None,
                      ):
             """
@@ -294,8 +294,8 @@ class StyleGalleryButton:
                 if dialog_view_mode not in _ALLOWED_DIALOG_VIEW_MODES:
                     raise ValueError(f"Invalid dialog view '{dialog_view_mode}'. Allowed values are {_ALLOWED_DIALOG_VIEW_MODES}")
 
-            if allow_variations is not None:
-                extra_dict["dialog"]["allow_variations"] = allow_variations
+            if allow_variants is not None:
+                extra_dict["dialog"]["allow_variants"] = allow_variants
 
             super().__init__(id, extra_dict=extra_dict, tooltip=cast(str, tooltip))
 

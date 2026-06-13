@@ -258,7 +258,7 @@ class GalleryWidget {
         /** @type {Object} The configuration options passed to the widget */
         this.options = {
             height          : 48,
-            allow_variations: false,
+            allow_variants: false,
             ...options
         };
 

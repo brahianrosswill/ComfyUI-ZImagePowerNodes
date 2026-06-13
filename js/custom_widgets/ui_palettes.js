@@ -46,7 +46,7 @@ const _dialogRegistry = new Map();
  * @returns {Promise<Array<Object>>}
  *     Resolves to the array of formatted color palettes.
  *     Each element in the array is an object with the following properties:
- *       - id         : Unique identifier for the palette (the index in the list)
+ *       - idx        : Unique identifier for the palette (the index in the list)
  *       - name       : The name of the color palette (string)
  *       - description: Description of the color palette (string)
  *       - tags       : An string of comma-separated tags associated with the palette (string)
@@ -101,7 +101,7 @@ async function fetchColorPaletteArray(version)
                     colors.push({ hex: paldata[i], color: paldata[i+1] });
                 }
                 return {
-                    id         : index,
+                    idx        : index,
                     name       : name,
                     category   : "",
                     description: description,
@@ -141,7 +141,7 @@ class PaletteGalleryDialogDelegate extends GalleryDialogDelegate {
      * Fetches an array with data about each item to be displayed in the gallery.
      * @returns {Promise<Array<Object>>}
      *   A promise that resolves to an array of objects with the following properties:
-     *       - id         : Unique identifier for the item (the index in the list)
+     *       - idx        : Unique identifier for the item (the index in the list)
      *       - name       : The display name of the item (string)
      *       - category   : The category the item belongs to (string)
      *       - description: A detailed description of the item (string)
@@ -156,12 +156,12 @@ class PaletteGalleryDialogDelegate extends GalleryDialogDelegate {
      * Renders the image HTML element for the selected item.
      * @param {Object|null} item        - The data object representing the item,
      *                                    or `null` if no item is selected.
-     * @param {string}      className   - CSS class to be applied to the img tag
+     * @param {string}      htmlClass   - CSS class to be applied to the img tag
      * @returns {string}
      *    The HTML string representing the image element
      *    or an empty string if the item or thumbnail is missing.
      */
-    htmlItemImage(item, className) {
+    htmlItemImage(item, _value, _options, _cacheBuster, htmlClass) {
         if( !item ) { return ""; }
         const colorBars = item.colors.map(color => `
             <div style="
@@ -172,7 +172,7 @@ class PaletteGalleryDialogDelegate extends GalleryDialogDelegate {
         `).join('');
 
         return `
-            <div class="${className}" style="
+            <div class="${htmlClass}" style="
                             display   : flex;
                             overflow  : hidden;
                             border    : 1px solid rgba(0,0,0,0.15);
@@ -226,7 +226,7 @@ class PaletteWidgetDelegate extends GalleryWidgetDelegate {
      * Fetches an array with data about each item to be displayed in the gallery.
      * @returns {Promise<Array<Object>>}
      *   A promise that resolves to an array of objects with the following properties:
-     *       - id         : Unique identifier for the item (the index in the list)
+     *       - idx        : Unique identifier for the item (the index in the list)
      *       - name       : The display name of the item (string)
      *       - category   : The category the item belongs to (string)
      *       - description: A detailed description of the item (string)

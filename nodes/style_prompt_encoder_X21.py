@@ -61,11 +61,11 @@ class StylePromptEncoderX21(io.ComfyNode):
                                               "prompt will be inserted.",
                                      ),
                 StyleSelector.Input  ("style",
-                                      version=_STL_VERSION, allow_variations=True, dialog_title="Visual Styles | ⚗️experimental",
+                                      version=_STL_VERSION, allow_variants=True, dialog_title="Visual Styles | ⚗️experimental",
                                       tooltip="The visual style to apply to the prompt. "
                                      ),
                 PaletteSelector.Input("palette",
-                                      version=_PAL_VERSION, allow_variations=False, dialog_title="Color Palettes | ⚗️ experimental",
+                                      version=_PAL_VERSION, allow_variants=False, dialog_title="Color Palettes | ⚗️ experimental",
                                       dialog_size="small", dialog_view_mode="list", dialog_icon="mdi.mdi-palette-outline",
                                       tooltip="The color palette to use for enhancing the prompt. "
                                      ),

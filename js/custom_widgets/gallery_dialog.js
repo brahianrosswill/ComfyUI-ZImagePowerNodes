@@ -28,8 +28,27 @@ const DIALOG_CONTENT_CLASS       = 'zipn-dialog';
 const DIALOG_TITLE_CLASS         = 'zipn-dialog__title';
 const DIALOG_ICON_HOLDER_CLASS   = 'zipn-dialog__icon';
 const VIEWMODE_BTTN_HOLDER_CLASS = 'zipn-dialog__viewmode';
-const DEFAULT_TITLE      = 'Dialog';
-const DEFAULT_TITLE_ICON = 'mdi.mdi-image-multiple-outline';
+const DEFAULT_TITLE        = 'Dialog';
+const DEFAULT_TITLE_ICON   = 'mdi.mdi-image-multiple-outline';
+const DEFAULT_CACHE_BUSTER = Math.floor(Date.now() / 3600000);
+const DEFAULT_VARIANT_NAME = "default";
+
+
+/**
+ * This type represents a gallery "Item" with metadata and display properties.
+ * These items are supplied by the {@link GalleryDialogDelegate} through
+ * its `fetchItemArray()` function.
+ *
+ * @typedef {Object} GalleryDialogItem
+ * @property {number} idx           - (Required) The position index of the item in the provided array.
+ * @property {string} name          - (Required) The name of the item, used for selection and display.
+ * @property {string} [category]    - (Optional) The category of the item.
+ * @property {string} [description] - (Optional) A detailed description of the item.
+ * @property {string} [tags]        - (Optional) Tags associated with the item.
+ * @property {string} [displayName] - (Internal) Display name that overrides the `name` property.
+ *                                    Used for special display scenarios where the standard name
+ *                                    should be temporarily replaced.
+ */
 
 
 /**
@@ -47,7 +66,7 @@ class GalleryDialogDelegate {
      * @returns {Promise<Array<Object>>}
      *   Resolves to the array of formatted gallery items.
      *   Each item object must contain the following properties:
-     *       - id         : Unique identifier for the item (the index in the list)
+     *       - idx        : Unique identifier for the item (the index in the list)
      *       - name       : The display name of the item (string)
      *       - category   : The category the item belongs to (string)
      *       - description: A detailed description of the item (string)
@@ -59,7 +78,7 @@ class GalleryDialogDelegate {
      *     async fetchItemArray() {
      *         const data = await myApi.get('/items');
      *         return data.map((item, index) => ({
-     *           id         : index,
+     *           idx        : index,
      *           name       : item.title,
      *           category   : item.group,
      *           description: item.desc,
@@ -110,20 +129,19 @@ class GalleryDialogDelegate {
      * thumbnail property, or returns an empty string if the item or thumbnail
      * is missing.
      *
-     * @param {Object|null} item        - The data object representing the item,
-     *                                    or `null` if no item is selected.
-     * @param {string}      className   - CSS class to be applied to the img tag
+     * @param {Object|null} item - The data object representing the item, or `null` if no item is selected.
+     * @param {string}      htmlClass   - CSS class to be applied to the img tag
      * @param {string}      cacheBuster - A string to be appended to URLs to prevent image caching.
      * @returns {string}
      *    The HTML string representing the image element
      *    or an empty string if the item or thumbnail is missing.
      */
-    htmlItemImage(item, className, cacheBuster) {
+    htmlItemImage(item, name, options, cacheBuster, htmlClass) {
         if( !item?.thumbnail ) {
             return "";
         }
         const imageURL = item.thumbnail + cacheBuster;
-        return `<img class="${className}" src="${imageURL}" loading="lazy" alt="${item.name | ""}"/>`;
+        return `<img class="${htmlClass}" src="${imageURL}" loading="lazy" alt="${name | ""}"/>`;
     }
 
     /**
@@ -133,16 +151,15 @@ class GalleryDialogDelegate {
      * The current implementation renders a structured layout consisting of
      * the item's name as a header, the item's image, and its description.
      *
-     * @param {Object|null} item        - The data object representing the item,
-     *                                    or `null` if no item is selected.
+     * @param {Object|null} item - The data object representing the item, or `null` if no item is selected.
      * @param {string}      cacheBuster - A string to be appended to URLs to prevent image caching.
      * @returns {string}
      *    The HTML string representing the content of the details panel.
      */
     htmlItemDetailsPane(item, name, options, cacheBuster) {
-        const imageHTML = this.htmlItemImage(item, 'zipn-image', cacheBuster);
+        const imageHTML = this.htmlItemImage(item, name, options, cacheBuster, 'zipn-image');
         return `
-           <h1>${item?.name || ""}</h1>
+           <h1>${name || ""}</h1>
            ${imageHTML}
            <p>${item?.description || ""}</p>
            `;
@@ -150,8 +167,43 @@ class GalleryDialogDelegate {
 
 }
 
+/**
+ * Internal delegate for a sub-dialog that allows selection of variants for an item.
+ * This delegate is forwards most functionality to the main `GalleryDialogDelegate`,
+ * while customizing only the presentation for variant selection.
+ *
+ * The `variants` array is populated with sub-items/variants before launching
+ * the sub-dialog. This is typically done via `delegate.variants = [...variants];`.
+ * 
+ * @class   _VariantsSubDialogDelegate
+ * @extends GalleryDialogDelegate
+ * @param {GalleryDialogDelegate} mainDelegate - The main delegate to which most methods are forwarded.
+ */
+class _VariantsSubDialogDelegate extends GalleryDialogDelegate {
 
-//#============================= GalleryDialog =============================#
+    constructor(mainDelegate) {
+        super();
+        this.variants     = [];
+        this.mainDelegate = mainDelegate;
+    }
+    async fetchItemArray() {
+        return this.variants;
+    }
+    getCategories() {
+        return null;
+    }
+    htmlItemImage(item, name, options, cacheBuster, htmlClass) {
+        return this.mainDelegate.htmlItemImage(item, name, options, cacheBuster, htmlClass);
+    }
+    htmlItemDetailsPane(item, name, options, cacheBuster) {
+        return this.mainDelegate.htmlItemDetailsPane(item, name, options, cacheBuster);
+    }
+}
+
+
+//#=========================================================================#
+//#//////////////////////////// GALLERY DIALOG /////////////////////////////#
+//#=========================================================================#
 
 /**
  * A wrapper class for `_GalleryDialog` that implements a lazy-initialization pattern.
@@ -186,9 +238,18 @@ class GalleryDialog {
 
     /**
      * Launches the gallery dialog with the provided configuration.
-     * @param {Object}   options      - Permite sobreescribir las opciones pasadas en el constructor.
-     * @param {string}   selectedName - Default selected element name.
-     * @param {Function} onSelect     - Callback executed when an element is selected.
+     * @param {Object}  options          - Optional configuration object for the gallery dialog, can be empty.
+     * @param {string}  [options.title]  - The title to display in the dialog header
+     * @param {string}  [options.icon]   - Icon to show before the title in the dialog header.
+     *                                     * For PrimeIcons   : Use "pi.[icon name]" e.g., "pi.pi-image"; (see https://primevue.org/icons/#list)
+     *                                     * For Pictogrammers: Use "mdi.[icon name]" e.g., "mdi.mdi-image"; (see https://pictogrammers.com/library/mdi)
+     *                                     * Or empty string to hide the icon
+     * @param {string}  [options.size]           - Force a diferent size for the dialog window. Supported values: "small"
+     * @param {string}  [options.view_mode]      - Force the view-mode of the dialog. Supported values: "list", or "grid"
+     * @param {boolean} [options.allow_variants] - If True, enables grouping all the variants of the same item
+     * @param {boolean} [options.cache_buster]   - Override the default cache-buster value
+     * @param {string}  initialItemName - Name of the item to show selected when dialog opens
+     * @param {Function} onSelect       - Callback function to execute when an item is selected
      * @example
      *   const myGalleryDialog = new GalleryDialog( new MyGalleryDialogDelegate() );
      *   const currentItemName = "default";
@@ -209,7 +270,7 @@ class GalleryDialog {
 
 
 //#=========================================================================#
-//#//////////////////////////// GALLERY DIALOG /////////////////////////////#
+//#/////////////////////////////// INTERNAL ////////////////////////////////#
 //#=========================================================================#
 
 class _GalleryDialog extends ComfyDialog {
@@ -229,32 +290,22 @@ class _GalleryDialog extends ComfyDialog {
         this.isOpen = false;
 
         /** @type {string} The initial element name (before applying the selected one). */
-        this.initialElementName = "";
+        this.initialItemName = "";
 
-        /** @type {number|null} ID of the initial card/item (which will be highlighted). */
-        this.initialCardID = null;
+        /** @type {number|null} IDX of the initial card/item (which will be highlighted). */
+        this.initialCardIDX = null;
 
-        /** @type {number|null} ID of the card/item being pointed by the mouse. */
-        this.hoveredCardID = null;
+        /** @type {number|null} IDX of the card/item being pointed by the mouse. */
+        this.hoveredCardIDX = null;
 
-        /** @type {number|null} Index of the selected item in 'resultStyles'. */
-        // focusedCardIndex
+        /** @type {number|null} Index in `resultItem[]` of the card/item currently focused via keyboard arrow navigation. */
         this.resultIndex = null;
 
         /** @type {Array<object>} An array of elements that match the search text. */
         this.resultItems = [];
 
         /** @type {number} Number of columns used in the search results grid. */
-        this.resultColumns = 4;
-
-        /** @type {number|null} ID of the previously selected item. */
-        this.oldSelectionID = null;
-
-        /** @type {string} Text entered by the user to filter styles (case-insensitive). */
-        this.textFilter = "";
-
-        /** @type {string} Active category filter ("photo", "illustration", "wild", "custom"). Empty means all categories. */
-        this.categoryFilter = "";
+        this.resultColumns = 4;  // grid=4 ; list=1
 
         /** @type {("grid"|"list")} User-selected view mode for the dialog, allows switching between grid and list view. */
         this.viewModeSelected = "grid";
@@ -262,16 +313,27 @@ class _GalleryDialog extends ComfyDialog {
         /** @type {(""|"grid"|"list")} Forced view mode that disables user option to change view mode. Empty string means view mode can be changed by user. */
         this.viewModeForced = "";
 
+        /** @type {number|null} ID of the previously selected item. */
+        this.oldSelectionIDX = null;
+
+        /** @type {string} Text entered by the user to filter styles (case-insensitive). */
+        this.textFilter = "";
+
+        /** @type {string} Active category filter ("photo", "illustration", "wild", "custom"). Empty means all categories. */
+        this.categoryFilter = "";
+
         //---- INTERNAL VARIABLES -------------------------
 
         /** @type {GalleryDialogDelegate} The object that provides the item data and renderer. */
         this.delegate = delegate;
 
-        /** @type {Array<object>} An array to store elements in ID order for fast access. */
-        this.elementsByID = [];
+        /** @type {Array<GalleryDialogItem>} An array to store items in ID order for fast access. */
+        this.itemsByIDX = [];
 
-        /** @type {Object<string, number>} Map of lowercase element names to their IDs. */
-        this.elementIDsByLowerName = {};
+        /** @type {Array<GalleryDialogItem>} */
+        this.groupsByIDX = null;
+
+        this.subDialog = null;
 
         /** @type {number|null} Timer used by the lockPointer method. */
         this.pointerLockedTimer = null;
@@ -315,7 +377,7 @@ class _GalleryDialog extends ComfyDialog {
                 ]),
             ]),
             //-- CLOSE CALLBACK -----------------
-            () => this.close()
+            () => this.onCancel()
         );
 
         //---- DIALOG ELEMENTS ----------------------------
@@ -348,9 +410,9 @@ class _GalleryDialog extends ComfyDialog {
      * Returns the ID of the currently selected element.
      * @returns {number|null} The selected element's ID or null if no selection exists.
      */
-    getSelectionID() {
-        const resultID = (this.resultIndex != null) ? this.resultItems[this.resultIndex]?.id : null;
-        return (this.hoveredCardID != null) ? this.hoveredCardID : resultID;
+    getSelectionIDX() {
+        const resultID = (this.resultIndex != null) ? this.resultItems[this.resultIndex]?.idx : null;
+        return (this.hoveredCardIDX != null) ? this.hoveredCardIDX : resultID;
     }
 
     /**
@@ -358,6 +420,15 @@ class _GalleryDialog extends ComfyDialog {
      */
     getViewMode() {
         return this.viewModeForced || this.viewModeSelected;
+    }
+
+    setVisibility(visible) {
+        if( visible ) {
+            this.show(); // this.element.style.display = 'flex';
+            this.searchInputEl.focus();
+        } else {
+            this.element.style.display = 'none';
+        }
     }
 
     /**
@@ -375,28 +446,25 @@ class _GalleryDialog extends ComfyDialog {
      * @param {boolean}        force        - If true, updates the selection even if no change occurred. Defaults to false.
      */
     updateSelection(shouldScroll=false, force=false) {
-        const newSelectionID = this.getSelectionID();
-        const detailsID      = newSelectionID != null ? newSelectionID : this.initialCardID;
-        if( !force && newSelectionID === this.oldSelectionID ) { return; }
+        const newSelectionIDX = this.getSelectionIDX();
+        const detailsID       = newSelectionIDX != null ? newSelectionIDX : this.initialCardIDX;
+        if( !force && newSelectionIDX === this.oldSelectionIDX ) { return; }
 
         // deactivate the card with the old element
-        const oldCardEl = this.oldSelectionID != null ? this.element.querySelector(`#zipn-element-${this.oldSelectionID}`) : null;
+        const oldCardEl = this.oldSelectionIDX != null ? this.element.querySelector(`#zipn-element-${this.oldSelectionIDX}`) : null;
         if( oldCardEl ) { oldCardEl.classList.remove('active'); }
 
-        this.oldSelectionID = newSelectionID;
+        this.oldSelectionIDX = newSelectionIDX;
 
         // activate the card with the new element and optionally scroll to it
-        const newCardEl = newSelectionID != null ? this.element.querySelector(`#zipn-element-${newSelectionID}`) : null;
+        const newCardEl = newSelectionIDX != null ? this.element.querySelector(`#zipn-element-${newSelectionIDX}`) : null;
         if( newCardEl ) { newCardEl.classList.add('active'); }
         if( newCardEl && shouldScroll ) {
             let options = typeof shouldScroll === "object" ? shouldScroll : { behavior: 'smooth', block: 'nearest' };
             newCardEl.scrollIntoView(options);
         }
-
-        // update details pane
-        const item        = detailsID != null ? this.elementsByID[ detailsID ] : null;
-        const cacheBuster = this.cacheBuster ? '&cache=' + this.cacheBuster : '';
-        this.detailsPaneEL.innerHTML = this.delegate.htmlItemDetailsPane(item, item.name, this.options, cacheBuster);
+        // re-render details pane
+        _GalleryDialog.renderDetails(this.detailsPaneEL, detailsID, this.groupsByIDX || this.itemsByIDX, this.delegate, this.options, this.options.cache_buster);
     }
 
     /**
@@ -420,7 +488,6 @@ class _GalleryDialog extends ComfyDialog {
             const viewMode = command.substring(1);
             if( viewMode == this.viewModeSelected ) { return; }
             this.viewModeSelected = viewMode;
-            this.resultColumns = (viewMode=="grid" ? 4 : 1);
             this.updateToolbar();
             shouldScroll = { behavior: 'instant', block: 'center' };
         }
@@ -443,12 +510,12 @@ class _GalleryDialog extends ComfyDialog {
             else                   { this.resultIndex = null; }
         }
 
-        // cache buster used to force re-fetching of images from cache each hour
-        this.cacheBuster = Math.floor(Date.now() / 3600000);
+        // calculate the number of columns in the search-result (used for keyboard control)
+        this.resultColumns = (this.getViewMode()=="grid" ? 4 : 1);
 
         // apply filters and re-render gallery
         this.resultItems = _GalleryDialog.filterItems( this.textFilter, this.categoryFilter, this.searchNameIndex );
-        _GalleryDialog.renderResults( this.searchResultsEl, this.getViewMode(), this.resultItems, this.delegate, this.initialCardID, this.cacheBuster );
+        _GalleryDialog.renderResults( this.searchResultsEl, this.getViewMode(), this.resultItems, this.delegate, this.initialCardIDX, this.options.cache_buster );
 
         // disable focus if there are no results
         if( this.resultItems.length == 0 ) { this.resultIndex = null; }
@@ -458,46 +525,61 @@ class _GalleryDialog extends ComfyDialog {
     }
 
     /**
-     * Renders the gallery grid with the provided elements.
+     * Renders the gallery grid with the provided items.
      *
      * This static method generates HTML content for displaying a list or grid
-     * of elements based on the specified view mode. Each element is represented
-     * as an object in the 'elements' array and includes properties such as
-     * 'id', 'name', and 'thumbnail'.
+     * of items based on the specified view mode. Each item is represented as
+     * an object in the `items` array and includes properties such as: 'idx',
+     * 'name', 'category', etc...
      *
-     * @param {HTMLElement}             containerEl  - The container element where the gallery will be rendered.
-     * @param {string}                  viewMode     - The current view mode ('grid' or 'list') that determines
+     * @param {HTMLElement}           containerEl   - The container element where the gallery will be rendered.
+     * @param {string}                viewMode      - The current view mode ('grid' or 'list') that determines
      *                                                 the layout of each item in the gallery. This parameter
      *                                                 is used to apply appropriate CSS classes.
-     * @param {Array<Object>}           elements     - An array of objects representing the elements to display.
-     * @param {GalleryDialogDelegate}   delegate     - The object responsible for rendering each item.
-     * @param {string|null}         initialElementID - The ID of the initially selected element, which will receive
+     * @param {Array<Object>}         items         - An array of objects representing the items to display.
+     * @param {GalleryDialogDelegate} delegate      - The object responsible for rendering each item.
+     * @param {string|null}           initialItemID - The ID of the initially selected item, which will receive
      *                                                 an additional CSS class ('initial') for highlighting.
-     * @param {string|null}             cacheBuster_ - A string used as a cache buster appended to each thumbnail
+     * @param {string|null}           cacheBuster_  - A string used as a cache buster appended to each thumbnail
      *                                                 image URL to ensure that the browser fetches the latest
      *                                                 version of images.
      * @example
-     * const elements = [
-     *   { id: 'element-1', name: 'Modern Look', thumbnail: '/images/modern.jpg' },
-     *   { id: 'element-2', name: 'Retro Feel', thumbnail: '/images/retro.jpg' }
+     * const items = [
+     *   { idx: 0, name: 'Modern Look', thumbnail: '/images/modern.jpg' },
+     *   { idx: 1, name: 'Retro Feel' , thumbnail: '/images/retro.jpg' }
      * ];
-     * renderResults(document.getElementById('gallery-container'), 'grid', elements, 'element-1', Date.now());
+     * renderResults(document.getElementById('gallery-container'), 'grid', items, delegate, 0, Date.now());
      */
-    static renderResults(containerEl, viewMode, elements, delegate, initialElementID = null, cacheBuster_ = null) {
+    static renderResults(containerEl, viewMode, items, delegate, initialItemID = null, cacheBuster_ = null) {
         const baseClass   = `zipn-${viewMode}`;
         const cacheBuster = cacheBuster_ ? '&cache=' + cacheBuster_ : '';
         containerEl.className = baseClass;
 
-        containerEl.innerHTML = elements.map( element => {
-            const extraClass = element.id === initialElementID ? ' initial' : '';
-            const thumbnailHTML = delegate.htmlItemImage(element, `zipn-thumb`, cacheBuster);
+        containerEl.innerHTML = items.map( itemOrGroup => {
+            const idx  = itemOrGroup.idx;
+            const name = itemOrGroup.displayName || itemOrGroup.name;
+            const item = itemOrGroup.variants ? itemOrGroup.variants[0] : itemOrGroup;
+            const extraClass = item.idx === initialItemID ? ' initial' : '';
+            const thumbnailHTML = delegate.htmlItemImage(item, name, this.options, cacheBuster, `zipn-thumb`);
             return `
-                <div class="${baseClass}-card${extraClass}" id="zipn-element-${element.id}" data-id="${element.id}">
+                <div class="${baseClass}-card${extraClass}" id="zipn-element-${idx}" data-id="${idx}">
                     ${thumbnailHTML}
-                    <p class="zipn-text">${element.name}</p>
+                    <p class="zipn-text">${name}</p>
                 </div>`;
 
         }).join('');
+    }
+
+    static renderDetails(detailsPaneEl, itemID, itemsByID, delegate, dialogOptions, cacheBuster_ = null) {
+        const cacheBuster = cacheBuster_ ? '&cache=' + cacheBuster_ : '';
+        if( itemID == null ) {
+            detailsPaneEl.innerHTML = delegate.htmlItemDetailsPane(null, "", dialogOptions, cacheBuster);
+            return;
+        }
+        const itemOrGroup = itemsByID[ itemID ];
+        const name        = itemOrGroup.displayName || itemOrGroup.name;
+        const item        = itemOrGroup.variants ? itemOrGroup.variants[0] : itemOrGroup;
+        detailsPaneEl.innerHTML = delegate.htmlItemDetailsPane(item, name, dialogOptions, cacheBuster);
     }
 
     /**
@@ -533,17 +615,10 @@ class _GalleryDialog extends ComfyDialog {
     /**
      * Called when the dialog is launched or re-opened.
      * Configures the dialog according to options, initializes variables, and loads items from the server.
-     * @param {Object}  options             - Optional configuration object for the gallery dialog
-     * @param {string}  [options.title]     - The title to display in the dialog header
-     * @param {string}  [options.icon]      - Icon to show before the title in the dialog header.
-     *                                        * For PrimeIcons   : Use "pi.[icon name]" e.g., "pi.pi-image"; (see https://primevue.org/icons/#list)
-     *                                        * For Pictogrammers: Use "mdi.[icon name]" e.g., "mdi.mdi-image"; (see https://pictogrammers.com/library/mdi)
-     *                                        * Or empty string to hide the icon
-     * @param {string}  [options.size]      - Force a size for the dialog window. Supported values: "small"
-     * @param {string}  [options.view_mode] - Force a view mode of the dialog. Supported values: "list", or "grid"
-     * @param {boolean} [options.allow_variations] - If True, enables grouping item by base with variations
-     * @param {string}  initialItemName - Name of the item to show selected when dialog opens
-     * @param {Function} onSelect       - Callback function to execute when an item is selected
+     * @param {Object}   options         - Optional configuration object for the gallery dialog;
+     *                                     [view GalleryDialog.launch(...) for more info]
+     * @param {string}   initialItemName - Name of the item to show selected when dialog opens
+     * @param {Function} onSelect        - Callback function to execute when an item is selected
      */
     onLaunch(options, initialItemName, onSelect) {
         const dialogContentEl      = this.element?.querySelector(`.${DIALOG_CONTENT_CLASS}`);
@@ -554,13 +629,23 @@ class _GalleryDialog extends ComfyDialog {
         // store the item selection callback and the configuration options
         this.onSelectItem = onSelect;
         this.options = {
-            title           : DEFAULT_TITLE,
-            icon            : DEFAULT_TITLE_ICON,
-            size            : "default",
-            view_mode       : "default",
-            allow_variations: false,
+            title          : DEFAULT_TITLE,
+            icon           : DEFAULT_TITLE_ICON,
+            size           : "default",
+            view_mode      : "default",
+            allow_variants : false,
+            cache_buster   : DEFAULT_CACHE_BUSTER,
             ...options
         };
+
+        // create/remove `this.subDialog` de acuerdo a si el usuario requirio `allow_variants`
+        if( !this.options.allow_variants ) {
+            this.subDialog = null;
+        }
+        else if( !this.subDialog ) {
+            const subDialogDelegate = new _VariantsSubDialogDelegate( this.delegate );
+            this.subDialog = new GalleryDialog(subDialogDelegate);
+        }
 
         // update dialog title [options.title]
         if( dialogTitleEl ) { dialogTitleEl.textContent = this.options.title; }
@@ -573,13 +658,15 @@ class _GalleryDialog extends ComfyDialog {
         // if a forced view-mode is set, remove view mode buttons
         if( this.options.view_mode==="list" || this.options.view_mode==="grid" ) {
             this.viewModeForced = this.options.view_mode;
-            this.gridButtonEl = null;
-            this.listButtonEl = null;
+            this.resultColumns  = (this.getViewMode()=="grid" ? 4 : 1);
+            this.gridButtonEl   = null;
+            this.listButtonEl   = null;
             viewModeButtonHolder?.replaceChildren();
         } else {
             this.viewModeForced = "";
-            this.gridButtonEl = this.createToolButton("zipn-grid-btn", 'pi pi-image', "", "Grid View", () => { this.updateSearchResults("$grid"); });
-            this.listButtonEl = this.createToolButton("zipn-list-btn", 'pi pi-list' , "", "List View", () => { this.updateSearchResults("$list"); });
+            this.resultColumns  = (this.getViewMode()=="grid" ? 4 : 1);
+            this.gridButtonEl   = this.createToolButton("zipn-grid-btn", 'pi pi-image', "", "Grid View", () => { this.updateSearchResults("$grid"); });
+            this.listButtonEl   = this.createToolButton("zipn-list-btn", 'pi pi-list' , "", "List View", () => { this.updateSearchResults("$list"); });
             const viewModeButtonHolder = this.element?.querySelector(`.${VIEWMODE_BTTN_HOLDER_CLASS}`);
             viewModeButtonHolder?.replaceChildren(_GalleryDialog.DIVIDER, this.gridButtonEl, this.listButtonEl );
         }
@@ -589,12 +676,12 @@ class _GalleryDialog extends ComfyDialog {
 
         // initialize variables as if the dialog had just been created
         this.isOpen              = true;
-        this.initialElementName  = initialItemName;
-        this.initialCardID       = null;
+        this.initialItemName     = initialItemName;
+        this.initialCardIDX      = null;
         this.resultItems         = [];
         this.resultIndex         = null;
-        this.hoveredCardID       = null;
-        this.oldSelectionID      = null;
+        this.hoveredCardIDX      = null;
+        this.oldSelectionIDX     = null;
         this.textFilter          = '';
         this.categoryFilter      = "";
         this.isPointerLocked     = false;
@@ -604,23 +691,18 @@ class _GalleryDialog extends ComfyDialog {
         // load style data from server and focus on the initial style
         this.delegate.fetchItemArray().then( items =>
         {
-            // build the search index used by the search bar
-            this.searchNameIndex = items.map(item => {
-                return [ _toSearchString(item.name), item ];
-            });
-
             // process the received data
-            this.onReceivedStyles(items);
+            this.onReceiveItems(items);
 
             // if the initial card is in the list of results,
             // focus on that initial card !
-            const initialCardIndex = this.findIndexFromCardID(this.initialCardID);
+            const initialCardIndex = this.findResultIndexFromIDX(this.initialCardIDX);
             if( initialCardIndex >= 0 ) {
                 this.resultIndex = initialCardIndex;
                 this.updateSelection();
                 requestAnimationFrame( () => {
                 //requestAnimationFrame( () => {
-                    const focusedCardID = this.resultIndex != null ? this.resultItems[this.resultIndex]?.id : null;
+                    const focusedCardID = this.resultIndex != null ? this.resultItems[this.resultIndex]?.idx : null;
                     const focusedCardEl = this.elementFromCardID(focusedCardID);
                     if( focusedCardEl ) { focusedCardEl.scrollIntoView({ block: 'start' }); }
                 //});
@@ -636,6 +718,52 @@ class _GalleryDialog extends ComfyDialog {
         //requestAnimationFrame(() => { this.element.classList.add('fade-in'); });
     }
 
+    onCancel() {
+        this.onSelectItem?.(this.initialItemName, true);
+        this.close();
+    }
+
+   /**
+    * Called when the user selects an item of the main list.
+    *
+    * This function invokes the `onSelectItem(..)` callback with the name of
+    * the selected item. If the item contains variants, it opens a sub-dialog
+    * to allow the user to select a specific variant before finalizing.
+    */
+    onItemChosen() {
+        const selectionIDX = this.getSelectionIDX();
+        const itemsByIDX   = this.groupsByIDX || this.itemsByIDX;
+
+        // attempt to retrieve the currently selected item;
+        // exit if no selection exists // if the item has a single variant, select that variant
+        let item = selectionIDX != null ? itemsByIDX[selectionIDX] : null;
+        if( item == null ) { return; }
+        if( item.variants && item.variants.length == 1 ) { item = item.variants[0];  }
+
+        // handle the final process based on variants and sub-dialog presence.
+        if( item.variants && this.subDialog ) {
+            // item has variants and sub-dialog exists -> launch sub-dialog to select a variant
+            this.subDialog.delegate.variants = item.variants;
+            this.setVisibility(false);
+            this.subDialog.launch({title: item.name, size:"small", view_mode:"list"}, item.variants[0].name, (selectedName, canceled) => {
+                console.log("##>> selectedName:", selectedName);
+                console.log("##>> canceled:", canceled);
+                if( canceled ) { this.setVisibility(true); return; }
+                this.onSelectItem?.(selectedName);
+                this.close();
+            });
+        }
+        else if( item.variants && !this.subDialog ) {
+            // item has variants but no sub-dialog -> fallback to selecting the first variant
+            this.onSelectItem?.(item.variants[0].name);
+            this.close();
+        }
+        else {
+            // item has no variants -> select the item directly.
+            this.onSelectItem?.(item.name);
+            this.close();
+        }
+    }
 
     /**
      * Called when the dialog is closed. Updates the open state flag.
@@ -646,14 +774,37 @@ class _GalleryDialog extends ComfyDialog {
 
 
     /**
-     * Called when style data is received from the server.
+     * Called when item data is received from the server.
      * Initializes internal arrays and maps with the received data.
-     * @param {Array} styles - An array of style objects received from the server.
+     * @param {Array} items - An array of items received from the server.
      */
-    onReceivedStyles(styles) {
-        this.elementsByID          = styles;
-        this.elementIDsByLowerName = Object.fromEntries(styles.map(style => [style.name.toLowerCase(), style.id]));
-        this.initialCardID       = this.elementIDsByLowerName[this.initialElementName.toLowerCase()];
+    onReceiveItems(items) {
+
+        if( this.options?.allow_variants ) {
+            this.itemsByIDX  = items;
+            this.groupsByIDX = _groupItemsByGroupName( items );
+
+            this.searchNameIndex = this.groupsByIDX.map(item => {
+                return [ _toSearchString(item.name), item ];
+            });
+
+        }
+        else {
+            this.itemsByIDX = items;
+            this.groupsByIDX = null;
+
+            // build the search index used by the search bar
+            this.searchNameIndex = items.map(item => {
+                return [ _toSearchString(item.name), item ];
+            });
+
+            // find initial card ID based on initial element name
+            const initialItemName    = _toSearchString(this.initialItemName);
+            const initialNameAndItem = this.searchNameIndex.find( ([itemName, ]) => itemName === initialItemName );
+            this.initialCardIDX = initialNameAndItem ? initialNameAndItem[1].idx : null;
+        }
+
+        // new items loaded, refresh the search results!
         this.updateSearchResults("!refresh");
         this.updateSelection();
     }
@@ -690,9 +841,9 @@ class _GalleryDialog extends ComfyDialog {
             // presses enter it will accept the most updated result
             this.updateSearchResults(`>${inputEl.value}`);
             if( isEnterPressed ) {
-                this.onElementChosen();
+                this.onItemChosen();
             }
-            this.hoveredCardID = null;
+            this.hoveredCardIDX = null;
             this.updateSelection();
 
         }, isEnterPressed ? 100 : 300);
@@ -709,15 +860,15 @@ class _GalleryDialog extends ComfyDialog {
     onInputKeyDown(key) {
         let resultIndex = this.resultIndex;
 
-        if     ( key === 'Escape' ) { this.close(); }
+        if     ( key === 'Escape' ) { this.onCancel(); return; }
         else if( key === 'Enter'  ) { this.onInputChange(this.searchInputEl, true); }
-        else if( this.resultIndex != null || this.hoveredCardID != null )
+        else if( this.resultIndex != null || this.hoveredCardIDX != null )
         {
             // if the current selection is determined by the mouse pointer,
             // capture that selection!
             if( resultIndex == null ) {
-                const hoveredIndex = this.findIndexFromCardID(this.hoveredCardID);
-                resultIndex = hoveredIndex >= 0 ? hoveredIndex : 0;
+                resultIndex = this.findResultIndexFromIDX(this.hoveredCardIDX);
+                if( resultIndex<0 ) { resultIndex=0; }
             }
 
             // cursor key movement
@@ -727,7 +878,7 @@ class _GalleryDialog extends ComfyDialog {
             else if( key === 'ArrowLeft'  ) { resultIndex--; }
             else if( key === 'ArrowRight' ) { resultIndex++; }
             if( resultIndex >= this.resultItems.length ) { resultIndex = oldResultIndex; }
-            if( resultIndex <  0                        ) { resultIndex = oldResultIndex; }
+            if( resultIndex <  0                       ) { resultIndex = oldResultIndex; }
 
         }
         // if there is no selection (e.g. just opened the dialog) and user presses down,
@@ -739,7 +890,7 @@ class _GalleryDialog extends ComfyDialog {
         // if the selected search result index is modified, update its on-screen representation
         if( this.resultIndex !== resultIndex ) {
             this.resultIndex   = resultIndex;
-            this.hoveredCardID = null;
+            this.hoveredCardIDX = null;
             this.lockPointer();
             this.updateSelection(true);
         }
@@ -754,7 +905,7 @@ class _GalleryDialog extends ComfyDialog {
     onCardEnter(cardEl) {
         if( this.isPointerLocked ) { return; }
         // updates the currently pointed card ID and triggers selection updates
-        this.hoveredCardID = Number(cardEl.dataset?.id);
+        this.hoveredCardIDX = Number(cardEl.dataset?.id);
         this.updateSelection();
     }
 
@@ -764,8 +915,8 @@ class _GalleryDialog extends ComfyDialog {
      */
     onCardClick(cardEl) {
         // sets the currently pointed card ID and triggers user selection handling
-        this.hoveredCardID = Number(cardEl?.dataset?.id);
-        this.onElementChosen();
+        this.hoveredCardIDX = Number(cardEl?.dataset?.id);
+        this.onItemChosen();
     }
 
     /**
@@ -775,22 +926,8 @@ class _GalleryDialog extends ComfyDialog {
      */
     onCardContainerLeave() {
         if( this.isPointerLocked ) { return; }
-        this.hoveredCardID = null;
+        this.hoveredCardIDX = null;
         this.updateSelection();
-    }
-
-   /**
-    * Called when the user selects an element of the main list.
-    * This function calls the `onSelectElement(..)` callback with the selected
-    * element's name and closes the dialog.
-    */
-    onElementChosen() {
-        const selectionID = this.getSelectionID();
-        const element     = selectionID != null ? this.elementsByID[selectionID] : null;
-        if( element ) {
-            this.onSelectItem?.(element.name);
-            this.close();
-        }
     }
 
 
@@ -809,12 +946,12 @@ class _GalleryDialog extends ComfyDialog {
     }
 
     /**
-     * Finds the index of a card in the `resultElements` array based on its ID.
-     * @param {number|null} elementID - The ID of the element/card to find.
+     * Finds the index of a card/item in the `resultElements[]` array based on its IDX.
+     * @param {number|null} itemIDX - The IDX of the item/card to find.
      * @returns {number} The index of the card with the specified ID, or -1 if not found.
      */
-    findIndexFromCardID(elementID) {
-        return elementID != null ? this.resultItems.findIndex(card => card.id == elementID) : -1;
+    findResultIndexFromIDX(itemIDX) {
+        return itemIDX != null ? this.resultItems.findIndex(card => card.idx == itemIDX) : -1;
     }
 
     /**
@@ -971,11 +1108,11 @@ function _ensureCSSLoaded() {
  * @param {string}               iconHolderClass - CSS class for the icon holder in the dialog header.
  * @param {string|HTMLElement[]} dialogContent   - The content of the dialog, which can be provided
  *                                                 as a string or an array of HTML elements.
- * @param {Function}             onClose         - Callback function to be executed when the dialog is closed.
+ * @param {Function}             onCancel        - Callback function to be executed when the user cancels the dialog.
  * @returns {HTMLElement}
  *    The main DOM element for the created dialog.
  */
-function _makeCustomDialog(titleElClass, iconHolderClass, dialogContent, onClose) {
+function _makeCustomDialog(titleElClass, iconHolderClass, dialogContent, onCancel) {
 
     const dialogOutsideArea = html("div.p-dialog-mask.p-overlay-mask.p-overlay-mask-enter", {
         parent: document.body,
@@ -992,8 +1129,8 @@ function _makeCustomDialog(titleElClass, iconHolderClass, dialogContent, onClose
             zIndex        : "1000"
         },
         onclick: (e) => {
-            // execute `onClose` only if click outside of the dialog
-            if( e.target === dialogOutsideArea ) { onClose(); }
+            // execute 'onCancel` when click outside of the dialog
+            if( e.target === dialogOutsideArea ) { onCancel(); }
         }
     });
     const headerActions = html("div.p-dialog-header-actions");
@@ -1001,7 +1138,7 @@ function _makeCustomDialog(titleElClass, iconHolderClass, dialogContent, onClose
         parent    : headerActions,
         type      : "button",
         ariaLabel : "Close",
-        onclick   : onClose, //< execute `onClose` when close button is clicked
+        onclick   : onCancel, //< execute `onCancel` when the close button is clicked
         innerHTML : '<i class="pi pi-times"></i>'
     });
     const dialogHeader = html("div.p-dialog-header",
@@ -1116,7 +1253,56 @@ function _normalizeDOMnodes(content) {
 }
 
 
+/**
+ * Converts any string into a normalized search string.
+ * @param {string} text - The string to convert
+ * @returns {string} Normalized search string with accents and special characters removed
+ * @example
+ *     _toSearchString("Café");            // "cafe"
+ *     _toSearchString("HÉLLO, Wörld!");   // "hello world"
+ *     _toSearchString("Hello-World#123"); // "hello world 123"
+ */
 function _toSearchString(text) {
     if( typeof text !== 'string' ) return '';
-    return text.normalize('NFD').toLowerCase().replace(/[\u0300-\u036f]|[^a-z0-9#]/g, ' ').trim();
+    return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '')  //< removes accents cleanly
+               .toLowerCase()                                     //< converts everything to lowercase
+               .replace(/[^a-z0-9]+/g, ' ').trim();               //< replaces any non-alphanumeric characters with space
+}
+
+/**
+ * Parses a string into group-name and variant-name based on the separator "//".
+ * @param {string|GalleryDialogItem} textOrItem - A string or an "Item" object.
+ * @returns {[string, string]} An array containing [groupName, variantName].
+ */
+function _extractGroupVariantName(textOrItem) {
+    const name = (typeof textOrItem === 'string') ? textOrItem : textOrItem?.name;
+    if( !name ) { return ["", ""]; }
+    const parts = name.split('//');
+    return [parts[0]?.trim() || "", parts[1]?.trim() || ""];
+}
+
+/**
+ * Groups an array of items/variants based on their group name.
+ * @param {Array<GalleryDialogItem>} items - The list of items to be grouped.
+ * @returns {Array<Object>}
+ *     An array of group objects, each containing the group name and its variants.
+ */
+function _groupItemsByGroupName(items) {
+    if( !Array.isArray(items) ) {
+        console.warn('Invalid input: items must be an array.');
+        return [];
+    }
+    const groupsMap = new Map();
+    for( const item of items ) {
+        const [ groupName, variantName ] = _extractGroupVariantName(item);
+        let  group = groupsMap.get(groupName);
+        if( !group ) {
+            group= { idx: groupsMap.size, name: groupName, category: item.category, variants: [] };
+            groupsMap.set(groupName, group);
+        }
+        // create a copy of the item and inject the new idx value and display name
+        const variantItem = { ...item, idx: group.variants.length, displayName: variantName || DEFAULT_VARIANT_NAME };
+        group.variants.push(variantItem);
+    }
+    return Array.from(groupsMap.values());
 }
