@@ -22,6 +22,11 @@ from .core.progress_bar            import ProgressPreview
 from .core.zsampler_turbo_core     import zsampler_turbo_core
 from .core.zsampler_turbo_corehelp import EulerAss
 from .custom_widgets               import Separator
+_SPECTRAL_TILTS_BY_NAME = {
+    "none"      : (   "",  0.0,  0.0, 1.0),
+    "stage3h"   : (  "3", -0.3, -0.3, 1.0),
+    "stages123h": ("123",  0.2, -0.9, 0.7),
+}
 
 
 class ZSamplerTurboX21(io.ComfyNode):
@@ -86,8 +91,12 @@ class ZSamplerTurboX21(io.ComfyNode):
                                               "brightness control. Adjust it within the positive or negative range "
                                               "until it seems right to you. ",
                                      ),
+                io.Combo.Input       ("spectral_tilt",
+                                      options=cls.spectral_tilts(),
+                                      tooltip=""
+                                     ),
 
-                Separator.Input("divider", mode="divider"),#=======================================
+                Separator.Input("divider1", mode="divider"),#======================================
 
                 io.Boolean.Input     ("turbo_creativity",
                                       default=False, label_on="yes", label_off="no",
@@ -95,37 +104,24 @@ class ZSamplerTurboX21(io.ComfyNode):
                                               "in compositions while maintaining the general style and tone color. "
                                               "Be aware that this may lead to hallucinations. ",
                                      ),
+                io.Boolean.Input     ("alternative_refiner",
+                                      default=False, label_on="yes", label_off="no",
+                                      tooltip="Enables an alternative refiner using the DPM++ SDE sampler during the "
+                                              "final stage. This enhances contrast and sharpness in fine details but "
+                                              "increases overall processing time. ",
+                                     ),
+                io.Boolean.Input     ("disable_ibias",
+                                      default=False, label_on="yes", label_off="no",
+                                      tooltip="Disables the custom adjustment for the intensity noise bias (ibias)."
+                                              "When this option is activated, the ibias parameter is ignored and not "
+                                              "calculated during the denoising process. ",
+                                     ),
                 io.Boolean.Input     ("old_scheduler",
                                       default=False, label_on="yes", label_off="no",
                                       tooltip="Enables the legacy scheduler with a different set of sigmas. Although "
                                               "the new scheduler is optimized for general quality, this old version "
                                               "may produce better results in specific cases. ",
                                      ),
-                io.Combo.Input       ("spectral_tilt",
-                                      options=["no", "stage3", "stages23", "stages123"],
-                                      tooltip=""
-                                     ),
-                io.Float.Input       ("spectral_tilt_start",
-                                      default=0.1, min=-10, max=10, step=0.1,
-                                      ),
-                io.Float.Input       ("spectral_tilt_end",
-                                      default=-1.0, min=-10, max=10, step=0.1,
-                                     ),
-                io.Float.Input       ("spectral_tilt_sharpness",
-                                      default=1.0, min=0.0, max=10.0, step=0.1,
-                                     ),
-                # io.Boolean.Input     ("noise_injection",
-                #                       default=False, label_on="yes", label_off="no",
-                #                       tooltip="Enables noise injection in the final stage. This can enhance fine "
-                #                               "details and realism, but may also generate artificial-looking color "
-                #                               "spots in smooth areas. ",
-                #                      ),
-                # io.Boolean.Input     ("alternative_refiner",
-                #                       default=False, label_on="yes", label_off="no",
-                #                       tooltip="Enables an alternative refiner using the DPM++ SDE sampler during the "
-                #                               "final stage. This enhances contrast and sharpness in fine details but "
-                #                               "increases overall processing time. ",
-                #                      ),
             ],
             outputs=[
                 io.Latent.Output(display_name="latent_output",
@@ -138,18 +134,16 @@ class ZSamplerTurboX21(io.ComfyNode):
     #__ FUNCTION __________________________________________
     @classmethod
     def execute(cls,
-                latent_input           : dict[str, Any],
-                model                  : Any,
-                positive               : list,
-                seed                   : int,
-                steps                  : int,
-                ibias                  : float,
-                turbo_creativity       : bool,
-                old_scheduler          : bool,
-                spectral_tilt          : str,
-                spectral_tilt_start    : float,
-                spectral_tilt_end      : float,
-                spectral_tilt_sharpness: float,
+                latent_input          : dict[str, Any],
+                model                 : Any,
+                positive              : list,
+                seed                  : int,
+                steps                 : int,
+                ibias                 : float,
+                turbo_creativity      : bool,
+                disable_ibias         : bool,
+                old_scheduler         : bool,
+                spectral_tilt         : str,
                 noise_injection       : bool = False,
                 alternative_refiner   : bool = False,
                 *,
@@ -202,10 +196,10 @@ class ZSamplerTurboX21(io.ComfyNode):
 
         # set samplers for each stage
         samplers: list[str|object] = [ "euler" , "euler", "euler" ]
-        alpha_tilting = (spectral_tilt_start, spectral_tilt_end)
-        if "1" in spectral_tilt: samplers[0] = EulerAss(alpha_tilting, alpha_sharpness=spectral_tilt_sharpness)
-        if "2" in spectral_tilt: samplers[1] = EulerAss(alpha_tilting, alpha_sharpness=spectral_tilt_sharpness)
-        if "3" in spectral_tilt: samplers[2] = EulerAss(alpha_tilting, alpha_sharpness=spectral_tilt_sharpness)
+        stilt_stages, alpha_begin, alpha_end, alpha_sharpness = _SPECTRAL_TILTS_BY_NAME[spectral_tilt];
+        if "1" in stilt_stages: samplers[0] = EulerAss((alpha_begin, alpha_end), alpha_sharpness=alpha_sharpness)
+        if "2" in stilt_stages: samplers[1] = EulerAss((alpha_begin, alpha_end), alpha_sharpness=alpha_sharpness)
+        if "3" in stilt_stages: samplers[2] = EulerAss((alpha_begin, alpha_end), alpha_sharpness=alpha_sharpness)
 
         # set "dpmpp_sde" as the stage3 sampler
         if alternative_refiner:
@@ -219,7 +213,7 @@ class ZSamplerTurboX21(io.ComfyNode):
             positive,
             seed  = seed,
             steps = steps,
-            initial_noise_bias_level  = initial_noise_bias_level,
+            initial_noise_bias_level  = initial_noise_bias_level if not disable_ibias else 0,
             initial_noise_overdose    = initial_noise_overdose,
             noise_est_sample_size     = "full_size",
             sigma_preset_name         = "bravo" if not old_scheduler else "alpha",
@@ -236,3 +230,9 @@ class ZSamplerTurboX21(io.ComfyNode):
         )
 
         return io.NodeOutput(latent_output)
+
+    #__ internal functions ________________________________
+
+    @staticmethod
+    def spectral_tilts() -> list[str]:
+        return list( _SPECTRAL_TILTS_BY_NAME.keys() )
