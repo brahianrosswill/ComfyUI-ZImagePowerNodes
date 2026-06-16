@@ -20,12 +20,14 @@ from comfy_api.latest              import io
 from .custom_widgets               import Separator
 from .core.progress_bar            import ProgressPreview
 from .core.zsampler_turbo_core     import zsampler_turbo_core
-from .core.zsampler_turbo_corehelp import EulerAss
+from .core.zsampler_turbo_corehelp import EulerAss, DPMPP_SDEss
 from .custom_widgets               import Separator
 _SPECTRAL_TILTS_BY_NAME = {
-    "none"      : (   "",  0.0,  0.0, 1.0),
-    "stage3h"   : (  "3", -0.3, -0.3, 1.0),
-    "stages123h": ("123",  0.2, -0.9, 0.7),
+    "none"       : (   "", ( 0.0,  0.0), 1.0),
+    "stage3_H"   : (  "3", (-0.3, -0.3), 1.0),
+    "stages12x_H": ("12x", ( 0.2, -0.9), 0.7),
+    "stages12x_l": ("12x", ( 0.2, -2.0), 0.8),
+    "stages123_H": ("123", ( 0.2, -0.9), 0.7),
 }
 
 
@@ -112,9 +114,9 @@ class ZSamplerTurboX21(io.ComfyNode):
                                      ),
                 io.Boolean.Input     ("disable_ibias",
                                       default=False, label_on="yes", label_off="no",
-                                      tooltip="Disables the custom adjustment for the intensity noise bias (ibias)."
-                                              "When this option is activated, the ibias parameter is ignored and not "
-                                              "calculated during the denoising process. ",
+                                      tooltip="Disables the custom adjustment for the intensity noise bias (ibias). "
+                                              "When this option is selected, the ibias parameter is ignored and not "
+                                              "calculated during the denoising process, saving a computation step. "
                                      ),
                 io.Boolean.Input     ("old_scheduler",
                                       default=False, label_on="yes", label_off="no",
@@ -140,12 +142,11 @@ class ZSamplerTurboX21(io.ComfyNode):
                 seed                  : int,
                 steps                 : int,
                 ibias                 : float,
+                spectral_tilt         : str,
                 turbo_creativity      : bool,
+                alternative_refiner   : bool,
                 disable_ibias         : bool,
                 old_scheduler         : bool,
-                spectral_tilt         : str,
-                noise_injection       : bool = False,
-                alternative_refiner   : bool = False,
                 *,
                 positive_stg2 : list | None = None,
                 positive_stg3 : list | None = None,
@@ -165,13 +166,6 @@ class ZSamplerTurboX21(io.ComfyNode):
         # apply user-defined adjustment `ibias` to the calculated noise bias level
         initial_noise_bias_level += 10 * ibias
         initial_noise_bias_level = min(max(initial_noise_bias_level, -6.0), 14.0)
-
-        # noise injection
-        inject_noise_freqs  = None
-        inject_noise_scales = None
-        if noise_injection:
-            inject_noise_freqs  = (  0,   0, 1024, 896, 448)
-            inject_noise_scales = (0.0, 0.0,  0.7, 1.5, 1.0)
 
         # turbo_creativity enables stage2 scrambling + coherence step
         stage2_scramble       = False
@@ -194,17 +188,20 @@ class ZSamplerTurboX21(io.ComfyNode):
         #
         weak_stg2_prompt_influence = (positive_stg3 is None)
 
-        # set samplers for each stage
+        # define samplers for each stage;
+        # when "Spectral Tilt" is enabled, a custom sampler is used (EulerAss)
+        stilt_stages, alpha_tilting, spectral_tilt_sharpness = _SPECTRAL_TILTS_BY_NAME[spectral_tilt]
         samplers: list[str|object] = [ "euler" , "euler", "euler" ]
-        stilt_stages, alpha_begin, alpha_end, alpha_sharpness = _SPECTRAL_TILTS_BY_NAME[spectral_tilt];
-        if "1" in stilt_stages: samplers[0] = EulerAss((alpha_begin, alpha_end), alpha_sharpness=alpha_sharpness)
-        if "2" in stilt_stages: samplers[1] = EulerAss((alpha_begin, alpha_end), alpha_sharpness=alpha_sharpness)
-        if "3" in stilt_stages: samplers[2] = EulerAss((alpha_begin, alpha_end), alpha_sharpness=alpha_sharpness)
+        if "1" in stilt_stages: samplers[0] = EulerAss(alpha_tilting, alpha_sharpness=spectral_tilt_sharpness)
+        if "2" in stilt_stages: samplers[1] = EulerAss(alpha_tilting, alpha_sharpness=spectral_tilt_sharpness)
+        if "3" in stilt_stages: samplers[2] = EulerAss(alpha_tilting, alpha_sharpness=spectral_tilt_sharpness)
 
-        # set "dpmpp_sde" as the stage3 sampler
+        # if alternative refiner is selected -> set "dpmpp_sde" as the sampler for stage 3;
+        # when "Spectral Tilt" is enabled, a custom sampler is used (DPMPP_SDEss)
         if alternative_refiner:
             samplers[2] = "dpmpp_sde"
-
+            if "3" in spectral_tilt:
+                samplers[2] = DPMPP_SDEss(alpha_tilting, alpha_sharpness=spectral_tilt_sharpness)
 
         # run the Z-Sampler Turbo core method on the latent image
         latent_output = zsampler_turbo_core(
@@ -213,23 +210,22 @@ class ZSamplerTurboX21(io.ComfyNode):
             positive,
             seed  = seed,
             steps = steps,
-            initial_noise_bias_level  = initial_noise_bias_level if not disable_ibias else 0,
-            initial_noise_overdose    = initial_noise_overdose,
-            noise_est_sample_size     = "full_size",
-            sigma_preset_name         = "bravo" if not old_scheduler else "alpha",
-            sigma_limits              = sigma_limits,
-            positive_stg2_preproc     = positive if weak_stg2_prompt_influence else positive_stg2,
-            positive_stg2             = positive_stg2,
-            positive_stg3             = positive_stg3,
-            stage2_scramble           = stage2_scramble,
-            stage2_preproc_steps      = 1 if stage2_keep_coherence else 0,
-            extra_noise_freqs         = inject_noise_freqs,
-            extra_noise_scales        = inject_noise_scales,
-            samplers                  = (*samplers,),
+            initial_noise_bias_level = initial_noise_bias_level if not disable_ibias else 0,
+            initial_noise_overdose   = initial_noise_overdose,
+            noise_est_sample_size    = "full_size",
+            sigma_preset_name        = "bravo" if not old_scheduler else "alpha",
+            sigma_limits             = sigma_limits,
+            positive_stg2_preproc    = positive if weak_stg2_prompt_influence else positive_stg2,
+            positive_stg2            = positive_stg2,
+            positive_stg3            = positive_stg3,
+            stage2_scramble          = stage2_scramble,
+            stage2_preproc_steps     = 1 if stage2_keep_coherence else 0,
+            samplers                 = (*samplers,),
             progress_preview = ProgressPreview.from_model(model),
         )
 
         return io.NodeOutput(latent_output)
+
 
     #__ internal functions ________________________________
 

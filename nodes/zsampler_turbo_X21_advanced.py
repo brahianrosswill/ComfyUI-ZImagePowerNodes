@@ -218,8 +218,8 @@ class ZSamplerTurboX21Advanced(io.ComfyNode):
 
         # define samplers for each stage;
         # when "Spectral Tilt" is enabled, a custom sampler is used (EulerAss)
-        samplers: list[str|object] = [ "euler" , "euler", "euler" ]
         alpha_tilting = (spectral_tilt_start, spectral_tilt_end)
+        samplers: list[str|object] = [ "euler" , "euler", "euler" ]
         if "1" in spectral_tilt: samplers[0] = EulerAss(alpha_tilting, alpha_sharpness=spectral_tilt_sharpness)
         if "2" in spectral_tilt: samplers[1] = EulerAss(alpha_tilting, alpha_sharpness=spectral_tilt_sharpness)
         if "3" in spectral_tilt: samplers[2] = EulerAss(alpha_tilting, alpha_sharpness=spectral_tilt_sharpness)
