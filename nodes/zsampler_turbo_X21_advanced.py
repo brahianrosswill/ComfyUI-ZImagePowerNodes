@@ -20,7 +20,7 @@ from comfy_api.latest              import io
 from .custom_widgets               import Separator
 from .core.progress_bar            import ProgressPreview
 from .core.zsampler_turbo_core     import zsampler_turbo_core
-from .core.zsampler_turbo_corehelp import EulerAss
+from .core.zsampler_turbo_corehelp import EulerAss, DPMPP_SDEss
 from .custom_widgets               import Separator
 
 
@@ -117,7 +117,7 @@ class ZSamplerTurboX21Advanced(io.ComfyNode):
                 Separator.Input("divider2", mode="divider"),#======================================
 
                 io.Combo.Input       ("spectral_tilt",
-                                      options=["no", "stage3", "stages23", "stages123"],
+                                      options=["no", "stage3", "stages23", "stages123", "stages12X"],
                                       tooltip=""
                                      ),
                 io.Float.Input       ("spectral_tilt_start",
@@ -216,18 +216,20 @@ class ZSamplerTurboX21Advanced(io.ComfyNode):
         #
         weak_stg2_prompt_influence = (positive_stg3 is None)
 
-        # set samplers for each stage
+        # define samplers for each stage;
+        # when "Spectral Tilt" is enabled, a custom sampler is used (EulerAss)
         samplers: list[str|object] = [ "euler" , "euler", "euler" ]
         alpha_tilting = (spectral_tilt_start, spectral_tilt_end)
         if "1" in spectral_tilt: samplers[0] = EulerAss(alpha_tilting, alpha_sharpness=spectral_tilt_sharpness)
         if "2" in spectral_tilt: samplers[1] = EulerAss(alpha_tilting, alpha_sharpness=spectral_tilt_sharpness)
         if "3" in spectral_tilt: samplers[2] = EulerAss(alpha_tilting, alpha_sharpness=spectral_tilt_sharpness)
 
-        # set "dpmpp_sde" as the stage3 sampler
+        # if alternative refiner is selected -> set "dpmpp_sde" as the sampler for stage 3;
+        # when "Spectral Tilt" is enabled, a custom sampler is used (DPMPP_SDEss)
         if alternative_refiner:
             samplers[2] = "dpmpp_sde"
-
-        print("##>> initial_noise_bias_level:", initial_noise_bias_level);
+            if "3" in spectral_tilt:
+                samplers[2] = DPMPP_SDEss(alpha_tilting, alpha_sharpness=spectral_tilt_sharpness)
 
         # run the Z-Sampler Turbo core method on the latent image
         latent_output = zsampler_turbo_core(
