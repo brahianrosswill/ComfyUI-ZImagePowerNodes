@@ -53,7 +53,6 @@ function addStyleGalleryButton(node, name, data) {
             label    : `🖼️  ${buttonTitle} ...`,
             serialize: true,
             options  : {
-                version     : "1.0.0",
                 dialog_title: dialogTitle,
                 prev_index  : prevIndex,
                 ...options
@@ -74,10 +73,10 @@ function addStyleGalleryButton(node, name, data) {
         // }
         const options        = button.options;
         const prevWidget     = button.node.widgets[options.prev_index];
-        const version        = options.version || "1.0";
+        const endpoint       = options.endpoint || "";
         const dialog_options = options.dialog || {};
 
-        const styleDialog  = requireVisualStyleGalleryDialog(version);
+        const styleDialog  = requireVisualStyleGalleryDialog(endpoint);
         const currentStyle = prevWidget.value?.replace(/^"|"$/g, '');
         styleDialog.launch( dialog_options, currentStyle, (selectedStyle) =>
         {
