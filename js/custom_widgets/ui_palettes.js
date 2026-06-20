@@ -156,7 +156,7 @@ class PaletteGalleryDialogDelegate extends GalleryDialogDelegate {
      *    The HTML string representing the image element
      *    or an empty string if the item or thumbnail is missing.
      */
-    htmlItemImage(item, _value, _options, _cacheBuster, htmlClass) {
+    htmlItemImage(item, _value, _options, htmlClass) {
         if( !item ) { return ""; }
         const colorBars = item.colors.map(color => `
             <div style="

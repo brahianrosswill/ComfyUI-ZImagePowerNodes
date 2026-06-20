@@ -51,7 +51,7 @@ const _dialogsByEndpoint = new Map();
  *       - category   : The category of the style (string)
  *       - description: Description of the style (string)
  *       - tags       : An string of comma-separated tags associated with the style (string)
- *       - thumbnail  : URL for the style's thumbnail image (string)
+ *       - slug       : url-friendly slug (used for building thumbnail filenames)
  *
  * @example
  *   // Using async/await
@@ -88,16 +88,14 @@ async function fetchVisualStyleArray(endpoint)
             const styles = await response.json();
             if( !Array.isArray(styles) ) { throw new Error(`Expected an array but received ${typeof palettes}`); }
 
-            const THUMBNAIL_BASE_URL = "/zi_power/styles/samples";
             return styles.map((style, index) => {
-                const thumbFileName = style[4] || "";
                 return {
                     idx        : index,
                     name       : style[0] || "Unknown",
                     category   : style[1] || "Uncategorized",
                     description: style[2] || "",
                     tags       : style[3] || "",
-                    thumbnail  : thumbFileName ? `${THUMBNAIL_BASE_URL}?file=${thumbFileName}` : ""
+                    slug       : style[4] || style[0] || "" // url-friendly slug (used for thumbnail filenames)
                 };
             });
 
@@ -123,9 +121,10 @@ async function fetchVisualStyleArray(endpoint)
 
 class StyleDialogDelegate extends GalleryDialogDelegate {
 
-    constructor(endpoint) {
+    constructor(endpoint, imagesURLTemplate) {
         super();
-        this.endpoint = endpoint;
+        this.endpoint          = endpoint;
+        this.imagesURLTemplate = imagesURLTemplate;
     }
 
     /**
@@ -137,7 +136,7 @@ class StyleDialogDelegate extends GalleryDialogDelegate {
      *       - category   : The category the item belongs to (string)
      *       - description: A detailed description of the item (string)
      *       - tags       : An string of comma-separated tags associated with the style (string)
-     *       - thumbnail  : URL for the item's thumbnail image (string)
+     *       - slug       : url-friendly slug (used for building thumbnail filenames)
      */
     async fetchItemArray() {
         return fetchVisualStyleArray(this.endpoint);
@@ -161,28 +160,57 @@ class StyleDialogDelegate extends GalleryDialogDelegate {
             ["custom"      , "Custom"      , "Search only custom styles"       ]
         ];
     }
+
+    /**
+     * Renders the main image HTML element for the selected item.
+     *
+     * This implementation renders a lazy-loaded image using the item's
+     * properties and the template stored in `this.imagesURLTemplate`,
+     * or returns an empty string if the item is `null` or invalid.
+     *
+     * @param {Object|null} item      - The data object representing the item, or `null` if no item is selected.
+     * @param {string}      value     - The value of the item, as reported to the backend.
+     * @param {Object}      options   - An object containing the options with which the dialog was configured.
+     * @param {string}      htmlClass - CSS class to be applied to the img tag
+     * @returns {string}
+     *    The HTML string representing the image element
+     *    or an empty string if the item is `null` or invalid.
+     */
+    htmlItemImage(item, value, options, htmlClass) {
+        if( !item?.slug ) { return ""; }
+        const data = {
+            slug       : item.slug,
+            file       : `${item.slug}.jpg`,
+            size       : htmlClass.includes('thumb') ? "small" : "big",
+            cachebuster: options.cache_buster
+        };
+        const imageURL = this.imagesURLTemplate.replace(/{(\w+)}/g, (match, key) => data[key] ?? match);
+        return `<img class="${htmlClass}" src="${imageURL}" loading="lazy" alt="${value | ""}"/>`;
+    }
+
 }
 
 /**
  * Returns a style selection dialog containing the styles loaded from the specified endpoint.
- * @param {string} endpoint - The full endpoint URL to fetch the styles from.
+ * @param {string} endpoint          - The full endpoint URL to fetch the styles from.
+ * @param {string} imagesURLTemplate - The template for the image URL of each style.
  * @returns {GalleryDialog}
  *   The gallery dialog instance for the specified endpoint
  * @example
- *   const styleDialog  = requireVisualStyleGalleryDialog("/api/styles/v1/list");
+ *   const styleDialog  = requireVisualStyleGalleryDialog("/api/styles/v1/list", "/api/styles/thumbs/{file}?size={size}");
  *   const currentStyle = "Anime";
  *   styleDialog.launch( {}, currentStyle, (selectedStyle) => {
  *       console.log("Selected Style: " + selectedStyle);
  *   });
  */
-function requireVisualStyleGalleryDialog(endpoint) {
+function requireVisualStyleGalleryDialog(endpoint, imagesURLTemplate) {
 
     // check if a dialog is already registered for the specified endpoint
     const dialog = _dialogsByEndpoint.get(endpoint);
     if( dialog ) { return dialog; }
 
     // If no dialog exists for this endpoint, create a new one
-    const newDelegate = new StyleDialogDelegate(endpoint);
+    const newDelegate = new StyleDialogDelegate(endpoint, imagesURLTemplate);
     const newDialog   = new GalleryDialog(newDelegate);
     _dialogsByEndpoint.set(endpoint, newDialog);
     return newDialog;
@@ -197,9 +225,10 @@ function requireVisualStyleGalleryDialog(endpoint) {
 
 class StyleWidgetDelegate extends GalleryWidgetDelegate {
 
-    constructor(endpoint) {
+    constructor(endpoint, imagesURLTemplate) {
         super();
         this.endpoint = endpoint;
+        this.imagesURLTemplate = imagesURLTemplate;
     }
 
     async fetchItemArray() {
@@ -217,10 +246,6 @@ class StyleWidgetDelegate extends GalleryWidgetDelegate {
         return item.name;
     }
 
-    getItemThumbnailURL(item, _value) {
-        return item?.thumbnail || "";
-    }
-
     /**
      * Draws the image/thumbnail for a specific item.
      *
@@ -235,12 +260,18 @@ class StyleWidgetDelegate extends GalleryWidgetDelegate {
      *     space used on the right side of the drawing area.
      */
     drawItemThumbnail(ctx, rect, item, value, options, requestImage) {
-        const thumbSize = 32;
-        const rect_right = rect.left + rect.width;
+        if( !item?.slug ) { return 0; }
 
-        if( !item?.thumbnail ) { return 0; }
-        const imageURL = this.getItemThumbnailURL(item, value);
-        const image    = requestImage(imageURL);
+        const data       = {
+            slug       : item.slug,
+            file       : `${item.slug}.jpg`,
+            size       : "small",
+            cachebuster: options.cache_buster
+        };
+        const thumbSize  = 32;
+        const rect_right = rect.left + rect.width;
+        const imageURL   = this.imagesURLTemplate.replace(/{(\w+)}/g, (match, key) => data[key] ?? match);
+        const image      = requestImage(imageURL);
 
         // if the image is fully loaded, draw it!!
         if( image.complete && image.naturalWidth > 0 ) {
@@ -262,18 +293,18 @@ class StyleWidgetDelegate extends GalleryWidgetDelegate {
 
 
 function addVisualStyleGalleryWidget(node, name, data) {
-    const type           = data[0];
-    const options        = data[1] || {};
-    const endpoint       = options.endpoint || "";
-    const images_url     = "/zi_power/styles/samples?file=${name}&cb=${cachebuster}";
-    const thumbs_url     = "/zi_power/styles/samples?file=${name}&cb=${cachebuster}";
-    const dialog_options = options.dialog || {};
-    let widget = new GalleryWidget(type, node, name, options, new StyleWidgetDelegate(endpoint), (widget) =>
+    const type          = data[0];
+    const options       = data[1] || {};
+    const endpoint      = options.endpoint   || "";
+    const imagesURL     = options.images_url || "";
+    const dialogOptions = options.dialog || {};
+    const widgetDelegate = new StyleWidgetDelegate(endpoint, imagesURL);
+    let widget = new GalleryWidget(type, node, name, options, widgetDelegate, (widget) =>
     {
         // launch dialog and update widget value
-        const styleDialog  = requireVisualStyleGalleryDialog(endpoint);
+        const styleDialog  = requireVisualStyleGalleryDialog(endpoint, imagesURL);
         const currentStyle = widget.value;
-        styleDialog.launch( dialog_options, currentStyle, (selectedStyle) => {
+        styleDialog.launch( dialogOptions, currentStyle, (selectedStyle) => {
             widget.forceUpdate( selectedStyle );
         });
     });

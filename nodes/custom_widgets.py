@@ -130,6 +130,7 @@ class StyleSelector:
                      id              : str, *,
                      version         : str  | None = None,
                      endpoint        : str  | None = None,
+                     images_url      : str  | None = None,
                      height          : int  | None = None,
                      dialog_title    : str  | None = None,
                      dialog_icon     : str  | None = None,
@@ -146,6 +147,7 @@ class StyleSelector:
                 version (str):          The version of the style database to load (e.g., "1.0").
                 endpoint (str):         The endpoint to use for loading the style database.
                                         (if specified then `version` will not be taken into account.)
+                images_url (str):       The template for building the URL of each style preview image.
                 height (int):           The height of the widget in pixels.
                 dialog_title (str):     The title of the dialog window displayed for style selection.
                 dialog_size (str):      The size of the dialog window. Supported values: "small" or "default".
@@ -157,7 +159,9 @@ class StyleSelector:
                 tooltip (str):          A tooltip description for the widget.
             """
             if not version and not endpoint:
-                raise ValueError("Either version or endpoint must be specified.")
+                raise ValueError("Either `version` or `endpoint` must be specified.")
+            if not images_url:
+                raise ValueError("The `images_url` parameter must be specified.")
             if not dialog_title:
                 dialog_title = "Select Style"
 
@@ -173,6 +177,9 @@ class StyleSelector:
             if endpoint is not None:
                 extra_dict["endpoint"]           = endpoint
                 extra_dict["dialog"]["endpoint"] = endpoint
+
+            if images_url is not None:
+                extra_dict["images_url"] = images_url
 
             if height is not None:
                 extra_dict["height"] = height
@@ -309,8 +316,9 @@ class StyleGalleryButton:
                 raise ValueError("Either version or endpoint must be specified.")
 
             extra_dict: dict[str,Any] = {
-                "title": "Select Style",
-                "dialog": {},
+                "title"     : "Select Style",
+                "dialog"    : {},
+                "images_url": "/zi_power/styles/samples?file={slug}.jpg&cb={cachebuster}"
             }
 
             if version is not None:
